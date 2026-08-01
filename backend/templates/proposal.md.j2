@@ -1,0 +1,196 @@
+# {{ project.name }}
+
+## 策划设计方案书
+
+---
+
+**项目代码**：{{ project.code }}  
+**产品线**：{{ project.product_line }} · 开放式街区  
+**设计阶段**：{{ project.phase }} · 概念方案  
+**评估标准**：{{ standard.name }} ({{ standard.code }})  
+**编制单位**：集木建筑工程（上海）有限公司  
+**编制日期**：{{ date }}
+
+---
+
+## 一、项目概述
+
+### 1.1 项目背景
+
+{{ project.name }}为集木建筑主导的人宠友好开放式街区策划设计项目，依据它界 TAF 评估体系进行全面的人宠友好标准评估与设施规划。
+
+{% if project.location %}
+- **项目区位**：{{ project.location }}
+{% endif %}
+{% if project.client_name %}
+- **委托方**：{{ project.client_name }}{% if project.client_company %}（{{ project.client_company }}）{% endif %}
+{% endif %}
+
+### 1.2 设计范围
+
+本项目以 OS（开放式街区）产品线标准为评估基准，覆盖六大板块：
+
+| 板块 | 权重 | 评估项数 |
+|------|:----:|:--------:|
+{% for cat in categories %}
+| {{ cat.id }} {{ cat.name }} | {{ "%.0f"|format(cat.weight * 100) }}% | {{ cat.item_count }} |
+{% endfor %}
+
+---
+
+## 二、人宠友好标准评估
+
+### 2.1 总体评估
+
+<div style="text-align:center; margin: 20px 0;">
+
+**总分：{{ evaluation.total_score }}/100**
+
+{% for i in range(evaluation.stars) %}⭐{% endfor %}{% for i in range(5 - evaluation.stars) %}☆{% endfor %}
+
+**{{ evaluation.level }}**
+
+</div>
+
+### 2.2 各板块得分
+
+| 板块 | 得分 | 满分 | 得分率 |
+|------|:----:|:----:|:------:|
+{% for cs in evaluation.category_scores %}
+| {{ cs.category_id }} {{ cs.category_name }} | {{ cs.score }} | {{ cs.max_score }} | {{ cs.percentage }}% |
+{% endfor %}
+
+### 2.3 必选项达标情况
+
+- 必选项总计：{{ evaluation.prerequisite_total }} 项
+- 已达标：{{ evaluation.prerequisite_passed }} 项
+- 达标率：{{ "%.0f"|format(evaluation.prerequisite_passed / evaluation.prerequisite_total * 100) if evaluation.prerequisite_total > 0 else 0 }}%
+
+### 2.4 评估明细
+
+| 编号 | 评估项 | 类型 | 状态 | 达成等级 | 得分 |
+|------|--------|:----:|:----:|----------|:----:|
+{% for cs in evaluation.category_scores %}
+| **{{ cs.category_id }} {{ cs.category_name }}** ||||||
+{% for item in cs['items'] %}
+| {{ item.item_id }} | {{ item.name }} | {{ item.type }} | {% if item.has_facility %}{{ item.status }}{% else %}❌{% endif %} | {{ item.achieved_label }} | {{ item.score }}/{{ item.score_max }} |
+{% endfor %}
+{% endfor %}
+
+---
+
+## 三、设施配置方案
+
+本项目共配置 **{{ facilities|length }}** 项宠物友好设施：
+
+{% for cat_id, cat_facs in facilities_by_category.items() %}
+### 3.{{ loop.index }} {{ cat_names[cat_id] }}（{{ cat_facs|length }} 项）
+
+| 编号 | 设施名称 | 类型 | 数量 | 规格/品牌 | 配置状态 |
+|------|----------|:----:|:----:|-----------|:--------:|
+{% for f in cat_facs %}
+| {{ f.standard_item_id }} | {{ f.name }} | {{ f.type }} | {{ f.quantity }} | {{ f.spec_text }} | {{ f.status }} |
+{% endfor %}
+
+{% endfor %}
+
+---
+
+## 四、改造优先级矩阵
+
+{% if priority %}
+基于设施的影响度、成本和可行性分析，建议分三阶段实施：
+
+| 阶段 | 设施数量 | 说明 |
+|------|:--------:|------|
+{% for phase, count in priority.summary.items() %}
+| {{ phase }} | {{ count }} | — |
+{% endfor %}
+
+### 近期优先实施（🔥）
+
+| 设施名称 | 板块 | 影响度 | 成本 | 可行性 |
+|----------|------|:------:|:----:|:------:|
+{% for r in priority['items'] if r.phase == "🔥 近期" %}
+| {{ r.name }} | {{ r.category_name }} | {{ r.impact }} | {{ r.cost_level }} | {{ r.feasibility_label }} |
+{% endfor %}
+
+### 中期规划（🟡）
+
+| 设施名称 | 板块 | 影响度 | 成本 | 可行性 |
+|----------|------|:------:|:----:|:------:|
+{% for r in priority['items'] if r.phase == "🟡 中期" %}
+| {{ r.name }} | {{ r.category_name }} | {{ r.impact }} | {{ r.cost_level }} | {{ r.feasibility_label }} |
+{% endfor %}
+
+{% endif %}
+
+---
+
+## 五、多标准交叉评估
+
+{% if benchmark %}
+将本项目设施配置与 {{ benchmark.results|length }} 套标准进行交叉评估：
+
+| 标准 | 总分 | 等级 | 星级 |
+|------|:----:|------|:----:|
+{% for r in benchmark.results %}
+| {{ r.name }} ({{ r.code }}){% if r.is_current %} ← 当前{% endif %} | {{ r.total_score }} | {{ r.level }} | {% for i in range(r.stars) %}⭐{% endfor %} |
+{% endfor %}
+
+{% if benchmark.gap_lists %}
+### 补项建议
+
+{% for std_code, gaps in benchmark.gap_lists.items() %}
+#### 若需达到 {{ std_code }} 标准满分，需新增以下设施：
+
+| 编号 | 设施名称 | 类型 |
+|------|----------|:----:|
+{% for g in gaps %}
+| {{ g.item_id }} | {{ g.name }} | {{ g.type }} |
+{% endfor %}
+
+{% endfor %}
+{% endif %}
+{% endif %}
+
+---
+
+## 六、实施建议
+
+{% if evaluation.recommendations %}
+{% for rec in evaluation.recommendations %}
+- {{ rec }}
+{% endfor %}
+{% endif %}
+
+### 6.1 分阶段实施路径
+
+1. **概念方案阶段（NC）**：完成全部 35 项设施的概念设计与布点规划
+2. **深化设计阶段（EI）**：细化设施规格、选型、与各专业协调
+3. **施工图阶段（CO）**：出具设施安装大样图、定位图
+
+### 6.2 关键成功因素
+
+- 设施与建筑、景观、标识专业的协同设计
+- 运营管理团队的早期介入
+- 社区商户的人宠友好培训
+
+---
+
+## 附录
+
+### A. 评估标准说明
+
+本方案依据 **{{ standard.name }} ({{ standard.code }} v{{ standard.version }})** 进行评估。
+
+### B. 术语定义
+
+- **必选项（prerequisite）**：必须配置的设施，不达标则整体不通过
+- **加分项（credit）**：可选配置，贡献额外分数
+- **confirmed**：已确认配置方案
+- **installed**：已安装落地
+
+---
+
+*本方案由它界 TAF 评估平台自动生成 · {{ date }} · 集木建筑*

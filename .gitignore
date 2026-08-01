@@ -1,0 +1,39 @@
+# 环境变量 / 密钥
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 上传数据
+data/disk/
+uploads/
+
+# 项目文档（非代码）
+*.docx
+WORKLOG.md
+RECONNECT.md
+test.md
+
+# 临时文件
+*.tmp
+*.bak
+demo_taf.dxf
+
+# 废弃
+backend/app/
+scripts/seed*.sql
+seed_data.json

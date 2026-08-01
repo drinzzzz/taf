@@ -1,0 +1,18 @@
+[Unit]
+Description=TAF — 它界人宠友好空间评估平台
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/TAF/backend
+Environment=DB_PASSWORD=***
+E...3.11 -m uvicorn main:app --host 0.0.0.0 --port 8800
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
