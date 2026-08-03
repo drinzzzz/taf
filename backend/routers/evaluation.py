@@ -13,7 +13,7 @@ from schemas.models import (
     EvaluationResult, ScoreHistory, StandardSwitchRequest, StandardImpactPreview,
 )
 from services.evaluation import EvaluationEngine
-from deps import get_db
+from deps import get_db, get_current_user
 
 import logging
 logger = logging.getLogger("taf.evaluation")
@@ -47,7 +47,7 @@ async def _save_score_history(db: AsyncSession, project_id: UUID, standard_code:
 
 
 @router.post("/{project_id}/evaluate", response_model=EvaluationResult)
-async def evaluate_project(project_id: UUID, db: AsyncSession = Depends(get_db)):
+async def evaluate_project(project_id: UUID, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     p = (await db.execute(
         select(Project).where(Project.id == project_id, Project.deleted_at.is_(None))
     )).scalar_one_or_none()
@@ -74,7 +74,7 @@ async def evaluate_project(project_id: UUID, db: AsyncSession = Depends(get_db))
         await _save_score_history(db, project_id, standard.code,
                                    result["total_score"], result["level"], result["stars"])
     except Exception:
-        logger.debug("评分历史持久化失败（表可能未创建）", exc_info=True)
+        logger.warning("评分历史持久化失败", exc_info=True)
 
     return EvaluationResult(
         project_id=project_id,
@@ -86,7 +86,33 @@ async def evaluate_project(project_id: UUID, db: AsyncSession = Depends(get_db))
 
 @router.get("/{project_id}/score", response_model=EvaluationResult)
 async def get_score(project_id: UUID, db: AsyncSession = Depends(get_db)):
-    return await evaluate_project(project_id, db)
+    # 复用评估逻辑，但不要求认证（只读）
+    p = (await db.execute(
+        select(Project).where(Project.id == project_id, Project.deleted_at.is_(None))
+    )).scalar_one_or_none()
+    if not p:
+        raise HTTPException(404, "项目不存在")
+    if not p.standard_id:
+        raise HTTPException(400, "项目未绑定评估标准")
+
+    standard = (await db.execute(
+        select(StandardPlugin).where(StandardPlugin.id == p.standard_id)
+    )).scalar_one_or_none()
+    if not standard:
+        raise HTTPException(400, "绑定标准不存在")
+
+    fac_result = await db.execute(
+        select(Facility).where(Facility.project_id == project_id)
+    )
+    facilities = fac_result.scalars().all()
+
+    result = _build_eval_result(project_id, standard, facilities, p.custom_weights)
+    return EvaluationResult(
+        project_id=project_id,
+        standard_code=standard.code,
+        standard_name=standard.name,
+        **result,
+    )
 
 
 @router.get("/{project_id}/score/history", response_model=list[ScoreHistory])
@@ -102,7 +128,7 @@ async def get_score_history(project_id: UUID, db: AsyncSession = Depends(get_db)
             total_score=row[3], level=row[4], stars=row[5], evaluated_at=row[6]
         ) for row in rows]
     except Exception:
-        logger.debug("评分历史查询失败", exc_info=True)
+        logger.warning("评分历史查询失败", exc_info=True)
         return []
 
 
@@ -175,7 +201,7 @@ async def preview_standard_switch(project_id: UUID, new_code: str, db: AsyncSess
 
 
 @router.post("/{project_id}/standard/switch")
-async def switch_standard(project_id: UUID, data: StandardSwitchRequest, db: AsyncSession = Depends(get_db)):
+async def switch_standard(project_id: UUID, data: StandardSwitchRequest, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     p = (await db.execute(
         select(Project).where(Project.id == project_id, Project.deleted_at.is_(None))
     )).scalar_one_or_none()
@@ -209,7 +235,7 @@ async def switch_standard(project_id: UUID, data: StandardSwitchRequest, db: Asy
             "now": datetime.utcnow()
         })
     except Exception:
-        logger.debug("标准切换日志记录失败", exc_info=True)
+        logger.warning("标准切换日志记录失败", exc_info=True)
     
     await db.commit()
 

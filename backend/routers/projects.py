@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/projects", tags=["项目"])
 
 
 @router.post("", response_model=ProjectOut, status_code=201)
-async def create_project(data: ProjectCreate, db: AsyncSession = Depends(get_db)):
+async def create_project(data: ProjectCreate, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     # Generate code
     from datetime import datetime
     year = datetime.utcnow().year
@@ -110,7 +110,7 @@ async def get_project(project_id: UUID, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/{project_id}", response_model=ProjectOut)
-async def update_project(project_id: UUID, data: ProjectUpdate, db: AsyncSession = Depends(get_db)):
+async def update_project(project_id: UUID, data: ProjectUpdate, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Project).where(Project.id == project_id, Project.deleted_at.is_(None))
     )
@@ -128,7 +128,7 @@ async def update_project(project_id: UUID, data: ProjectUpdate, db: AsyncSession
 
 
 @router.delete("/{project_id}", status_code=204)
-async def delete_project(project_id: UUID, db: AsyncSession = Depends(get_db)):
+async def delete_project(project_id: UUID, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Project).where(Project.id == project_id, Project.deleted_at.is_(None))
     )
@@ -143,7 +143,7 @@ async def delete_project(project_id: UUID, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/{project_id}/duplicate", response_model=ProjectOut, status_code=201)
-async def duplicate_project(project_id: UUID, db: AsyncSession = Depends(get_db)):
+async def duplicate_project(project_id: UUID, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Project).where(Project.id == project_id, Project.deleted_at.is_(None))
     )

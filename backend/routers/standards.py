@@ -10,7 +10,7 @@ from models.database import StandardPlugin
 from schemas.models import (
     StandardPluginCreate, StandardPluginOut, StandardPluginBrief,
 )
-from deps import get_db
+from deps import get_db, get_current_user
 
 router = APIRouter(prefix="/api/standards", tags=["评估标准"])
 
@@ -29,7 +29,7 @@ async def list_standards(
 
 
 @router.post("", response_model=StandardPluginOut, status_code=201)
-async def create_standard(data: StandardPluginCreate, db: AsyncSession = Depends(get_db)):
+async def create_standard(data: StandardPluginCreate, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     existing = (await db.execute(
         select(StandardPlugin).where(StandardPlugin.code == data.code)
     )).scalar_one_or_none()
@@ -66,7 +66,7 @@ async def get_standard(code: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/{code}", response_model=StandardPluginOut)
-async def update_standard(code: str, data: StandardPluginCreate, db: AsyncSession = Depends(get_db)):
+async def update_standard(code: str, data: StandardPluginCreate, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(StandardPlugin).where(StandardPlugin.code == code)
     )
@@ -84,7 +84,7 @@ async def update_standard(code: str, data: StandardPluginCreate, db: AsyncSessio
 
 
 @router.post("/{code}/activate", response_model=StandardPluginOut)
-async def activate_standard(code: str, db: AsyncSession = Depends(get_db)):
+async def activate_standard(code: str, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(StandardPlugin).where(StandardPlugin.code == code)
     )

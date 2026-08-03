@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.database import Project, Facility, StandardPlugin
 from services.evaluation import EvaluationEngine
-from deps import get_db
+from deps import get_db, get_current_user
 from .helpers import _get_project, _get_standard, _get_facilities, logger
 
 router = APIRouter(prefix="/api/projects", tags=["策划成果"])
@@ -157,6 +157,7 @@ def _generate_annotated_map_inline(project, standard, facilities, evaluation, ou
 @router.post("/{project_id}/deliverables/annotated-map")
 async def generate_annotated_map(
     project_id: UUID,
+    user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """生成设施标注渲染图 PNG（评分色块 + 动线箭头 + 设施图标）"""

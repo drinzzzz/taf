@@ -10,7 +10,7 @@ from models.database import Facility, Project, StandardPlugin
 from schemas.models import (
     FacilityCreate, FacilityUpdate, FacilityOut, FacilityBatchCreate,
 )
-from deps import get_db
+from deps import get_db, get_current_user
 
 router = APIRouter(prefix="/api", tags=["设施"])
 
@@ -42,7 +42,7 @@ async def list_facilities(
 
 
 @router.post("/projects/{project_id}/facilities", response_model=FacilityOut, status_code=201)
-async def create_facility(project_id: UUID, data: FacilityCreate, db: AsyncSession = Depends(get_db)):
+async def create_facility(project_id: UUID, data: FacilityCreate, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     p = (await db.execute(select(Project).where(Project.id == project_id, Project.deleted_at.is_(None)))).scalar_one_or_none()
     if not p:
         raise HTTPException(404, "项目不存在")
@@ -63,7 +63,7 @@ async def get_facility(facility_id: UUID, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/facilities/{facility_id}", response_model=FacilityOut)
-async def update_facility(facility_id: UUID, data: FacilityUpdate, db: AsyncSession = Depends(get_db)):
+async def update_facility(facility_id: UUID, data: FacilityUpdate, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     f = (await db.execute(select(Facility).where(Facility.id == facility_id))).scalar_one_or_none()
     if not f:
         raise HTTPException(404, "设施不存在")
@@ -78,7 +78,7 @@ async def update_facility(facility_id: UUID, data: FacilityUpdate, db: AsyncSess
 
 
 @router.delete("/facilities/{facility_id}", status_code=204)
-async def delete_facility(facility_id: UUID, db: AsyncSession = Depends(get_db)):
+async def delete_facility(facility_id: UUID, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     f = (await db.execute(select(Facility).where(Facility.id == facility_id))).scalar_one_or_none()
     if not f:
         raise HTTPException(404, "设施不存在")
@@ -87,7 +87,7 @@ async def delete_facility(facility_id: UUID, db: AsyncSession = Depends(get_db))
 
 
 @router.post("/projects/{project_id}/facilities/batch", response_model=list[FacilityOut], status_code=201)
-async def batch_create_facilities(project_id: UUID, data: FacilityBatchCreate, db: AsyncSession = Depends(get_db)):
+async def batch_create_facilities(project_id: UUID, data: FacilityBatchCreate, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     p = (await db.execute(select(Project).where(Project.id == project_id, Project.deleted_at.is_(None)))).scalar_one_or_none()
     if not p:
         raise HTTPException(404, "项目不存在")

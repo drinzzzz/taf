@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from models.database import Basemap, Space
-from deps import get_db
+from deps import get_db, get_current_user
 from .helpers import _get_project, _get_standard, _get_facilities
 
 router = APIRouter(prefix="/api/projects", tags=["策划成果"])
@@ -208,6 +208,7 @@ def _generate_layout_dxf_inline(project, standard, facilities, spaces, basemap, 
 @router.post("/{project_id}/deliverables/layout")
 async def generate_layout_dxf(
     project_id: UUID,
+    user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """在 DXF 底图上标注设施位置，输出策划级图纸"""

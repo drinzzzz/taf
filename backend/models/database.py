@@ -166,3 +166,37 @@ class Deliverable(Base):
     generated_at = Column(DateTime, default=datetime.utcnow)
 
     project = relationship("Project", back_populates="deliverables")
+
+
+class ScoreHistory(Base):
+    """评分历史"""
+    __tablename__ = "score_history"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    standard_code = Column(String(50), nullable=False)
+    total_score = Column(Float, nullable=False)
+    level = Column(String(50))
+    stars = Column(Integer)
+    evaluated_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("idx_score_history_project", "project_id"),
+        Index("idx_score_history_evaluated", "evaluated_at"),
+    )
+
+
+class StandardChangeLog(Base):
+    """标准切换日志"""
+    __tablename__ = "standard_change_log"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    from_standard_code = Column(String(50))
+    to_standard_code = Column(String(50), nullable=False)
+    impact_summary = Column(JSONB)
+    applied_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("idx_change_log_project", "project_id"),
+    )

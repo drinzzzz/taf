@@ -601,7 +601,7 @@ const ProjectDetail = {
           <div style="font-size:15px;font-weight:600">{{ boundStandard.name }}</div>
           <div style="font-size:12px;color:var(--muted)">{{ boundStandard.code }} · v{{ boundStandard.version }}</div>
           <div v-if="boundStandard.config" style="font-size:12px;color:var(--muted);margin-top:4px">
-            {{ boundStandard.config.total_items || 0 }} 项指标 · {{ boundStandard.config.prerequisite_count || 0 }} 必选
+            {{ (boundStandard.config.items && boundStandard.config.items.length) || 0 }} 项指标 · {{ (boundStandard.config.items && boundStandard.config.items.filter(i => i.type === 'prerequisite').length) || 0 }} 必选
           </div>
         </div>
         <div v-else style="color:var(--muted);margin-bottom:16px;font-size:13px">未绑定标准</div>

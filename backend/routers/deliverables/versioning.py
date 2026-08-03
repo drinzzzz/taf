@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from models.database import Deliverable
-from deps import get_db
+from deps import get_db, get_current_user
 from .helpers import _get_project, _get_standard, _get_facilities, logger
 from .visualization import _generate_prompts_inline
 
@@ -110,7 +110,8 @@ async def diff_deliverables(
 @router.post("/{project_id}/deliverables/render")
 async def render_with_comfyui(
     project_id: UUID,
-    space_index: int = Query(None, description="只渲染指定空间（0-6），不传则全部"),
+    space_index: int = Query(None),
+    user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """将渲染提示词提交到 ComfyUI（或输出 dry-run）"""
@@ -139,7 +140,7 @@ async def render_with_comfyui(
             if r.status_code == 200:
                 comfy_available = True
     except Exception:
-        logger.debug("ComfyUI 不可用")
+        logger.warning("ComfyUI 不可达", exc_info=True)
 
     results = []
     for space_name in spaces_list:
@@ -168,6 +169,7 @@ async def render_with_comfyui(
                         resp = await client.post(f"{comfy_url}/prompt", json={"prompt": workflow})
                         result["comfyui"] = {"status": resp.status_code, "prompt_id": resp.json().get("prompt_id")}
                 except Exception as e:
+                    logger.warning("ComfyUI 渲染失败: %s", e)
                     result["comfyui"] = {"status": "error", "error": str(e)}
             else:
                 result["comfyui"] = {"status": "dry_run", "note": "ComfyUI 未运行，安装后可自动提交"}

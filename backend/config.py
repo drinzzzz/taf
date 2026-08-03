@@ -45,15 +45,11 @@ class Settings(BaseSettings):
 
     @property
     def database_url_sync(self) -> str:
-        return f"postgresql+psycopg2://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+        from urllib.parse import quote_plus
+        pw = quote_plus(self.db_password) if self.db_password else ""
+        return f"postgresql+psycopg2://{self.db_user}:{pw}@{self.db_host}:{self.db_port}/{self.db_name}"
 
 
 @lru_cache()
 def get_settings() -> Settings:
-    s = Settings()
-    if not s.db_password:
-        import logging
-        logging.getLogger("taf").warning(
-            "DB_PASSWORD 未设置！数据库连接可能失败。请在 .env 中设置 DB_PASSWORD。"
-        )
-    return s
+    return Settings()

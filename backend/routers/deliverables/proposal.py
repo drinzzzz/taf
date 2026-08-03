@@ -8,12 +8,11 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException
 from sqlalchemy import select
 
 from models.database import Project, Facility, StandardPlugin, Basemap, Space, Deliverable
 from services.evaluation import EvaluationEngine
-from deps import get_db
+from deps import get_db, get_current_user
 from .helpers import _get_project, _get_standard, _get_facilities, _get_all_standards, logger
 from .reports import _build_boq_workbook, _build_priority_matrix_core, _build_priority_xlsx
 
@@ -102,6 +101,7 @@ async def _build_proposal_md(project, standard, facilities, db) -> str:
 async def generate_proposal(
     project_id: UUID,
     format: str = Query("md", regex="^(md|pdf)$"),
+    user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """生成策划设计方案书"""
@@ -157,6 +157,7 @@ tr:nth-child(even){{background:#f5f7fa}}
 async def generate_package(
     project_id: UUID,
     upload: bool = Query(True),
+    user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """一键生成所有策划成果，打包 ZIP 并上传坚果云"""
@@ -334,6 +335,6 @@ tr:nth-child(even){{background:#f5f7fa}}
 
     except Exception as e:
         import shutil
-        logger.exception("成果打包失败: %s", e)
+        logger.exception("成果打包失败")
         shutil.rmtree(tmp_dir, ignore_errors=True)
         raise HTTPException(500, f"打包失败: {e}")

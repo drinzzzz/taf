@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from sqlalchemy import text
+
 from config import get_settings
 from deps import get_engine, get_async_sessionmaker
 from models.database import Base
@@ -67,9 +69,7 @@ async def root():
 async def health():
     try:
         async with get_async_sessionmaker()() as session:
-            await session.execute(
-                __import__("sqlalchemy").text("SELECT 1")
-            )
+            await session.execute(text("SELECT 1"))
         db_ok = True
     except Exception:
         db_ok = False

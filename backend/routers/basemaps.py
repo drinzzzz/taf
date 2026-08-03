@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from models.database import Project, Basemap, Space
 from schemas.models import BasemapOut, SpaceOut, SpaceCreate
-from deps import get_db
+from deps import get_db, get_current_user
 
 router = APIRouter(prefix="/api", tags=["底图与空间"])
 
@@ -28,6 +28,7 @@ async def upload_basemap(
     project_id: UUID,
     name: str = None,
     file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     p = (await db.execute(
@@ -73,7 +74,7 @@ async def upload_basemap(
 
 
 @router.delete("/basemaps/{basemap_id}", status_code=204)
-async def delete_basemap(basemap_id: UUID, db: AsyncSession = Depends(get_db)):
+async def delete_basemap(basemap_id: UUID, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     bm = (await db.execute(select(Basemap).where(Basemap.id == basemap_id))).scalar_one_or_none()
     if not bm:
         raise HTTPException(404, "底图不存在")
@@ -98,7 +99,7 @@ async def list_spaces(project_id: UUID, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/projects/{project_id}/spaces", response_model=SpaceOut, status_code=201)
-async def create_space(project_id: UUID, data: SpaceCreate, db: AsyncSession = Depends(get_db)):
+async def create_space(project_id: UUID, data: SpaceCreate, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     p = (await db.execute(
         select(Project).where(Project.id == project_id, Project.deleted_at.is_(None))
     )).scalar_one_or_none()
@@ -113,7 +114,7 @@ async def create_space(project_id: UUID, data: SpaceCreate, db: AsyncSession = D
 
 
 @router.put("/spaces/{space_id}", response_model=SpaceOut)
-async def update_space(space_id: UUID, data: SpaceCreate, db: AsyncSession = Depends(get_db)):
+async def update_space(space_id: UUID, data: SpaceCreate, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     s = (await db.execute(select(Space).where(Space.id == space_id))).scalar_one_or_none()
     if not s:
         raise HTTPException(404, "空间不存在")
@@ -128,7 +129,7 @@ async def update_space(space_id: UUID, data: SpaceCreate, db: AsyncSession = Dep
 
 
 @router.delete("/spaces/{space_id}", status_code=204)
-async def delete_space(space_id: UUID, db: AsyncSession = Depends(get_db)):
+async def delete_space(space_id: UUID, user: dict = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     s = (await db.execute(select(Space).where(Space.id == space_id))).scalar_one_or_none()
     if not s:
         raise HTTPException(404, "空间不存在")
