@@ -15,14 +15,6 @@ from deps import get_db, get_current_user
 router = APIRouter(prefix="/api/projects", tags=["项目"])
 
 
-def generate_project_code(product_line: str, phase: str, db_session) -> str:
-    """生成项目代码: OS-NC-2026-001"""
-    from datetime import datetime
-    year = datetime.utcnow().year
-    # count existing projects of same product_line this year
-    return f"{product_line}-{phase}-{year}"  # suffix added on create
-
-
 @router.post("", response_model=ProjectOut, status_code=201)
 async def create_project(data: ProjectCreate, db: AsyncSession = Depends(get_db)):
     # Generate code
@@ -84,14 +76,23 @@ async def list_projects(
     result = await db.execute(query)
     projects = result.scalars().all()
 
-    # Enrich with facility count
+    # Batch facility count — 单次 GROUP BY 替代 N+1
+    if projects:
+        pids = [p.id for p in projects]
+        count_q = (
+            select(Facility.project_id, func.count().label("cnt"))
+            .where(Facility.project_id.in_(pids))
+            .group_by(Facility.project_id)
+        )
+        count_result = await db.execute(count_q)
+        fc_map = {row.project_id: row.cnt for row in count_result}
+    else:
+        fc_map = {}
+
     items = []
     for p in projects:
-        fc = (await db.execute(
-            select(func.count()).select_from(Facility).where(Facility.project_id == p.id)
-        )).scalar()
         out = ProjectOut.model_validate(p)
-        out.facility_count = fc
+        out.facility_count = fc_map.get(p.id, 0)
         items.append(out)
 
     return ProjectListOut(items=items, total=total, page=page, page_size=page_size)

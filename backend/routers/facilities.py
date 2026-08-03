@@ -126,14 +126,23 @@ async def auto_place_facilities(project_id: UUID, db: AsyncSession = Depends(get
     )
     existing = {f.standard_item_id for f in fac_result.scalars().all()}
 
-    placement_rules = {
-        "P1": {"space_types": ["building", "channel"], "grid_x": 100, "grid_y": 50, "step": 50},
-        "P2": {"space_types": ["building", "facade"], "grid_x": 150, "grid_y": 100, "step": 60},
-        "P3": {"space_types": ["node"], "grid_x": 200, "grid_y": 150, "step": 70},
-        "P4": {"space_types": ["green", "channel"], "grid_x": 50, "grid_y": 150, "step": 55},
-        "P5": {"space_types": ["node", "channel"], "grid_x": 250, "grid_y": 50, "step": 65},
-        "P6": {"space_types": ["building", "facade"], "grid_x": 180, "grid_y": 180, "step": 45},
-    }
+    # 动态生成布点规则：从标准 config 的 categories 读取，循环分配网格区域
+    cats = standard.config.get("categories", [])
+    default_space_types = ["building", "channel", "node", "green", "facade"]
+    placement_rules = {}
+    for i, cat in enumerate(cats):
+        cat_id = cat["id"]
+        # 按序号轮换空间类型 + 网格偏移
+        st_idx = i % len(default_space_types)
+        placement_rules[cat_id] = {
+            "space_types": [default_space_types[st_idx], default_space_types[(st_idx + 1) % len(default_space_types)]],
+            "grid_x": 50 + (i % 5) * 60,
+            "grid_y": 50 + (i // 5) * 120,
+            "step": 40 + (i % 3) * 15,
+        }
+    # 兜底
+    if not placement_rules:
+        placement_rules = {"P1": {"space_types": ["building", "channel"], "grid_x": 100, "grid_y": 50, "step": 50}}
 
     suggestions = []
     items = standard.config.get("items", [])

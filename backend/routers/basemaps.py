@@ -36,16 +36,30 @@ async def upload_basemap(
     if not p:
         raise HTTPException(404, "项目不存在")
 
-    import os, aiofiles
+    import os, re, aiofiles
+
+    # 文件名安全检查
+    raw_name = file.filename or "untitled"
+    ext = raw_name.rsplit(".", 1)[-1].lower() if "." in raw_name else ""
+
+    # 白名单：仅允许的扩展名
+    ALLOWED_EXTENSIONS = {"dxf", "png", "jpg", "jpeg", "pdf"}
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(400, f"不支持的文件类型 .{ext}，仅允许: {', '.join(sorted(ALLOWED_EXTENSIONS))}")
+
+    # 安全文件名：去除路径遍历字符，仅保留字母数字中文点横线
+    safe_name = re.sub(r'[^\w\u4e00-\u9fff.\\-]', '_', os.path.basename(raw_name))
+    if not safe_name or safe_name.startswith('.'):
+        safe_name = f"upload_{ext}"
+
     upload_dir = f"/root/data/disk/taf_uploads/{project_id}"
     os.makedirs(upload_dir, exist_ok=True)
 
-    file_path = os.path.join(upload_dir, file.filename)
+    file_path = os.path.join(upload_dir, safe_name)
     async with aiofiles.open(file_path, "wb") as f:
         content = await file.read()
         await f.write(content)
 
-    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "unknown"
     basemap = Basemap(
         project_id=project_id,
         name=name or file.filename,

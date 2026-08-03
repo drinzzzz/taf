@@ -122,6 +122,8 @@ label { display:block; font-size:11px; color:var(--muted); margin-bottom:4px; te
 const { createApp, ref, reactive, computed, onMounted, nextTick, watch } = Vue
 const { createRouter, createWebHashHistory } = VueRouter
 
+const PRODUCT_LINES = ['HT','OS','AP','HO','RE','OF','MC']
+
 // ─── API helper ───
 const API = {
   base: '/taf/api',
@@ -494,7 +496,7 @@ const ProjectsList = {
     const projects = ref([]), loading = ref(true), search = ref(''), filterPL = ref(''), filterStatus = ref('')
     const showCreate = ref(false)
     const createForm = reactive({ name:'', product_line:'OS', phase:'NC', client_name:'', location:'', description:'' })
-    const productLines = ['HT','OS','AP','HO','RE','OF','MC']
+    const productLines = PRODUCT_LINES
     const router = VueRouter.useRouter()
     const load = async () => {
       loading.value = true
@@ -646,7 +648,7 @@ const ProjectDetail = {
     const route = VueRouter.useRoute()
     const project = ref(null), editing = ref(false), switchDialog = ref(false), switchTarget = ref('')
     const boundStandard = ref(null), standards = ref([]), preview = ref(null)
-    const productLines = ['HT','OS','AP','HO','RE','OF','MC']
+    const productLines = PRODUCT_LINES
     const form = reactive({})
 
     const load = async () => {

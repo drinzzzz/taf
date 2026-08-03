@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import get_settings
-from deps import engine
+from deps import get_engine, get_async_sessionmaker
 from models.database import Base
 
 from routers.projects import router as projects_router
@@ -19,11 +19,17 @@ from routers.deliverables import router as deliverables_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """启动时创建表"""
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """启动时创建缺失的表（容错已存在的）"""
+    import logging
+    logger = logging.getLogger("taf")
+    try:
+        async with get_engine().begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables verified")
+    except Exception as e:
+        logger.warning("create_all skipped (tables may already exist): %s", e)
     yield
-    await engine.dispose()
+    await get_engine().dispose()
 
 
 settings = get_settings()
@@ -38,7 +44,7 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in settings.allowed_origins.split(",") if o.strip()],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -59,4 +65,12 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    try:
+        async with get_async_sessionmaker()() as session:
+            await session.execute(
+                __import__("sqlalchemy").text("SELECT 1")
+            )
+        db_ok = True
+    except Exception:
+        db_ok = False
+    return {"status": "ok", "db": "connected" if db_ok else "unreachable"}

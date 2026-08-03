@@ -7,6 +7,10 @@ from typing import List, Dict, Optional, Any
 class EvaluationEngine:
     """核心评估引擎：依据标准配置计算评分"""
 
+    # ── 评分常量 ──
+    MID_SCORE_FACTOR = 0.5       # selected 状态取中档分 = score_max × 50%
+    WARNING_THRESHOLD = 50.0     # 板块得分率低于此值触发建议
+
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.categories = {c["id"]: c for c in config.get("categories", [])}
@@ -28,8 +32,8 @@ class EvaluationEngine:
         elif status == "selected":
             # 选中但未确认：取最低非零分或中档分
             if len(criteria) >= 2:
-                return float(criteria[-2].get("score", score_max * 0.5))
-            return score_max * 0.5
+                return float(criteria[-2].get("score", score_max * self.MID_SCORE_FACTOR))
+            return score_max * self.MID_SCORE_FACTOR
         elif status in ("confirmed", "installed"):
             # 已确认/已安装：取最高分
             if criteria:
@@ -66,6 +70,7 @@ class EvaluationEngine:
             cat_items = [i for i in self.config["items"] if i["category"] == cat_id]
             actual_score = 0.0
             applicable_count = 0
+            max_possible = 0.0
             item_details = []
 
             for item in cat_items:
@@ -88,6 +93,7 @@ class EvaluationEngine:
                     continue
 
                 applicable_count += 1
+                max_possible += item.get("score_max", 5)
                 status = fac.get("status", "draft") if fac else "draft"
                 qty = fac.get("quantity", 1) if fac else 0
 
@@ -121,7 +127,7 @@ class EvaluationEngine:
                 })
                 actual_score += item_score
 
-            max_score = applicable_count * 5
+            max_score = max_possible
 
             weight = weights.get(cat_id, cat_info.get("weight", 0))
             percentage = (actual_score / max_score * 100) if max_score > 0 else 0
@@ -177,7 +183,7 @@ class EvaluationEngine:
             recs.append(f"⚠️ 必选项达标 {passed}/{total}，需优先补齐未达标项")
 
         for cs in category_scores:
-            if cs["percentage"] < 50:
+            if cs["percentage"] < self.WARNING_THRESHOLD:
                 recs.append(f"📌 {cs['category_name']} 得分率仅 {cs['percentage']}%，建议重点改进")
 
         if not recs:

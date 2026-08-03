@@ -35,5 +35,4 @@ demo_taf.dxf
 
 # 废弃
 backend/app/
-scripts/seed*.sql
 seed_data.json

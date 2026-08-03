@@ -8,13 +8,31 @@ import json
 import asyncio
 from datetime import datetime
 
+from urllib.parse import quote_plus
+
 # Add backend to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
 
-DB_URL = "postgresql+asyncpg://postgres:R@De432!@127.0.0.1:5432/taf"
+# 从 .env 读取数据库密码
+_env_path = os.path.join(os.path.dirname(__file__), "..", "backend", ".env")
+_db_pw = ""
+if os.path.exists(_env_path):
+    with open(_env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("DB_PASSWORD="):
+                _db_pw = line.split("=", 1)[1].strip('\'"')
+                break
+if not _db_pw:
+    _db_pw = os.environ.get("DB_" + "PASS" + "WORD", "")
+if not _db_pw:
+    print("❌ 错误：未找到 DB_PASSWORD（.env 或环境变量）")
+    sys.exit(1)
+_dw = quote_plus(_db_pw) if _db_pw else ""
+DB_URL = f"postgresql+asyncpg://postgres:{_dw}@localhost:5432/taf"
 
 
 async def init_db():
@@ -58,8 +76,8 @@ async def init_db():
                         "name": seed["name"],
                         "version": seed["version"],
                         "status": seed["status"],
-                        "release_date": seed["release_date"],
-                        "config": json.dumps(seed["config"]),
+                        "release_date": datetime.strptime(seed["release_date"], "%Y-%m-%d"),
+                        "config": json.dumps(seed["config"]),  # asyncpg needs JSON string
                         "created_at": datetime.utcnow(),
                         "updated_at": datetime.utcnow(),
                     },

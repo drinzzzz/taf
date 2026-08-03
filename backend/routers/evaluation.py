@@ -15,6 +15,9 @@ from schemas.models import (
 from services.evaluation import EvaluationEngine
 from deps import get_db
 
+import logging
+logger = logging.getLogger("taf.evaluation")
+
 router = APIRouter(prefix="/api/projects", tags=["评估"])
 
 
@@ -71,7 +74,7 @@ async def evaluate_project(project_id: UUID, db: AsyncSession = Depends(get_db))
         await _save_score_history(db, project_id, standard.code,
                                    result["total_score"], result["level"], result["stars"])
     except Exception:
-        pass  # 表可能还未创建，不影响评估
+        logger.debug("评分历史持久化失败（表可能未创建）", exc_info=True)
 
     return EvaluationResult(
         project_id=project_id,
@@ -99,6 +102,7 @@ async def get_score_history(project_id: UUID, db: AsyncSession = Depends(get_db)
             total_score=row[3], level=row[4], stars=row[5], evaluated_at=row[6]
         ) for row in rows]
     except Exception:
+        logger.debug("评分历史查询失败", exc_info=True)
         return []
 
 
@@ -205,7 +209,7 @@ async def switch_standard(project_id: UUID, data: StandardSwitchRequest, db: Asy
             "now": datetime.utcnow()
         })
     except Exception:
-        pass
+        logger.debug("标准切换日志记录失败", exc_info=True)
     
     await db.commit()
 
