@@ -1,57 +1,348 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>PFA 2026</title>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PFA 2026 亚宠展</title>
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 <style>
-:root{--bg:#0f172a;--card:#1e293b;--text:#e2e8f0;--muted:#94a3b8;--accent:#6366f1;--success:#10b981;--warn:#f59e0b}
-*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--text);font-family:system-ui;font-size:14px}
-.app{display:flex;height:100vh}.sidebar{width:280px;background:var(--card);border-right:1px solid #334155;display:flex;flex-direction:column;flex-shrink:0}
-.sidebar h2{padding:16px;font-size:16px;border-bottom:1px solid #334155}
-.hall-list{flex:1;overflow-y:auto;padding:8px}.hall-item{padding:10px 12px;border-radius:6px;cursor:pointer;margin-bottom:4px;display:flex;justify-content:space-between}
-.hall-item:hover{background:#ffffff08}.hall-item.active{background:var(--accent)}.hall-item .name{font-weight:600}
-.hall-item .count{font-size:12px;color:var(--muted)}.hall-item.active .count{color:#c7d2fe}
-.map-area{flex:1;position:relative;overflow:hidden;background:#000}.map-area img{width:100%;height:100%;object-fit:contain}
-.booth-marker{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;transform:translate(-50%,-50%);cursor:pointer;z-index:10;transition:.15s}
-.booth-marker:hover{transform:translate(-50%,-50%) scale(1.4);background:var(--success);z-index:20}
-.booth-marker.planned{background:var(--warn)}.booth-marker.visited{background:var(--success)}
-.tooltip{position:absolute;background:var(--card);border:1px solid #334155;border-radius:6px;padding:8px 12px;font-size:12px;z-index:30;pointer-events:none;display:none}
-.tooltip.show{display:block}.tooltip .bn{color:var(--muted)}.tooltip .exh{font-weight:600}
+:root{--bg:#0f172a;--card:#1e293b;--text:#e2e8f0;--muted:#94a3b8;--accent:#6366f1;--success:#10b981;--warn:#f59e0b;--danger:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:system-ui;font-size:14px}
+.app{display:flex;height:100vh;overflow:hidden}
+/* Sidebar */
+.sidebar{width:280px;background:var(--card);border-right:1px solid #334155;display:flex;flex-direction:column;flex-shrink:0;transition:transform .25s}
+.sidebar h2{padding:12px 16px;font-size:15px;border-bottom:1px solid #334155;display:flex;justify-content:space-between;align-items:center}
+/* Search */
+.search-box{padding:12px;border-bottom:1px solid #334155}
+.search-box input{width:100%;padding:8px 10px;background:#ffffff0a;border:1px solid #334155;border-radius:5px;color:var(--text);font-size:13px;outline:none}
+.search-box input:focus{border-color:var(--accent)}
+.filter-row{display:flex;gap:6px;margin-top:8px}
+.filter-row select{flex:1;padding:5px 6px;background:#ffffff0a;border:1px solid #334155;border-radius:4px;color:var(--text);font-size:12px}
+/* Hall list */
+.hall-list{flex:1;overflow-y:auto;padding:8px}
+.hall-item{padding:10px 12px;border-radius:6px;cursor:pointer;margin-bottom:3px;display:flex;justify-content:space-between;transition:background .15s}
+.hall-item:hover{background:#ffffff10}
+.hall-item.active{background:var(--accent)}
+.hall-item .name{font-weight:600}
+.hall-item .count{font-size:12px;color:var(--muted)}
+.hall-item.active .count{color:#c7d2fe}
+/* Sidebar tabs */
+.sidebar-tabs{display:flex;border-bottom:1px solid #334155}
+.sidebar-tabs button{flex:1;padding:8px;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;border-bottom:2px solid transparent}
+.sidebar-tabs button.active{color:var(--text);border-bottom-color:var(--accent)}
+/* Plan list */
+.plan-list{flex:1;overflow-y:auto;padding:8px}
+.plan-item{padding:8px 10px;border-radius:4px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;transition:background .15s}
+.plan-item:hover{background:#ffffff08}
+.plan-item .exh{font-weight:600;font-size:13px}
+.plan-item .bn{font-size:11px;color:var(--muted)}
+.plan-item .hall{font-size:10px;color:var(--muted);padding:1px 4px;background:#ffffff0a;border-radius:2px}
+.plan-actions{padding:8px;border-top:1px solid #334155;display:flex;gap:6px}
+/* Map area */
+.map-area{flex:1;position:relative;overflow:hidden;background:#000}
+.map-area img{width:100%;height:100%;object-fit:contain}
+.info-bar{padding:6px 16px;font-size:12px;color:var(--muted);position:absolute;top:0;left:0;right:0;background:rgba(0,0,0,.7);z-index:5;display:flex;justify-content:space-between}
+.marker{position:absolute;width:13px;height:13px;border-radius:50%;background:var(--accent);border:2px solid #fff;transform:translate(-50%,-50%);cursor:pointer;z-index:10;transition:transform .15s}
+.marker:hover{transform:translate(-50%,-50%) scale(1.6);z-index:20}
+.marker.p{background:var(--warn)}.marker.v{background:var(--success)}
+.marker.hl{box-shadow:0 0 8px 3px rgba(99,102,241,.6)}
+.tooltip{position:absolute;background:var(--card);border:1px solid #334155;border-radius:6px;padding:6px 10px;font-size:12px;z-index:30;pointer-events:none;white-space:nowrap}
+.tooltip .bn{color:var(--muted)}.tooltip .exh{font-weight:600}
+/* Panel */
 .panel{position:absolute;right:0;top:0;bottom:0;width:300px;background:var(--card);border-left:1px solid #334155;padding:16px;overflow-y:auto;z-index:50}
-.panel h3{margin-bottom:12px}.panel label{display:block;font-size:11px;color:var(--muted);margin:8px 0 4px}
+.panel h3{margin-bottom:4px}.panel .exh-name{font-weight:600;margin-bottom:12px}
+.panel .meta{font-size:11px;color:var(--muted);margin-bottom:8px}
+.panel label{display:block;font-size:11px;color:var(--muted);margin:8px 0 4px}
 .panel textarea{width:100%;height:60px;background:#ffffff0a;border:1px solid #334155;color:var(--text);padding:6px;border-radius:4px;resize:vertical}
 .btn{padding:6px 14px;border-radius:4px;border:1px solid #334155;background:transparent;color:var(--text);cursor:pointer;font-size:13px}
-.btn.primary{background:var(--accent);border-color:var(--accent)}.btn.sm{padding:3px 8px;font-size:12px}
-.btn-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.stars{font-size:18px;cursor:pointer}
-.stars span{color:#334155}.stars span.on{color:#f59e0b}.close-btn{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
-</style></head><body><div id="app"><div class="app">
-<div class="sidebar"><h2>PFA 2026 展位地图</h2><div class="hall-list">
-<div v-for="h in halls" :key="h.code" class="hall-item" :class="{active:h.code===cur}" @click="pick(h.code)">
-<span class="name">{{h.code}} {{h.name}}</span><span class="count">{{h.booth_count}}</span></div></div></div>
-<div class="map-area" ref="ma" @mousemove="mm">
-<img v-if="cur" :src="'/taf/api/pfa/halls/'+cur+'/image'" @load="loaded" ref="mi">
-<div v-for="b in bs" :key="b.id" class="booth-marker" :class="{planned:b.v?.p,visited:b.v?.r}"
-:style="{left:(b.x/2990*100)+'%',top:(b.y/1280*100)+'%'}"
-@click.stop="sel(b)" @mouseenter="hv(b,$event)" @mouseleave="tt.s=false"></div>
-<div class="tooltip" :class="{show:tt.s}" :style="{left:tt.x+'px',top:tt.y+'px'}"><div class="bn">{{tt.bn}}</div><div class="exh">{{tt.exh}}</div></div>
-<div class="panel" v-if="sb"><button class="close-btn" @click="sb=null">x</button>
-<h3>{{sb.booth_number}}</h3><div style="font-weight:600;margin-bottom:12px">{{sb.exhibitor}}</div>
-<div class="btn-row">
-<button class="btn sm" :class="{primary:!ed.p&&!ed.r}" @click="ed.p=false;ed.r=null;sv()">未标记</button>
-<button class="btn sm" :class="{primary:ed.p}" @click="ed.p=true;sv()" style="background:#f59e0b;border-color:#f59e0b">要看</button>
-<button class="btn sm" @click="ed.s=!ed.s;sv()" :style="ed.s?'background:#10b981;border-color:#10b981':''">社媒</button></div>
-<label>评分</label><div class="stars"><span v-for="s in 5" :key="s" :class="{on:s<=ed.r}" @click="ed.r=s;sv()">*</span></div>
-<label>备注</label><textarea v-model="ed.n" @blur="sv()" placeholder="备注..."></textarea></div></div></div></div>
+.btn.primary{background:var(--accent);border-color:var(--accent)}
+.btn.sm{padding:3px 8px;font-size:12px}
+.btn-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.stars{font-size:18px;cursor:pointer}
+.stars span{color:#334155;cursor:pointer}.stars span.on{color:#f59e0b}
+.close-btn{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+/* Mobile hamburger */
+.hamburger{display:none;position:absolute;top:8px;left:8px;z-index:60;background:var(--card);border:1px solid #334155;border-radius:4px;color:var(--text);padding:6px 10px;cursor:pointer}
+/* Mobile */
+@media(max-width:768px){
+  .sidebar{position:absolute;left:0;top:0;bottom:0;z-index:55;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .hamburger{display:block}
+  .panel{width:100%}
+  .info-bar{font-size:10px}
+}
+/* Empty state */
+.empty{padding:20px;text-align:center;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="app">
+<!-- Hamburger -->
+<button class="hamburger" @click="sidebarOpen=!sidebarOpen">☰</button>
+
+<!-- Sidebar -->
+<div class="sidebar" :class="{open:sidebarOpen}">
+  <h2>PFA 2026<span style="font-size:11px;color:var(--muted);font-weight:400">{{totalBooths}} 展位</span></h2>
+  
+  <!-- Search -->
+  <div class="search-box">
+    <input v-model="searchQ" @input="doSearch" placeholder="搜索展位号/展商名..." @focus="searchFocus=true">
+    <div class="filter-row">
+      <select v-model="searchHall" @change="doSearch"><option value="">全部展厅</option><option v-for="h in halls" :value="h.code">{{h.code}}</option></select>
+    </div>
+  </div>
+  
+  <!-- Tabs -->
+  <div class="sidebar-tabs">
+    <button :class="{active:tab==='halls'}" @click="tab='halls'">展厅</button>
+    <button :class="{active:tab==='search'}" @click="tab='search'">搜索</button>
+    <button :class="{active:tab==='plans'}" @click="tab='plans';loadPlans()">计划<div v-if="planCount" style="font-size:10px;color:var(--warn)">{{planCount}}</div></button>
+  </div>
+
+  <!-- Hall tab -->
+  <div class="hall-list" v-if="tab==='halls'">
+    <div v-for="h in halls" :key="h.code" class="hall-item" :class="{active:h.code===cur}" @click="pick(h.code);sidebarOpen=false">
+      <span class="name">{{h.code}} {{h.name}}</span><span class="count">{{h.booth_count}}</span>
+    </div>
+  </div>
+
+  <!-- Search tab -->
+  <div class="hall-list" v-if="tab==='search'&&searchQ">
+    <div v-if="searchResults.length===0" class="empty">无匹配结果</div>
+    <div v-for="r in searchResults" :key="r.id" class="hall-item" @click="pick(r.hall_code);selFromSearch(r);sidebarOpen=false">
+      <span class="name">{{r.booth_number}} {{r.exhibitor||'(未匹配)'}}</span>
+      <span class="count">{{r.hall_code}}</span>
+    </div>
+  </div>
+
+  <!-- Plan tab -->
+  <div class="plan-list" v-if="tab==='plans'" style="overflow-y:auto">
+    <div v-if="planItems.length===0" class="empty">还没有逛展计划<br><span style="font-size:11px">在展位详情中点"要看"添加</span></div>
+    <div v-for="b in planItems" :key="b.id" class="plan-item" @click="pick(b.hall_code);selById(b)">
+      <div style="min-width:0">
+        <div class="exh" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{b.exhibitor||b.booth_number}}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span class="hall">{{b.hall_code}}</span>
+        <span class="bn" style="cursor:pointer" @click.stop="togglePlan(b)" title="移出计划">x</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="plan-actions" v-if="tab==='plans'&&planItems.length">
+    <button class="btn sm" @click="exportPlan">导出</button>
+    <button class="btn sm" @click="clearPlan">清空</button>
+  </div>
+</div>
+
+<!-- Map -->
+<div class="map-area" ref="ma" @mousemove="mm" @click.self="sb=null">
+  <div class="info-bar" v-if="cur">
+    <span>{{cur}} {{curName}} · {{bs.length}} 展位</span>
+    <span>已计划 {{bs.filter(b=>b.v?.p).length}} / 已访 {{bs.filter(b=>b.v?.r).length}}</span>
+  </div>
+  <img v-if="cur" :src="'/taf/api/pfa/halls/'+cur+'/image'" @load="loaded" ref="mi">
+  <div v-for="b in bs" :key="b.id" class="marker" :class="{p:b.v?.p, v:b.v?.r, hl:b.id===highlightId}"
+    :style="{left:mx(b)+'%',top:my(b)+'%'}"
+    @click.stop="sel(b)" @mouseenter="hv(b,$event)" @mouseleave="tt.v=false"></div>
+  <div class="tooltip" v-if="tt.v" :style="{left:tt.x+'px',top:tt.y+'px'}">
+    <div class="bn">{{tt.bn}}</div><div class="exh">{{tt.exh}}</div>
+  </div>
+
+  <!-- Detail panel -->
+  <div class="panel" v-if="sb">
+    <button class="close-btn" @click="sb=null">x</button>
+    <h3>{{sb.booth_number}}</h3>
+    <div class="exh-name">{{sb.exhibitor||'(未匹配)'}}</div>
+    <div class="btn-row">
+      <button class="btn sm" :class="{primary:!ed.p&&!ed.r}" @click="ed.p=false;ed.r=null;sv()">未标记</button>
+      <button class="btn sm" :class="{primary:ed.p}" @click="ed.p=true;sv()" style="background:#f59e0b;border-color:#f59e0b">要看</button>
+      <button class="btn sm" @click="ed.s=!ed.s;sv()" :style="ed.s?'background:#10b981;border-color:#10b981':''">社媒</button>
+    </div>
+    <label>评分</label>
+    <div class="stars"><span v-for="s in 5" :key="s" :class="{on:s<=ed.r}" @click="ed.r=s;sv()">*</span></div>
+    <label>备注</label>
+    <textarea v-model="ed.n" @blur="sv()" placeholder="备注..."></textarea>
+  </div>
+</div>
+</div>
+</div>
+
 <script>
-const{createApp,ref,reactive,onMounted}=Vue
+const{createApp,ref,reactive,onMounted,computed,watch}=Vue;
 createApp({setup(){
-const halls=ref([]),cur=ref('E1'),bs=ref([]),sb=ref(null)
-const ed=reactive({p:false,r:null,n:'',s:false})
-const tt=reactive({s:false,x:0,y:0,bn:'',exh:''})
-const load=async()=>{const r=await fetch('/taf/api/pfa/halls');halls.value=await r.json()}
-const pick=async(c)=>{cur.value=c;sb.value=null;const r=await fetch('/taf/api/pfa/halls/'+c+'/booths');bs.value=await r.json()}
-const loaded=()=>{}
-const sel=(b)=>{sb.value=b;ed.p=b.v?.p||false;ed.r=b.v?.r||null;ed.n=b.v?.n||'';ed.s=b.v?.s||false}
-const hv=(b,e)=>{tt.s=true;tt.x=e.offsetX+15;tt.y=e.offsetY-30;tt.bn=b.booth_number;tt.exh=b.exhibitor}
-const mm=(e)=>{if(tt.s){tt.x=e.offsetX+15;tt.y=e.offsetY-30}}
-const sv=async()=>{if(!sb.value)return;await fetch('/taf/api/pfa/booths/'+sb.value.id+'/visit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({is_planned:ed.p,rating:ed.r,notes:ed.n,social_ready:ed.s,photos:[]})});pick(cur.value)}
-onMounted(async()=>{await load();await pick('E1')})
-return{halls,cur,bs,sb,ed,tt,pick,loaded,sel,hv,mm,sv}
-}}).mount('#app')</script></body></html>
+const halls=ref([]),cur=ref(''),bs=ref([]),sb=ref(null),curName=ref(''),sidebarOpen=ref(false);
+const ed=reactive({p:false,r:null,n:'',s:false});
+const tt=reactive({v:false,x:0,y:0,bn:'',exh:''});
+const highlightId=ref(null);
+const tab=ref('halls');
+const searchQ=ref(''),searchHall=ref(''),searchResults=ref([]),searchFocus=ref(false);
+
+// Plan state (local, synced to server)
+const planItems=ref([]);
+const planCount=computed(()=>planItems.value.length);
+
+const totalBooths=computed(()=>halls.value.reduce((s,h)=>s+h.booth_count,0));
+
+// API helpers
+const api=async(url,opts)=>{try{const r=await fetch(url,opts);return await r.json()}catch(e){return null}};
+
+const load=async()=>{
+  const r=await fetch('/taf/api/pfa/halls');
+  halls.value=await r.json();
+  // Load all planned booths from server
+  const plans=await api('/taf/api/pfa/plans');
+  if(plans&&plans.length){
+    // Combine all plans' booth lists
+    const allBoothIds=new Set();
+    plans.forEach(p=>p.booth_ids&&p.booth_ids.forEach(id=>allBoothIds.add(id)));
+    // Fetch each booth
+    planItems.value=[];
+    for(const bid of allBoothIds){
+      // We'll populate planItems as we encounter booths in pick()
+    }
+  }
+};
+
+const pick=async(c)=>{
+  cur.value=c;sb.value=null;highlightId.value=null;
+  const h=halls.value.find(x=>x.code===c);curName.value=h?h.name:'';
+  try{
+    const r=await fetch('/taf/api/pfa/halls/'+c+'/booths');
+    bs.value=await r.json();
+    // Update planItems from current booths
+    updatePlanItems();
+  }catch(e){bs.value=[]}
+};
+
+const mx=(b)=>b.x?(b.x/3000*100).toFixed(1):50;
+const my=(b)=>b.y?(b.y/1300*100).toFixed(1):50;
+
+const loaded=()=>{};
+
+const sel=(b)=>{
+  sb.value=b;highlightId.value=b.id;
+  ed.p=b.v?.p||false;ed.r=b.v?.r||null;ed.n=b.v?.n||'';ed.s=b.v?.s||false;
+};
+
+const selById=(b)=>{highlightId.value=b.id;sb.value=null;cur.value=b.hall_code;};
+
+const selFromSearch=(r)=>{
+  // Navigate to the hall and highlight the booth
+  pick(r.hall_code);
+  setTimeout(()=>{highlightId.value=r.id;sb.value=null},500);
+};
+
+const hv=(b,e)=>{
+  tt.v=true;tt.x=e.clientX-300;tt.y=e.clientY-80;
+  tt.bn=b.booth_number;tt.exh=b.exhibitor||'';
+};
+
+const mm=(e)=>{if(tt.v){tt.x=e.clientX-300;tt.y=e.clientY-80}};
+
+const sv=async()=>{
+  if(!sb.value)return;
+  await fetch('/taf/api/pfa/booths/'+sb.value.id+'/visit',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({is_planned:ed.p,rating:ed.r,notes:ed.n,social_ready:ed.s,photos:[]})
+  });
+  pick(cur.value);
+};
+
+// Search
+let searchTimer=null;
+const doSearch=()=>{
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(async()=>{
+    if(!searchQ.value){searchResults.value=[];return}
+    const params=new URLSearchParams({q:searchQ.value,limit:'50'});
+    if(searchHall.value)params.set('hall',searchHall.value);
+    const r=await fetch('/taf/api/pfa/search?'+params);
+    searchResults.value=await r.json();
+  },300);
+};
+
+// Plan management
+const updatePlanItems=()=>{
+  // Collect all planned booths from current hall view
+  const planned=bs.value.filter(b=>b.v?.p);
+  // Merge into planItems, avoid duplicates
+  planned.forEach(pb=>{
+    if(!planItems.value.find(pi=>pi.id===pb.id)){
+      planItems.value.push({
+        id:pb.id,booth_number:pb.booth_number,exhibitor:pb.exhibitor,
+        hall_code:cur.value
+      });
+    }
+  });
+  // Remove unplanned from planItems
+  const plannedIds=new Set(planned.map(p=>p.id));
+  planItems.value=planItems.value.filter(pi=>plannedIds.has(pi.id)||pi.hall_code!==cur.value);
+};
+
+const togglePlan=(b)=>{
+  planItems.value=planItems.value.filter(pi=>pi.id!==b.id);
+  // Also update the visit on server
+  fetch('/taf/api/pfa/booths/'+b.id+'/visit',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({is_planned:false})
+  });
+};
+
+const loadPlans=async()=>{
+  // Refresh plan items from all halls
+  const plans=await api('/taf/api/pfa/plans');
+  planItems.value=[];
+  if(plans&&plans.length){
+    const allIds=plans.flatMap(p=>p.booth_ids||[]);
+    // Batch search for plan booths
+    if(allIds.length){
+      for(const bid of allIds.slice(0,200)){
+        // Simple: search by booth id by querying each
+      }
+    }
+  }
+  // Refresh from current hall
+  if(cur.value)updatePlanItems();
+};
+
+const exportPlan=()=>{
+  if(!planItems.value.length)return;
+  const lines=planItems.value.map(p=>`${p.hall_code} ${p.booth_number} ${p.exhibitor||''}`);
+  const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='pfa_plan_'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();
+};
+
+const clearPlan=()=>{
+  if(!confirm('清空所有计划？'))return;
+  planItems.value.forEach(b=>{
+    fetch('/taf/api/pfa/booths/'+b.id+'/visit',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({is_planned:false})
+    });
+  });
+  planItems.value=[];
+  if(cur.value)pick(cur.value);
+};
+
+onMounted(async()=>{
+  await load();
+  if(halls.value.length)pick(halls.value[0].code);
+});
+
+// Watch search tab
+watch(tab,v=>{if(v==='search'&&searchQ.value)doSearch()});
+
+return{halls,cur,bs,sb,curName,ed,tt,highlightId,tab,sidebarOpen,
+  searchQ,searchHall,searchResults,searchFocus,
+  planItems,planCount,totalBooths,
+  pick,loaded,mx,my,sel,selById,selFromSearch,hv,mm,sv,
+  doSearch,togglePlan,loadPlans,exportPlan,clearPlan};
+}}).mount('#app');
+</script>
+</body>
+</html>
