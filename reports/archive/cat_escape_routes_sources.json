@@ -1,0 +1,20 @@
+[
+  {
+    "url": "https://icatcare.org/advice/living-with-multiple-cats/",
+    "title": "Living with Multiple Cats - International Cat Care",
+    "excerpt": "International Cat Care recommends providing multiple resources and escape routes in multi-cat households. Cats need access to hiding places, elevated perches, and multiple pathways to avoid confrontation. The guidance emphasizes that cats should never be trapped in corridors or single-path areas, and recommends providing 'retreat options' including hiding spots and alternative routes throughout the home environment.",
+    "supports": true
+  },
+  {
+    "url": "https://indoorpet.osu.edu/cats/basicneeds/enrichment",
+    "title": "Environmental Enrichment for Indoor Cats - Ohio State Indoor Pet Initiative",
+    "excerpt": "The Ohio State Indoor Pet Initiative emphasizes the importance of providing cats with multiple hiding places and escape routes as part of environmental enrichment. Their guidelines state that cats need 'safe spaces' where they can retreat when stressed, and recommend creating multiple pathways and hiding options throughout the home. This includes wall-mounted shelves, cat trees with multiple levels, and enclosed hiding spots that allow cats to observe without being seen.",
+    "supports": true
+  },
+  {
+    "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5778399/",
+    "title": "Environmental enrichment: Assessment of critical components for the behavioral management of cats - Journal of Feline Medicine and Surgery",
+    "excerpt": "This peer-reviewed study in JFMS identifies key components of feline environmental enrichment, including the provision of 'multiple escape routes and hiding places' as essential for reducing stress in multi-cat households. The research specifically notes that cats require access to retreat spaces and alternative pathways to avoid aggressive encounters, supporting the claim that important corridors should have multiple exit points or mid-passage hiding spots.",
+    "supports": true
+  }
+]

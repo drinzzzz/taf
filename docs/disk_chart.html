@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DW 三盘容量评估</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0d1117; color:#c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding:40px; min-height:100vh; }
+h1 { font-size:24px; margin-bottom:8px; color:#58a6ff; }
+.sub { color:#8b949e; margin-bottom:32px; font-size:14px; }
+.grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:24px; margin-bottom:40px; }
+.card { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:24px; }
+.card h2 { font-size:16px; color:#8b949e; margin-bottom:16px; }
+.card .size { font-size:28px; font-weight:700; margin-bottom:4px; }
+.card .path { font-size:12px; color:#6e7681; margin-bottom:16px; font-family: monospace; }
+.bar-bg { background:#21262d; border-radius:6px; height:20px; overflow:hidden; margin-bottom:8px; }
+.bar-fill { height:100%; border-radius:6px; transition: width 0.6s; }
+.bar-fill.safe { background: linear-gradient(90deg, #238636, #2ea043); }
+.bar-fill.warn { background: linear-gradient(90deg, #d29922, #e3b341); }
+.bar-fill.danger { background: linear-gradient(90deg, #da3633, #f85149); }
+.stats { display:flex; justify-content:space-between; font-size:12px; color:#8b949e; }
+.detail-grid { display:grid; gap:8px; margin-top:12px; }
+.detail-row { display:flex; justify-content:space-between; font-size:12px; padding:6px 8px; background:#0d1117; border-radius:4px; }
+.detail-row .label { color:#8b949e; }
+.detail-row .val { color:#c9d1d9; font-family:monospace; }
+.section-title { font-size:18px; color:#58a6ff; margin:32px 0 16px; }
+.summary-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:40px; }
+.summary-card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px; text-align:center; }
+.summary-card .num { font-size:32px; font-weight:700; }
+.summary-card .label { font-size:12px; color:#8b949e; margin-top:4px; }
+.legend { display:flex; gap:24px; margin-bottom:24px; font-size:12px; color:#8b949e; }
+.legend span { display:flex; align-items:center; gap:6px; }
+.legend .dot { width:10px; height:10px; border-radius:3px; }
+.bar-group { margin-bottom:12px; }
+.bar-group .label-row { display:flex; justify-content:space-between; font-size:11px; margin-bottom:3px; }
+.bar-group .label-row .key { color:#8b949e; }
+.bar-group .label-row .pct { color:#6e7681; }
+.bar-group .mini-bar { height:6px; border-radius:3px; margin-bottom:2px; }
+</style>
+</head>
+<body>
+
+<h1>💾 DW 三盘容量评估</h1>
+<div class="sub">2026-08-04 · VM-0-3-opencloudos · 3.6G RAM</div>
+
+<div class="legend">
+  <span><span class="dot" style="background:#238636"></span> 健康 (&lt;60%)</span>
+  <span><span class="dot" style="background:#d29922"></span> 警告 (60-80%)</span>
+  <span><span class="dot" style="background:#da3633"></span> 危险 (&gt;80%)</span>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>🖥️ 系统盘</h2>
+    <div class="size" style="color:#d29922">28G / 40G</div>
+    <div class="path">/dev/vda1 → /</div>
+    <div class="bar-bg"><div class="bar-fill warn" style="width:69%"></div></div>
+    <div class="stats"><span>已用 69%</span><span>可用 13G</span></div>
+    <div class="detail-grid" style="margin-top:16px">
+      <div class="detail-row"><span class="label">/usr</span><span class="val">14G</span></div>
+      <div class="detail-row"><span class="label">/root</span><span class="val">7.3G</span></div>
+      <div class="detail-row"><span class="label">/www</span><span class="val">5.6G</span></div>
+      <div class="detail-row"><span class="label">/var</span><span class="val">1.1G</span></div>
+      <div class="detail-row"><span class="label">其他</span><span class="val">0.2G</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🗄️ 数据盘 vdb</h2>
+    <div class="size" style="color:#238636">4.8G / 20G</div>
+    <div class="path">/dev/vdb → /data/disk</div>
+    <div class="bar-bg"><div class="bar-fill safe" style="width:26%"></div></div>
+    <div class="stats"><span>已用 26%</span><span>可用 14G</span></div>
+    <div class="detail-grid" style="margin-top:16px">
+      <div class="detail-row"><span class="label">swap4g</span><span class="val">4.1G</span></div>
+      <div class="detail-row"><span class="label">docker</span><span class="val">1.2G</span></div>
+      <div class="detail-row"><span class="label">pgdata</span><span class="val">155M</span></div>
+      <div class="detail-row"><span class="label">logs</span><span class="val">12M</span></div>
+      <div class="detail-row"><span class="label">taf_uploads</span><span class="val">56K</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📦 数据盘 vdc</h2>
+    <div class="size" style="color:#238636">14G / 40G</div>
+    <div class="path">/dev/vdc → /data/disk1</div>
+    <div class="bar-bg"><div class="bar-fill safe" style="width:38%"></div></div>
+    <div class="stats"><span>已用 38%</span><span>可用 24G</span></div>
+    <div class="detail-grid" style="margin-top:16px">
+      <div class="detail-row"><span class="label">wwwroot</span><span class="val">6.7G</span></div>
+      <div class="detail-row"><span class="label">hermes</span><span class="val">4.3G</span></div>
+      <div class="detail-row"><span class="label">state_vacuum.db</span><span class="val">3.0G</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">📊 汇总</div>
+<div class="summary-grid">
+  <div class="summary-card">
+    <div class="num" style="color:#58a6ff">100G</div>
+    <div class="label">总容量</div>
+  </div>
+  <div class="summary-card">
+    <div class="num" style="color:#d29922">46.8G</div>
+    <div class="label">已使用</div>
+  </div>
+  <div class="summary-card">
+    <div class="num" style="color:#238636">51G</div>
+    <div class="label">可用空间</div>
+  </div>
+  <div class="summary-card">
+    <div class="num" style="color:#c9d1d9">47%</div>
+    <div class="label">总使用率</div>
+  </div>
+</div>
+
+<div class="section-title">⚠️ 关注事项</div>
+<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px">
+  <div class="detail-row" style="margin-bottom:8px">
+    <span class="label">🔸 vda1 系统盘</span>
+    <span class="val" style="color:#d29922">69% · 建议清理 /root 缓存和旧日志</span>
+  </div>
+  <div class="detail-row" style="margin-bottom:8px">
+    <span class="label">🔸 vdb swap</span>
+    <span class="val">swap4g 占 vdb 86%，仅剩 14G 可用</span>
+  </div>
+  <div class="detail-row" style="margin-bottom:8px">
+    <span class="label">🔸 vdc state_vacuum.db</span>
+    <span class="val">3.0G，随会话增长</span>
+  </div>
+  <div class="detail-row">
+    <span class="label">✅ 整体</span>
+    <span class="val" style="color:#238636">三盘均在安全线内，无需紧急操作</span>
+  </div>
+</div>
+
+</body>
+</html>

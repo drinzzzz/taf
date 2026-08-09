@@ -4,10 +4,10 @@
 
 ## Phase 0: 基础设施 — 版本控制与备份体系
 
-- [ ] 0.1 Git 提交未追踪文件 (pfa_api.py, frontend/pfa*, docs/, scripts/)
-- [ ] 0.2 创建 DB 备份脚本 scripts/backup_pfa.sh
-- [ ] 0.3 更新 .gitignore (确认 seed*.sql 已解除排除)
-- [ ] 0.4 执行首次完整备份 + commit + push
+- [x] 0.1 Git 提交未追踪文件 (pfa_api.py, frontend/pfa*, docs/, scripts/)
+- [x] 0.2 创建 DB 备份脚本 scripts/backup_pfa.sh
+- [x] 0.3 更新 .gitignore (确认 seed*.sql 已解除排除)
+- [x] 0.4 执行首次完整备份 + commit + push
 
 ## Phase 1: 两阶段 OCR 管线
 
