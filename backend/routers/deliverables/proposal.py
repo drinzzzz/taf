@@ -1,3 +1,5 @@
+from config import get_settings
+settings = get_settings()
 """
 TAF deliverables — 方案书 + 成果打包器
 """
@@ -87,7 +89,7 @@ async def _build_proposal_md(project, standard, facilities, db) -> str:
             gap_lists[s.code] = gaps
     benchmark = {"results": benchmark_results, "gap_lists": gap_lists}
 
-    env = Environment(loader=FileSystemLoader("/root/TAF/backend/templates"))
+    env = Environment(loader=FileSystemLoader(settings.template_dir))
     template = env.get_template("proposal.md.j2")
     return template.render(
         project=project, standard=standard, date=datetime.now().strftime("%Y-%m-%d"),

@@ -4,4 +4,4 @@ SET config = '{"product_lines": ["OS"], "applicable_types": {"OS": {"phase": ["N
     name = '它界 v1.0 · 开放式街区',
     version = '1.0.0',
     status = 'active'
-WHERE code = 'itjie_os_v1.0';
+WHERE code = 'tafs_os_v1.0';

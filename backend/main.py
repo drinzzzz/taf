@@ -3,6 +3,7 @@
 """
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from sqlalchemy import text
@@ -16,6 +17,7 @@ from routers.facilities import router as facilities_router
 from routers.standards import router as standards_router
 from routers.evaluation import router as evaluation_router
 from routers.basemaps import router as basemaps_router
+from routers.pfa_api import router as pfa_router
 from routers.deliverables import router as deliverables_router
 
 
@@ -46,18 +48,26 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o.strip() for o in settings.allowed_origins.split(",") if o.strip()],
+    allow_origins=[o.strip() for o in settings.cors_origins.split(",") if o.strip()],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Routers
+
+# ── Client config endpoint ──
+@app.get("/api/config")
+async def client_config():
+    return {"api_base_path": settings.api_base_path, "version": settings.version}
+
 app.include_router(projects_router)
 app.include_router(facilities_router)
 app.include_router(standards_router)
 app.include_router(evaluation_router)
 app.include_router(basemaps_router)
 app.include_router(deliverables_router)
+app.include_router(pfa_router)
+app.mount("/pfa", StaticFiles(directory="/data/disk1/wwwroot/taf/frontend", html=True), name="pfa")
 
 
 @app.get("/")

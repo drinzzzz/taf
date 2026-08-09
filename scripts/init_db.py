@@ -50,7 +50,7 @@ async def init_db():
         print("✅ 数据库表已创建")
 
     # Import seed data
-    seed_path = "/root/TAF/seed_data.json"
+    seed_path = "/root/TAF/data/seed_data.json"
     if os.path.exists(seed_path):
         with open(seed_path, "r") as f:
             seed = json.load(f)
@@ -96,7 +96,7 @@ async def init_db():
         else:
             # Get standard ID
             result = await conn.execute(
-                text("SELECT id FROM standard_plugins WHERE code = 'itjie_os_v1.0'")
+                text("SELECT id FROM standard_plugins WHERE code = 'tafs_os_v1.0'")
             )
             std = result.fetchone()
             std_id = std[0] if std else None

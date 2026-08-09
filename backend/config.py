@@ -29,10 +29,15 @@ class Settings(BaseSettings):
         return v
 
     # CORS — 逗号分隔的允许域名
-    allowed_origins: str = "http://localhost:8080"
-
-    # API Token — 简易认证（Header: X-API-Token），空则不校验
+    cors_origins: str = "http://localhost:8080"
     api_token: str = ""
+
+    # API 路径前缀（前端使用，用于子目录部署）
+    api_base_path: str = "/taf/api"
+
+    # 文件路径
+    upload_dir: str = "/root/data/disk/taf_uploads"
+    template_dir: str = "/data/disk1/wwwroot/taf/backend/templates"
 
     # Redis（预留，当前未使用）
     redis_url: str = "redis://localhost"

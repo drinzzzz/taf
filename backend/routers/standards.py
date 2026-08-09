@@ -74,13 +74,33 @@ async def update_standard(code: str, data: StandardPluginCreate, user: dict = De
     if not standard:
         raise HTTPException(404, "标准不存在")
 
-    update_data = data.model_dump(exclude={"code"})
-    for k, v in update_data.items():
-        setattr(standard, k, v)
+    # Auto-version: create new version instead of overwriting
+    import re
+    m = re.match(r"^(.+_v)(\d+)\.(\d+)$", code)
+    if m:
+        prefix, major, minor = m.group(1), int(m.group(2)), int(m.group(3))
+        new_version_code = f"{prefix}{major}.{minor + 1}"
+    else:
+        new_version_code = f"{code}_v2"
+
+    # Deactivate old version
+    standard.status = "superseded"
+    await db.flush()
+
+    # Create new version with bumped code
+    from datetime import datetime
+    new_data = data.model_dump()
+    new_data["code"] = new_version_code
+    new_data["version"] = f"{major}.{minor + 1}" if m else "2.0"
+    new_data["status"] = "active"
+    new_data["release_date"] = datetime.utcnow()
+    new_standard = StandardPlugin(**new_data)
+    db.add(new_standard)
+    await db.commit()
+    await db.refresh(new_standard)
 
     await db.commit()
-    await db.refresh(standard)
-    return standard
+    return new_standard
 
 
 @router.post("/{code}/activate", response_model=StandardPluginOut)

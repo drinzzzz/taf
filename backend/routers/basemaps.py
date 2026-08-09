@@ -1,3 +1,5 @@
+from config import get_settings
+settings = get_settings()
 """
 它界 TAF — 底图/空间路由
 """
@@ -53,7 +55,7 @@ async def upload_basemap(
     if not safe_name or safe_name.startswith('.'):
         safe_name = f"upload_{ext}"
 
-    upload_dir = f"/root/data/disk/taf_uploads/{project_id}"
+    upload_dir = os.path.join(settings.upload_dir, str(project_id))
     os.makedirs(upload_dir, exist_ok=True)
 
     file_path = os.path.join(upload_dir, safe_name)

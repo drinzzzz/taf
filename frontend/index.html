@@ -19,21 +19,40 @@ body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; back
 
 /* Nav */
 .nav { background:var(--card); border-bottom:1px solid var(--border); padding:0 24px; display:flex; align-items:center; height:48px; gap:24px; flex-shrink:0; }
-.nav .logo { font-size:16px; font-weight:700; color:var(--accent); text-decoration:none; }
-.nav a { color:var(--muted); text-decoration:none; font-size:14px; padding:4px 12px; border-radius:4px; transition:all .2s; }
-.nav a:hover, .nav a.active { color:var(--text); background:#ffffff0a; }
+.nav .logo { font-size:18px; font-weight:700; color:var(--accent); text-decoration:none; }
+.nav a { color:var(--muted); text-decoration:none; font-size:16px; padding:4px 12px; border-radius:4px; transition:all .2s; }
+.nav a:hover, .nav a.router-link-active, .nav a.router-link-exact-active { color:var(--accent) !important; background:#ffffff0f !important; }
 
 /* Layout */
 .main { flex:1; padding:24px; max-width:1400px; margin:0 auto; width:100%; }
 .card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:16px; }
-.card-title { font-size:18px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
-.card-sub { font-size:13px; color:var(--muted); margin-bottom:20px; }
+.wizard-steps { display:flex; align-items:center; gap:0; }
+.wizard-step { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.wizard-step .step-num { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; background:#ffffff08; color:var(--muted); border:2px solid var(--border); transition:all .3s; }
+.wizard-step .step-label { font-size:10px; color:var(--muted); white-space:nowrap; }
+.wizard-step.active .step-num { background:var(--accent); color:#fff; border-color:var(--accent); }
+.wizard-step.active .step-label { color:var(--accent); }
+.wizard-step.done .step-num { background:var(--success); color:#fff; border-color:var(--success); }
+.wizard-step.done .step-label { color:var(--success); }
+.wizard-line { flex:1; height:2px; background:var(--border); min-width:16px; transition:background .3s; }
+.wizard-line.done { background:var(--success); }
+
+.card-title { font-size:19px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.card-sub { font-size:14px; color:var(--muted); margin-bottom:20px; }
 
 /* Table */
 .el-table { --el-table-bg-color:transparent; --el-table-tr-bg-color:transparent; --el-table-header-bg-color:transparent; --el-table-border-color:var(--border); --el-table-text-color:var(--text); --el-table-header-text-color:var(--muted); }
-.el-table th.el-table__cell { background:transparent; border-bottom:1px solid var(--border); font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
-.el-table tr { transition:background .15s; }
+.el-table th.el-table__cell { background:transparent; border-bottom:1px solid var(--border); font-size:13px; text-transform:uppercase; letter-spacing:.5px; }
+.el-table tr { transition:background .15s; cursor:pointer; }
 .el-table tr:hover > td { background:#ffffff06 !important; }
+
+/* Element Plus dark mode overrides */
+.el-loading-mask { background-color:rgba(10,10,30,0.85) !important; }
+.el-loading-spinner .el-loading-text { color:var(--muted) !important; }
+.el-loading-spinner .path { stroke:var(--accent) !important; }
+.el-table__empty-block { background:transparent !important; }
+.el-table__empty-text { color:var(--muted) !important; }
+
 
 /* Category block */
 .cat-block { border:1px solid var(--border); border-radius:8px; margin-bottom:12px; overflow:hidden; }
@@ -53,14 +72,24 @@ body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; back
 .item-row:hover { background:#ffffff03; }
 .item-row .drag-handle { color:var(--muted); cursor:grab; font-size:14px; }
 .item-row .item-id { font-size:11px; color:var(--accent); font-family:monospace; min-width:48px; }
-.item-row .item-name { flex:1; font-size:14px; }
-.item-row .item-type { font-size:12px; padding:2px 8px; border-radius:3px; }
+.item-row .item-name { flex:1; font-size:15px; }
+.item-row .item-type { font-size:13px; padding:2px 8px; border-radius:3px; }
 .item-row .item-type.prerequisite { background:#f56c6c1a; color:#f56c6c; }
 .item-row .item-type.credit { background:#67c23a1a; color:#67c23a; }
-.item-row .item-score { font-size:13px; color:var(--muted); min-width:40px; text-align:right; }
+.item-row .item-score { font-size:14px; color:var(--muted); min-width:40px; text-align:right; }
 .item-row .item-actions { display:flex; gap:4px; }
 
 /* Editable */
+/* Dark mode selects */
+select { background:#1a1a2e; color:var(--text); border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:14px; }
+select option { background:#1a1a2e; color:var(--text); }
+.el-select-dropdown { background:#1a1a2e !important; border:1px solid var(--border) !important; }
+.el-select-dropdown__item { color:var(--text) !important; }
+.el-select-dropdown__item.hover, .el-select-dropdown__item:hover { background:#ffffff0a !important; }
+.el-select-dropdown__item.selected { color:var(--accent) !important; }
+.el-popper.is-light { background:#1a1a2e !important; border:1px solid var(--border) !important; }
+.dialog select, .dialog-mask select { background:#0f0f23; color:var(--text); border:1px solid var(--border); border-radius:4px; padding:8px 10px; font-size:14px; }
+
 input[type=text], textarea { background:#ffffff0a; border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:4px; font-size:13px; width:100%; outline:none; }
 input[type=text]:focus, textarea:focus { border-color:var(--accent); }
 select { background:#ffffff0a; border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:4px; font-size:13px; outline:none; }
@@ -111,7 +140,7 @@ label { display:block; font-size:11px; color:var(--muted); margin-bottom:4px; te
   <nav class="nav">
     <a href="#/" class="logo">它界 TAF</a>
     <router-link to="/standards">评估标准</router-link>
-    <router-link to="/projects">项目</router-link>
+    <router-link to="/projects">评估项目</router-link>
   </nav>
   <div class="main">
     <router-view></router-view>
@@ -123,10 +152,12 @@ const { createApp, ref, reactive, computed, onMounted, nextTick, watch } = Vue
 const { createRouter, createWebHashHistory } = VueRouter
 
 const PRODUCT_LINES = ['HT','OS','AP','HO','RE','OF','MC']
+const STATUS_LABELS = { draft: '草稿', active: '进行中', completed: '已完成', archived: '归档' }
+const statusLabel = (s) => STATUS_LABELS[s] || s
 
 // ─── API helper ───
 const API = {
-  base: '/taf/api',
+  base: (window.__TAF_API_BASE__ || '/taf/api'),
   async get(path) { const r = await fetch(this.base + path); if(!r.ok) throw await r.json(); return r.json(); },
   async post(path, data) { const r = await fetch(this.base + path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) }); if(!r.ok) throw await r.json(); return r.json(); },
   async put(path, data) { const r = await fetch(this.base + path, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) }); if(!r.ok) throw await r.json(); return r.json(); },
@@ -144,7 +175,7 @@ const StandardsList = {
       <div class="card-sub">可插拔的评估标准插件，支持版本化管理</div>
       <el-table :data="standards" style="width:100%" v-loading="loading" empty-text="暂无标准" @row-click="openDetail">
         <el-table-column prop="code" label="编码" width="180" />
-        <el-table-column prop="name" label="名称" />
+        <el-table-column prop="name" label="名称" min-width="200" />
         <el-table-column prop="version" label="版本" width="100" />
         <el-table-column label="状态" width="110">
           <template #default="{row}">
@@ -156,7 +187,7 @@ const StandardsList = {
             {{ row.config?.total_items || row.config?.items?.length || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="release_date" label="发布日期" width="120" />
+        <el-table-column prop="release_date" label="发布日期" width="110" :formatter="formatDate" />
       </el-table>
     </div>
   </div>`,
@@ -174,7 +205,8 @@ const StandardsList = {
     })
     const router = VueRouter.useRouter()
     const openDetail = (row) => { router.push('/standards/' + row.code) }
-    return { standards, loading, openDetail }
+    const formatDate = (row, col, val) => { if(!val) return '-'; const d=val.split('T')[0].split('-'); return d[0]+'.'+parseInt(d[1])+'.'+parseInt(d[2]); };
+    return { standards, loading, openDetail, formatDate }
   }
 }
 
@@ -222,6 +254,7 @@ const StandardsDetail = {
               <span class="weight-val">{{ cat.weight_pct }}%</span>
             </div>
             <span class="cat-arrow" :class="{open: cat.open}">▶</span>
+            <button class="btn sm" style="color:#f56c6c;margin-left:4px" @click.stop="deleteCategory(ci)" title="删除板块">✕</button>
           </div>
           <div class="cat-body" :class="{hidden: !cat.open}">
             <div :ref="el => { if(el) itemLists[cat.id] = el }">
@@ -277,6 +310,7 @@ const StandardsDetail = {
   </div>`,
   setup() {
     const route = VueRouter.useRoute()
+    const router = VueRouter.useRouter()
     const standard = ref(null)
     const config = ref(null)
     const categories = ref([])
@@ -362,6 +396,12 @@ const StandardsDetail = {
       nextTick(() => initSortable())
     }
 
+    const deleteCategory = (ci) => {
+      if (!confirm(`确定删除板块「${categories.value[ci].name}」及其所有评估项？`)) return
+      categories.value.splice(ci, 1)
+      nextTick(() => initSortable())
+    }
+
     const save = async () => {
       // Rebuild config
       const cats = categories.value.map(c => ({
@@ -390,19 +430,21 @@ const StandardsDetail = {
       }
 
       try {
-        await API.put('/standards/' + standard.value.code, {
+        const body = {
           name: standard.value.name,
           version: standard.value.version,
           status: standard.value.status,
           release_date: standard.value.release_date,
           code: standard.value.code,
           config: cfg
-        })
-        toast.show('✅ 保存成功')
+        }
+        const result = await API.put('/standards/' + standard.value.code, body)
+        toast.show('✅ 已保存为新版本: ' + result.code)
+        // Redirect to new version after short delay
+        setTimeout(() => router.push('/standards/' + result.code), 800)
       } catch(e) {
         console.error(e)
-        toast.msg = '❌ 保存失败'
-        toast.show(toast.msg)
+        toast.show('❌ 保存失败: ' + (e.detail || e.message || ''))
       }
     }
 
@@ -440,7 +482,7 @@ const StandardsDetail = {
     }
 
     return { standard, config, categories, loading, editing, editForm, catList, itemLists, weightTotal,
-      toggleCat, onWeightChange, editItem, closeEdit, saveEdit, addCategory, addItem, save }
+      toggleCat, onWeightChange, editItem, closeEdit, saveEdit, addCategory, addItem, deleteCategory, save }
   }
 }
 
@@ -451,23 +493,23 @@ const ProjectsList = {
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
-          <div class="card-title" style="margin-bottom:4px">📁 项目</div>
+          <div class="card-title" style="margin-bottom:4px">📁 评估项目</div>
           <div class="card-sub">人宠友好空间评估项目</div>
         </div>
         <button class="btn primary" @click="showCreate=true">+ 新建项目</button>
       </div>
       <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-        <input type="text" v-model="search" placeholder="🔍 搜索项目名称或代码..." style="flex:1;min-width:200px;max-width:400px" @input="load">
+        <input type="text" v-model="search" placeholder="🔍 搜索项目名称或编码..." style="flex:1;min-width:200px;max-width:400px" @input="load">
         <select v-model="filterPL" @change="load"><option value="">全部产品线</option><option v-for="pl in productLines" :key="pl" :value="pl">{{ pl }}</option></select>
         <select v-model="filterStatus" @change="load"><option value="">全部状态</option><option value="draft">草稿</option><option value="active">进行中</option><option value="completed">已完成</option></select>
       </div>
       <el-table :data="projects" style="width:100%" v-loading="loading" empty-text="暂无项目" @row-click="openDetail">
-        <el-table-column prop="code" label="代码" width="180" />
-        <el-table-column prop="name" label="名称" />
+        <el-table-column prop="code" label="编码" width="180" />
+        <el-table-column prop="name" label="名称" min-width="200" />
         <el-table-column prop="product_line" label="产品线" width="90" />
         <el-table-column prop="phase" label="阶段" width="70" />
         <el-table-column label="状态" width="100">
-          <template #default="{row}"><span :style="{color:row.status==='active'?'#67c23a':'#8b8fa3'}">{{ row.status }}</span></template>
+          <template #default="{row}"><span :style="{color:row.status==='active'?'#67c23a':row.status==='draft'?'#909399':row.status==='completed'?'#67c23a':'#8b8fa3'}">{{ statusLabel(row.status) }}</span></template>
         </el-table-column>
         <el-table-column prop="client_name" label="委托方" width="120" />
         <el-table-column label="设施" width="60">
@@ -518,7 +560,7 @@ const ProjectsList = {
         load()
       } catch(e) { toast.show('❌ 创建失败') }
     }
-    return { projects, loading, search, filterPL, filterStatus, productLines, load, openDetail, showCreate, createForm, doCreate }
+    return { projects, loading, search, filterPL, filterStatus, productLines, load, openDetail, showCreate, createForm, doCreate, statusLabel }
   }
 }
 
@@ -526,6 +568,7 @@ const ProjectsList = {
 const ProjectDetail = {
   template: `
   <div>
+    <!-- Header -->
     <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
       <button class="btn" @click="$router.back()">← 返回</button>
       <span style="font-size:18px;font-weight:600">{{ project?.name }}</span>
@@ -536,80 +579,129 @@ const ProjectDetail = {
       <button class="btn" v-if="editing" @click="cancelEdit">取消</button>
     </div>
 
-    <div v-if="project" style="display:flex;gap:16px;flex-wrap:wrap">
-      <!-- Left: Info -->
-      <div class="card" style="flex:2;min-width:400px">
+    <div v-if="project">
+      <!-- Card 1: Project Info — 3 cols × 3 rows -->
+      <div class="card" style="margin-bottom:16px">
         <div class="card-title">📋 项目信息</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px 24px">
           <div>
-            <label>项目代码</label>
-            <div class="field-val">{{ project.code }}</div>
+            <label>项目编码</label>
+            <div class="field-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ project.code }}</div>
           </div>
           <div>
             <label>名称</label>
-            <input v-if="editing" type="text" v-model="form.name">
-            <div v-else class="field-val">{{ project.name }}</div>
+            <input v-if="editing" type="text" v-model="form.name" style="width:100%">
+            <div v-else class="field-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ project.name }}</div>
+          </div>
+          <div>
+            <label>委托方</label>
+            <input v-if="editing" type="text" v-model="form.client_name" style="width:100%">
+            <div v-else class="field-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ project.client_name || '-' }}</div>
           </div>
           <div>
             <label>产品线</label>
-            <select v-if="editing" v-model="form.product_line">
+            <select v-if="editing" v-model="form.product_line" style="width:100%">
               <option v-for="pl in productLines" :key="pl" :value="pl">{{ pl }}</option>
             </select>
             <div v-else class="field-val">{{ project.product_line }}</div>
           </div>
           <div>
             <label>阶段</label>
-            <select v-if="editing" v-model="form.phase">
+            <select v-if="editing" v-model="form.phase" style="width:100%">
               <option value="NC">NC 新建</option><option value="EI">EI 既有</option><option value="CO">CO 运营</option>
             </select>
             <div v-else class="field-val">{{ project.phase }}</div>
           </div>
           <div>
+            <label>委托方公司</label>
+            <input v-if="editing" type="text" v-model="form.client_company" style="width:100%">
+            <div v-else class="field-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ project.client_company || '-' }}</div>
+          </div>
+          <div>
             <label>状态</label>
-            <select v-if="editing" v-model="form.status">
+            <select v-if="editing" v-model="form.status" style="width:100%">
               <option value="draft">草稿</option><option value="active">进行中</option><option value="completed">已完成</option><option value="archived">归档</option>
             </select>
-            <div v-else class="field-val">{{ project.status }}</div>
+            <div v-else class="field-val">{{ statusLabel(project.status) }}</div>
           </div>
           <div>
-            <label>委托方</label>
-            <input v-if="editing" type="text" v-model="form.client_name">
-            <div v-else class="field-val">{{ project.client_name || '-' }}</div>
-          </div>
-          <div>
-            <label>委托方公司</label>
-            <input v-if="editing" type="text" v-model="form.client_company">
-            <div v-else class="field-val">{{ project.client_company || '-' }}</div>
-          </div>
-          <div style="grid-column:1/-1">
             <label>位置</label>
             <input v-if="editing" type="text" v-model="form.location" style="width:100%">
-            <div v-else class="field-val">{{ project.location || '-' }}</div>
+            <div v-else class="field-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ project.location || '-' }}</div>
           </div>
           <div style="grid-column:1/-1">
             <label>描述</label>
-            <textarea v-if="editing" v-model="form.description" rows="3" style="width:100%"></textarea>
+            <textarea v-if="editing" v-model="form.description" rows="2" style="width:100%"></textarea>
             <div v-else class="field-val" style="font-size:13px;color:var(--muted)">{{ project.description || '-' }}</div>
           </div>
         </div>
       </div>
 
-      <!-- Right: Standard binding -->
-      <div class="card" style="flex:1;min-width:280px">
-        <div class="card-title">📐 绑定评估标准</div>
-        <div v-if="boundStandard" style="margin-bottom:16px">
-          <div style="font-size:15px;font-weight:600">{{ boundStandard.name }}</div>
-          <div style="font-size:12px;color:var(--muted)">{{ boundStandard.code }} · v{{ boundStandard.version }}</div>
-          <div v-if="boundStandard.config" style="font-size:12px;color:var(--muted);margin-top:4px">
-            {{ (boundStandard.config.items && boundStandard.config.items.length) || 0 }} 项指标 · {{ (boundStandard.config.items && boundStandard.config.items.filter(i => i.type === 'prerequisite').length) || 0 }} 必选
+      <!-- Card 2: 评估流程 — full width horizontal stepper -->
+      <div class="card">
+        <div class="card-title">📐 评估流程</div>
+        <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap">
+          <!-- Standard info -->
+          <div style="min-width:200px;flex-shrink:0">
+            <div v-if="boundStandard">
+              <div style="font-size:15px;font-weight:600">{{ boundStandard.name }}</div>
+              <div style="font-size:12px;color:var(--muted)">{{ boundStandard.code }} · v{{ boundStandard.version }}</div>
+              <div v-if="boundStandard.config" style="font-size:12px;color:var(--muted);margin-top:2px">
+                {{ (boundStandard.config.items && boundStandard.config.items.length) || 0 }} 项指标 · {{ (boundStandard.config.items && boundStandard.config.items.filter(i => i.type === 'prerequisite').length) || 0 }} 必选
+              </div>
+            </div>
+            <div v-else style="color:var(--muted);font-size:13px">未绑定标准</div>
+          </div>
+          <!-- Stepper -->
+          <div style="flex:1;min-width:360px">
+            <div class="wizard-steps">
+              <div class="wizard-step" :class="{done: wizardStep>=1, active: wizardStep===1}">
+                <div class="step-num">1</div><div class="step-label">评估标准</div>
+              </div>
+              <div class="wizard-line" :class="{done: wizardStep>=2}"></div>
+              <div class="wizard-step" :class="{done: wizardStep>=2, active: wizardStep===2}">
+                <div class="step-num">2</div><div class="step-label">底图工作台</div>
+              </div>
+              <div class="wizard-line" :class="{done: wizardStep>=3}"></div>
+              <div class="wizard-step" :class="{done: wizardStep>=3, active: wizardStep===3}">
+                <div class="step-num">3</div><div class="step-label">设施清单</div>
+              </div>
+              <div class="wizard-line" :class="{done: wizardStep>=4}"></div>
+              <div class="wizard-step" :class="{done: wizardStep>=4, active: wizardStep===4}">
+                <div class="step-num">4</div><div class="step-label">生成成果</div>
+              </div>
+            </div>
+            <div style="margin-top:8px;font-size:12px;color:var(--muted)">
+              <template v-if="wizardStep===1">
+                <span v-if="boundStandard">✅ 已绑定标准</span>
+                <span v-else>⚠️ 尚未绑定评估标准</span>
+              </template>
+              <template v-if="wizardStep===2">🗺️ 上传底图，识别空间区域</template>
+              <template v-if="wizardStep===3">📋 在底图上布点设施并评分</template>
+              <template v-if="wizardStep===4">📦 一键生成全套评估报告与成果包</template>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn sm" v-if="wizardStep>1" @click="wizardStep--">← 上一步</button>
+              <div style="flex:1"></div>
+              <template v-if="wizardStep===1 && boundStandard">
+                <button class="btn sm" @click="openSwitchDialog">🔄 切换</button>
+                <button class="btn primary" @click="wizardStep=2">下一步 →</button>
+              </template>
+              <button class="btn primary" v-if="wizardStep===1 && !boundStandard" @click="openSwitchDialog">
+                📐 绑定标准
+              </button>
+              <button class="btn primary" v-if="wizardStep===2" @click="$router.push('/projects/' + project?.id + '/basemap')">
+                🗺️ 进入底图工作台
+              </button>
+              <button class="btn primary" v-if="wizardStep===3" @click="$router.push('/projects/' + project?.id + '/facilities')">
+                📋 进入设施清单
+              </button>
+              <button class="btn primary" v-if="wizardStep===4" @click="$router.push('/projects/' + project?.id + '/deliverables')">
+                📦 生成成果
+              </button>
+            </div>
           </div>
         </div>
-        <div v-else style="color:var(--muted);margin-bottom:16px;font-size:13px">未绑定标准</div>
-
-        <button class="btn" @click="openSwitchDialog">🔄 切换标准版本</button>
-        <button class="btn" style="margin-top:8px" @click="$router.push('/projects/' + project?.id + '/basemap')">🗺️ 底图工作台</button>
-        <button class="btn" style="margin-top:8px" @click="$router.push('/projects/' + project?.id + '/facilities')">📋 设施清单</button>
-        <button class="btn primary" style="margin-top:8px" @click="$router.push('/projects/' + project?.id + '/deliverables')">📦 生成成果</button>
       </div>
     </div>
 
@@ -647,6 +739,7 @@ const ProjectDetail = {
   setup() {
     const route = VueRouter.useRoute()
     const project = ref(null), editing = ref(false), switchDialog = ref(false), switchTarget = ref('')
+    const wizardStep = ref(1)
     const boundStandard = ref(null), standards = ref([]), preview = ref(null)
     const productLines = PRODUCT_LINES
     const form = reactive({})
@@ -658,7 +751,7 @@ const ProjectDetail = {
         // Load bound standard
         if (project.value.standard_id) {
           const r = await API.get('/projects/' + route.params.id + '/standard')
-          if (r.standard) boundStandard.value = r.standard
+          if (r.standard) { boundStandard.value = r.standard; wizardStep.value = 2 }
         }
         // Load all standards for switch dialog
         try { standards.value = await API.get('/standards') } catch(e) {}
@@ -688,6 +781,7 @@ const ProjectDetail = {
       } catch(e) { toast.show('❌ 预览失败') }
     }
     const confirmSwitch = async () => {
+      if (switchTarget.value === boundStandard.value?.code) { switchDialog.value = false; toast.show('已是当前标准'); return }
       try {
         await API.post('/projects/' + route.params.id + '/standard/switch', { new_standard_code: switchTarget.value })
         toast.show('✅ 标准切换成功')
@@ -696,7 +790,7 @@ const ProjectDetail = {
       } catch(e) { toast.show('❌ 切换失败') }
     }
 
-    return { project, editing, form, startEdit, cancelEdit, save, boundStandard, standards,
+    return { project, editing, form, startEdit, cancelEdit, save, boundStandard, standards, wizardStep, statusLabel,
       switchDialog, switchTarget, preview, openSwitchDialog, previewSwitch, confirmSwitch, productLines }
   }
 }
@@ -1310,7 +1404,7 @@ const DeliverablesPage = {
 
     onMounted(async () => {
       try {
-        const p = await (await fetch('/taf/api/projects/' + route.params.id)).json()
+        const p = await (await fetch(API.base + '/projects/' + route.params.id)).json()
         projectName.value = p.name || p.code
       } catch(e) {}
       loading.value = false
@@ -1389,7 +1483,7 @@ const App = {
     <nav class="nav">
       <a href="#/" class="logo">它界 TAF</a>
       <router-link to="/standards">评估标准</router-link>
-      <router-link to="/projects">项目</router-link>
+      <router-link to="/projects">评估项目</router-link>
     </nav>
     <div v-if="toast.msg.value" class="toast">{{ toast.msg.value }}</div>
     <div class="main"><router-view></router-view></div>

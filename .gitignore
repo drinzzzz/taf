@@ -33,6 +33,9 @@ test.md
 *.bak
 demo_taf.dxf
 
+# 展览图片（二进制大文件，走坚果云同步）
+frontend/pfa_images/
+
 # 废弃
 backend/app/
 seed_data.json
