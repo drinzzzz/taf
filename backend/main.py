@@ -17,7 +17,6 @@ from routers.facilities import router as facilities_router
 from routers.standards import router as standards_router
 from routers.evaluation import router as evaluation_router
 from routers.basemaps import router as basemaps_router
-from routers.pfa_api import router as pfa_router
 from routers.deliverables import router as deliverables_router
 
 
@@ -66,8 +65,6 @@ app.include_router(standards_router)
 app.include_router(evaluation_router)
 app.include_router(basemaps_router)
 app.include_router(deliverables_router)
-app.include_router(pfa_router)
-app.mount("/pfa", StaticFiles(directory="/data/disk1/wwwroot/taf/frontend", html=True), name="pfa")
 
 
 @app.get("/")
