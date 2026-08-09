@@ -9,25 +9,27 @@
 - [x] 0.3 更新 .gitignore (确认 seed*.sql 已解除排除)
 - [x] 0.4 执行首次完整备份 + commit + push
 
-## Phase 1: 两阶段 OCR 管线
+## Phase 1: 两阶段 OCR 管线 ✅ DONE
 
-### Stage A: 粗筛 — 全图 OCR + Qwen VL 结构识别
-- [ ] 1.A1 旋转预处理验证 (cv2 rotate 逆时针90°)
-- [ ] 1.A2 全图 OCR 文字提取 (PaddleOCR/EasyOCR)
-- [ ] 1.A3 Qwen VL 展厅结构识别 (网格行列数、有效区域 bbox)
+- [x] 1.A1 旋转预处理 (逐格 CCW 90°)
+- [x] 1.A2 分条 OCR (8 strips/hall, Qwen VL)
+- [x] 1.A3 展商模糊匹配 (difflib ratio ≥ 0.80)
+- [x] 1.B1 数据入库 (28 展厅, 1868 booths, 1113 matched)
+- [x] 1.B2 可续传 checkpoint 机制 (ocr_checkpoint.json)
+- [x] 1.B3 原始输出留存 (raw_company_name 列)
 
-### Stage B: 精确 — 网格切分 + 逐格 Qwen VL 识别
-- [ ] 1.B1 网格线检测 (W1 最小展厅先验证参数)
-- [ ] 1.B2 逐格切分 + 空cell预过滤
-- [ ] 1.B3 逐格 Qwen VL OCR (批量并发 5-10格)
-- [ ] 1.B4 展位↔展商 模糊匹配关联
-- [ ] 1.B5 全量验证 (booths 数 vs halls.booth_count)
+### OCR 结果
+- 28/28 展厅完成
+- 1868 booths (预期 2061, 覆盖率 91%)
+- 1113 匹配展商 (匹配率 60%)
+- 备份: backups/pfa_phase1_ocr_done_20260809_151551.sql (494K)
 
-## Phase 2: 数据质量清洗
+## Phase 2: 数据质量清洗 ✅ DONE
 
-- [ ] 2.1 污染数据清除 (E8D28 E8D29 等展位号混入展商名)
-- [ ] 2.2 展商分类 (2023条, Qwen 批量, 50条/批)
-- [ ] 2.3 展商去重合并 (编辑距离检测)
+- [x] 2.1 噪声标签清除 (功能区/优家/优宠/优尚 等 143 条)
+- [x] 2.2 短名/展位号模式清除 (265 条)
+- [x] 2.3 同展商同展厅去重 (114 条 → 每厅每展商仅 1 booth)
+- [x] 2.4 孤悬展商清理 (66 条)
 
 ## Phase 3: 前端功能增强
 
