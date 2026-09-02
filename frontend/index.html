@@ -748,10 +748,10 @@ const BasemapEditor = {
       <button class="btn" @click="$router.back()">← 返回项目</button>
       <span style="font-size:16px;font-weight:600;margin:0 8px">{{ projectName }}</span>
       <span style="flex:1"></span>
-      <button class="btn" :class="{primary:tool==='pan'}" @click="setTool('pan')" title="平移/选择">✋ 平移</button>
-      <button class="btn" :class="{primary:tool==='place'}" @click="setTool('place')" title="手动布点(点击画布落点)" style="color:#67c23a">📍 手动布点</button>
-      <button class="btn primary" @click="openAutoPlace" title="按策略自动布点">⚡ 自动布点</button>
-      <button class="btn" @click="fitScreen">⊞ 适应</button>
+      <button class="btn" :class="{primary:tool==='pan'}" @click="setTool('pan')" title="平移图纸/选择">✋ 平移图纸</button>
+      <button class="btn" :class="{primary:tool==='place'}" @click="setTool('place')" title="手动布点(再点或 Esc 取消)" style="color:#67c23a">📍 手动布点</button>
+      <button class="btn" style="background:#e6a23c;border-color:#e6a23c;color:#fff" @click="openAutoPlace" title="按策略自动布点">⚡ 自动布点</button>
+      <button class="btn" @click="fitScreen">⊞ 适应窗口</button>
       <button class="btn" @click="toggleTrueFullscreen" :title="trueFs ? '退出全屏' : '全屏(沉浸式)'">{{ trueFs ? '⛶ 退出全屏' : '🖥️ 全屏' }}</button>
       <button class="btn" @click="exportView">📸 截图</button>
       <button class="btn" @click="triggerUpload">⬆ 上传DXF</button>
@@ -773,10 +773,16 @@ const BasemapEditor = {
         <div v-for="l in layers" :key="l.name" style="padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">
           <!-- 行1: 可见性(眼睛) + 图标/色块 + 名称 + (N) + 锁 -->
           <div style="display:flex;align-items:center;gap:6px">
-            <button class="btn sm" style="padding:1px 4px;font-size:12px;flex-shrink:0;width:26px" @click="toggleLayerVisible(l)" :title="l.visible?'点击隐藏':'点击显示'">{{ l.visible ? '👁' : '🙈' }}</button>
+            <button class="btn sm" style="padding:2px;flex-shrink:0;width:24px;height:22px;display:inline-flex;align-items:center;justify-content:center" @click="toggleLayerVisible(l)" :title="l.visible?'点击隐藏':'点击显示'">
+              <svg v-if="l.visible" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
             <svg v-if="l.iconPath" :viewBox="l.viewbox||'0 0 15 15'" style="width:15px;height:15px;flex-shrink:0" :style="{fill:l.color}"><path :d="l.iconPath"/></svg>
             <span v-else :style="{width:'12px',height:'12px',borderRadius:'2px',background:l.color,flexShrink:0}"></span>
-            <span @click="toggleLayerVisible(l)" style="flex:1;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3" :title="l.name + (l.visible?' (点击隐藏)':' (点击显示)')">{{ l.name }}</span>
+            <span @click="toggleLayerVisible(l)" style="flex:1;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3" :title="l.name + (l.visible?' (点击隐藏)':' (点击显示)')">
+              <span v-if="layerCN(l.name)">{{ layerCN(l.name) }}<span style="font-size:10px;color:var(--muted);margin-left:4px">{{ l.name }}</span></span>
+              <span v-else>{{ l.name }}</span>
+            </span>
             <span style="font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap">({{ l.count }})</span>
             <button class="btn sm" style="padding:1px 5px;font-size:11px;flex-shrink:0" @click="toggleLayerLock(l)" :title="l.locked?'点击解锁':'点击锁定'">{{ l.locked ? '🔒' : '🔓' }}</button>
           </div>
@@ -840,7 +846,8 @@ const BasemapEditor = {
               <span style="font-size:11px;color:var(--muted);flex-shrink:0">{{ f.standard_item_id }}</span>
             </div>
             <div style="display:flex;align-items:center;gap:6px;margin:2px 0 0 23px">
-              <span style="font-size:11px;padding:0 6px;border-radius:3px" :style="{background:facStatusColor(f.status)+'22',color:facStatusColor(f.status)}">{{ facStatusCN(f.status) }}</span>
+              <span v-if="f.status!=='confirmed'" style="font-size:11px;padding:0 6px;border-radius:3px" :style="{background:facStatusColor(f.status)+'22',color:facStatusColor(f.status)}">{{ facStatusCN(f.status) }}</span>
+              <span v-if="f.status==='confirmed'" style="font-size:11px;color:var(--muted);opacity:.6">已采纳</span>
               <span v-if="f.position?.x!=null" style="font-size:11px;color:var(--muted)">· ({{ Math.round(f.position.x) }}, {{ Math.round(f.position.y) }})</span>
               <span v-else style="font-size:11px;color:#e6a23c">未布点</span>
             </div>
@@ -990,6 +997,32 @@ const BasemapEditor = {
       'P5-02','P5-03','P6-01','P6-02','P6-04'])
     // 图例行颜色 (P 类)
     const CAT_COLORS = { 'P1': '#4f8cff', 'P2': '#67c23a', 'P3': '#e6a23c', 'P4': '#c97dff', 'P5': '#f56c6c', 'P6': '#8b8fa3' }
+
+    // 底图图层中文名 (TAF-FACILITY-* 设施层在 merge 时已有 nameZh)
+    const LAYER_CN = {
+      'TAF-BOUNDARY': '红线边界', 'BOUNDARY': '红线边界',
+      'TAF-BUILDING': '建筑', 'BUILDING': '建筑',
+      'TAF-CHANNEL': '通道/走廊', 'CHANNEL': '通道/走廊',
+      'TAF-ROAD': '道路', 'ROAD': '道路',
+      'TAF-GREEN': '绿地', 'GREEN': '绿地',
+      'TAF-NODE': '节点/广场', 'NODE': '节点/广场',
+      'TAF-FACADE': '沿街立面', 'FACADE': '沿街立面',
+      'TAF-BUILDING_NUMBER': '建筑编号',
+      'BASEMAP': '原始底图', '0': '未分层实体', 'Defpoints': '辅助层',
+    }
+    const layerCN = (name) => {
+      if (!name) return ''
+      if (LAYER_CN[name]) return LAYER_CN[name]
+      const upper = name.toUpperCase()
+      if (LAYER_CN[upper]) return LAYER_CN[upper]
+      // 设施层: TAF-FACILITY-P1-02-PUBLIC-FOUNTAIN → 查 maki nameZh
+      if (name.startsWith('TAF-FACILITY-')) {
+        for (const sym of Object.values(makiSymbols)) {
+          if (sym.layer === name) return sym.name_zh || ''
+        }
+      }
+      return ''
+    }
 
     // 设施状态中文 (引用全局映射, 与 FacilitiesPage 单一事实源)
     const facStatusCN = (s) => facStatusLabel(s)
@@ -1458,11 +1491,22 @@ const BasemapEditor = {
 
     const fitScreen = () => {
       if (!fabricCanvas) return
-      const objs = fabricCanvas.getObjects()
-      if (!objs.length) return
       const wrap = canvasWrap.value
       const w = wrap.clientWidth, h = wrap.clientHeight
-      // Find bounds from all objects
+      if (w <= 0 || h <= 0) return
+      // 基于离屏合成图尺寸精确适配 (避免遍历对象时 marker/文本干扰导致跑偏)
+      if (offCanvas && offCanvas.width > 0 && offCanvas.height > 0) {
+        const cw = offCanvas.width, ch = offCanvas.height
+        const zoom = Math.min(w / cw, h / ch) * 0.92
+        const cx = cw / 2, cy = ch / 2
+        fabricCanvas.setViewportTransform([zoom, 0, 0, zoom, w / 2 - cx * zoom, h / 2 - cy * zoom])
+        zoomPct.value = Math.round(zoom * 100)
+        fabricCanvas.requestRenderAll()
+        return
+      }
+      // fallback: 无离屏图时按对象 bounds
+      const objs = fabricCanvas.getObjects()
+      if (!objs.length) return
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
       objs.forEach(o => {
         const b = o.getBoundingRect()
@@ -1471,12 +1515,12 @@ const BasemapEditor = {
         maxX = Math.max(maxX, b.left + b.width)
         maxY = Math.max(maxY, b.top + b.height)
       })
-      const cw = maxX - minX, ch = maxY - minY
-      if (cw <= 0 || ch <= 0) return
-      const zoom = Math.min(w / cw, h / ch) * 0.9
-      const cx = minX + cw / 2, cy = minY + ch / 2
-      fabricCanvas.setViewportTransform([zoom, 0, 0, zoom, w / 2 - cx * zoom, h / 2 - cy * zoom])
-      zoomPct.value = Math.round(zoom * 100)
+      const cw2 = maxX - minX, ch2 = maxY - minY
+      if (cw2 <= 0 || ch2 <= 0) return
+      const zoom2 = Math.min(w / cw2, h / ch2) * 0.92
+      const cx2 = minX + cw2 / 2, cy2 = minY + ch2 / 2
+      fabricCanvas.setViewportTransform([zoom2, 0, 0, zoom2, w / 2 - cx2 * zoom2, h / 2 - cy2 * zoom2])
+      zoomPct.value = Math.round(zoom2 * 100)
       fabricCanvas.renderAll()
     }
 
@@ -1656,6 +1700,13 @@ const BasemapEditor = {
 
     // ── 手动布点: 选中设施后点击画布落点 ──
     const setTool = (t) => {
+      // 再点同一工具 = 取消 (toggle)
+      if (tool.value === t && (t === 'place' || t === 'text')) {
+        tool.value = 'pan'
+        selectedFac.value = null
+        facPlaceHint.value = ''
+        return
+      }
       tool.value = t
       if (t === 'place') {
         if (!selectedFac.value) {
@@ -1664,12 +1715,23 @@ const BasemapEditor = {
           selectedFac.value = next || facilities.value.find(isPlacable) || null
         }
         facPlaceHint.value = selectedFac.value
-          ? `点击画布放置「${selectedFac.value.name}」(${selectedFac.value.standard_item_id})`
+          ? `点击画布放置「${selectedFac.value.name}」(${selectedFac.value.standard_item_id}) · 再点「手动布点」或 Esc 取消`
           : '右侧清单先选择要布点的设施'
       } else {
         facPlaceHint.value = ''
       }
     }
+    // Esc 取消手动布点
+    const _keyHandler = (e) => {
+      if (e.key === 'Escape' && (tool.value === 'place' || tool.value === 'text')) {
+        tool.value = 'pan'
+        selectedFac.value = null
+        facPlaceHint.value = ''
+        if (textInput.value) { textInput.value = false }
+        fabricCanvas?.requestRenderAll()
+      }
+    }
+    if (typeof document !== 'undefined') document.addEventListener('keydown', _keyHandler)
     const selectFacility = (f) => {
       selectedFac.value = f
       if (tool.value !== 'place') setTool('place')
@@ -2027,7 +2089,7 @@ const BasemapEditor = {
       placeMargin, perRow, symScale, autoOverwrite, scheduleReauto,
       openAutoPlace, runAutoPlace, legendRows, buildLegend,
       facStatusCN, facStatusColor, facCats, facCountOf, toggleLayerLock,
-      toggleLayerVisible, catNames }
+      toggleLayerVisible, catNames, layerCN }
   }
 }
 
