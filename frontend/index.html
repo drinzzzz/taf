@@ -1283,8 +1283,11 @@ const BasemapEditor = {
       fabricCanvas.on('object:modified', async (opt) => {
         const t = opt.target
         if (t?._isFacility && t._facilityData?.id) {
-          const w = screenToWorld(t.left, t.top)   // 场景 → 世界
-          // 🔴 不取整: 拖动保存浮点坐标, 无 1 单位(1cm)网格吸附感
+          // 🔴🔴 必须保存对象"中心"而非左上角: 渲染 makeSymbol 把 DB 坐标当作中心输入
+          //   (left = x - 半宽); 若存 t.left/top(左上角) → 重建时整体偏移半图标(≈9 场景单位)
+          //   = 用户感知的"松手瞬间图标跳格"根因 (修复 2026-09-02)
+          const c = t.getCenterPoint()
+          const w = screenToWorld(c.x, c.y)   // 中心: 场景 → 世界
           const x = w.x, y = w.y
           try {
             if (t._placementId) {
@@ -1768,6 +1771,13 @@ const BasemapEditor = {
         fitScreen()
         buildLegend()
         restoreViewState()   // 恢复上次图层显隐/透明度/视图
+        // 🔴 竞态修复: refreshFacilities 若先于 DXF 解析完成执行(layers 尚空)会跳过 marker 渲染,
+        //   此处兜底补渲染 (facilities 已加载时); 未加载则 refreshFacilities 稍后自行渲染
+        if (facilities.value.length) {
+          mergeFacilityLayersInto(layers.value)
+          updateFacilityLayerCounts()
+          renderFacilityMarkers()
+        }
         loading.value = false
         loadProgress.value = 100
         loadStage.value = '完成'
