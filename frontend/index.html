@@ -1179,6 +1179,7 @@ const BasemapEditor = {
         zoom = Math.max(0.05, Math.min(20, zoom))
         fabricCanvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom)
         zoomPct.value = Math.round(zoom * 100)
+        recomposeForZoom()   // 🔴 放大超阈值 → 高清重合成去锯齿
         opt.e.preventDefault()
         opt.e.stopPropagation()
       })
@@ -1350,6 +1351,58 @@ const BasemapEditor = {
 
     // ── 离屏合成: 把 layers 数据画到离屏 canvas → dataURL (原生 2D, 一次性, 高性能) ──
     let offCanvas = null, offCtx = null
+    let bgScaleMul = 1          // 背景合成超采样倍数 (1=4096px 级, 2/4=放大时重合成保清晰)
+    let _recompTimer = null
+
+    // 核心: 以 mul 倍分辨率重绘矢量合成 → 挂到 fabric 背景 (场景尺寸恒 = offCanvas 基础尺寸)
+    function renderComposite(mul) {
+      if (!offCanvas || !fabricCanvas) return
+      const bw = offCanvas.width, bh = offCanvas.height   // 基础(场景)尺寸恒定
+      const nw = Math.max(1, Math.round(bw * mul))
+      const nh = Math.max(1, Math.round(bh * mul))
+      const nCan = document.createElement('canvas')
+      nCan.width = nw; nCan.height = nh
+      const nCtx = nCan.getContext('2d')
+      nCtx.fillStyle = '#111318'; nCtx.fillRect(0, 0, nw, nh)
+      nCtx.scale(mul, mul)
+      for (const l of layers.value) {
+        if (!l.visible) continue
+        nCtx.globalAlpha = (l.opacity || 100) / 100
+        nCtx.strokeStyle = l.color; nCtx.fillStyle = l.color
+        l.objects.forEach(e => strokeEntity(nCtx, e, l.color, 1))
+      }
+      nCtx.globalAlpha = 1
+      const dataUrl = nCan.toDataURL('image/png')
+      fabric.Image.fromURL(dataUrl, (img) => {
+        img._isBg = true
+        img.selectable = false; img.evented = false
+        img.lockMovementX = true; img.lockMovementY = true
+        img.scaleX = bw / nw   // 场景尺寸恒 = 基础尺寸
+        img.scaleY = bh / nh
+        const old = fabricCanvas.getObjects().find(o => o._isBg)
+        if (old) fabricCanvas.remove(old)
+        fabricCanvas.add(img)
+        fabricCanvas.sendToBack(img)
+        fabricCanvas.requestRenderAll()
+      })
+    }
+
+    // 重绘合成图 (图层显隐/透明度变化时调用 — 始终按当前超采样倍数保持清晰)
+    function redrawComposite() {
+      if (!offCanvas || !fabricCanvas) return
+      renderComposite(bgScaleMul)
+    }
+
+    // 🔴 自适应重合成 (消除放大锯齿): zoom 放大超过源像素 1:1 时提高超采样倍数
+    function recomposeForZoom() {
+      if (!fabricCanvas || !offCanvas || !layers.value.length) return
+      const zoom = fabricCanvas.getZoom()
+      const target = Math.min(4, Math.max(1, Math.ceil(zoom / 1.5)))   // 超采样 ≥1.5 源px/屏px
+      if (target === bgScaleMul) return
+      bgScaleMul = target
+      if (_recompTimer) clearTimeout(_recompTimer)
+      _recompTimer = setTimeout(() => { try { renderComposite(bgScaleMul) } catch(e) { console.error('recompose fail', e) } }, 150)
+    }
     let dxfWorldBounds = null   // 世界坐标 bbox
 
     function computeWorldBounds(layerMap) {
@@ -1415,41 +1468,6 @@ const BasemapEditor = {
         ctx.fillText(txt, p.x, p.y)
       }
     }
-
-    // 重绘合成图 (图层显隐/透明度/加载完成时调用)
-    function redrawComposite() {
-      if (!offCanvas || !fabricCanvas) return
-      const ctx = offCtx
-      ctx.clearRect(0, 0, offCanvas.width, offCanvas.height)
-      ctx.fillStyle = '#111318'
-      ctx.fillRect(0, 0, offCanvas.width, offCanvas.height)
-      // 按图层栈顺序绘制 (后画的在上)
-      for (const l of layers.value) {
-        if (!l.visible) continue
-        ctx.globalAlpha = (l.opacity || 100) / 100
-        ctx.strokeStyle = l.color
-        ctx.fillStyle = l.color
-        l.objects.forEach(e => strokeEntity(ctx, e, l.color, 1))
-      }
-      ctx.globalAlpha = 1
-      const dataUrl = offCanvas.toDataURL('image/png')
-      // 替换背景 image 对象 (若存在)
-      const bg = fabricCanvas.getObjects().find(o => o._isBg)
-      if (bg) { bg.setSrc(dataUrl, () => { fabricCanvas.requestRenderAll() }) }
-      else {
-        fabric.Image.fromURL(dataUrl, (img) => {
-          img._isBg = true
-          img.selectable = false
-          img.evented = false
-          img.lockMovementX = true
-          img.lockMovementY = true
-          fabricCanvas.add(img)
-          fabricCanvas.sendToBack(img)
-          fabricCanvas.requestRenderAll()
-        })
-      }
-    }
-
 
     const renderDXF = (dxfText) => {
       try {
@@ -1624,6 +1642,7 @@ const BasemapEditor = {
         fabricCanvas.setViewportTransform([zoom, 0, 0, zoom, w / 2 - cx * zoom, h / 2 - cy * zoom])
         zoomPct.value = Math.round(zoom * 100)
         fabricCanvas.requestRenderAll()
+        recomposeForZoom()
         return
       }
       // fallback: 无离屏图时按对象 bounds
@@ -1715,6 +1734,7 @@ const BasemapEditor = {
           fabricCanvas.setViewportTransform(st.viewport)
           zoomPct.value = Math.round(fabricCanvas.getZoom() * 100)
           fabricCanvas.requestRenderAll()
+          recomposeForZoom()
         }
       } catch(e) { console.warn('restore view state failed', e) }
     }
@@ -2181,6 +2201,7 @@ const BasemapEditor = {
       const tx = cx - sp.x * zoom, ty = cy - sp.y * zoom
       fabricCanvas.setViewportTransform([zoom, 0, 0, zoom, tx, ty])
       fabricCanvas.requestRenderAll()
+      recomposeForZoom()
       toast.show('📍 定位: ' + f.name)
     }
 
