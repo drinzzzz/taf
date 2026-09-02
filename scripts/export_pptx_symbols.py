@@ -104,7 +104,7 @@ for idx, item in enumerate(items):
     circle.line.fill.background()
     no_shadow(circle)
     circle.name = f'circ_{item}'
-    # 2) 白色图案 (各 M 子路径闭合折线)
+    # 2) 白色图案 (各 M 子路径, 白色描边勾勒, 无填充 — 保留内部细节不糊白)
     path_d = sym['path']
     k = (CIRCLE_D * 0.86) / 15.0     # 图案占圆径 ~86%
     for sub in split_subpaths(path_d):
@@ -116,13 +116,16 @@ for idx, item in enumerate(items):
         ox_c = (min(xs) + max(xs)) / 2
         oy_c = (min(ys) + max(ys)) / 2
         sp_pts = [((cx + (u - ox_c) * k) * EMU, (cy_circle + (v - oy_c) * k) * EMU) for u, v in pts]
+        # 智能闭合: 首尾接近的视为闭合轮廓, 否则按开放线描 (内部细节线不做假闭合)
+        x0, y0 = sp_pts[0]
+        x1, y1 = sp_pts[-1]
+        close_ok = (((x0 - x1) ** 2 + (y0 - y1) ** 2) ** 0.5) < (k * EMU * 0.8)
         fb = slide.shapes.build_freeform(int(sp_pts[0][0]), int(sp_pts[0][1]), scale=1.0)
-        fb.add_line_segments([(int(a), int(b)) for a, b in sp_pts[1:]], close=True)
+        fb.add_line_segments([(int(a), int(b)) for a, b in sp_pts[1:]], close=close_ok)
         sp = fb.convert_to_shape()
-        sp.fill.solid()
-        sp.fill.fore_color.rgb = WHITE
+        sp.fill.background()          # 🔴 无填充: 内部细节以白色线条呈现, 不糊成白块
         sp.line.color.rgb = WHITE
-        sp.line.width = Emu(int(9525 * 0.5))
+        sp.line.width = Emu(int(9525 * 2.0))
         no_shadow(sp)
     # 3) 标注三行: 序号(粗) / 中文全称 / 英文图层名
     t0 = cy_circle + CIRCLE_D / 2 + 26
