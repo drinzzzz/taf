@@ -929,10 +929,11 @@ const BasemapEditor = {
               <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--muted)"><span>边界留白</span><b style="color:var(--text)">{{ placeMargin }} m</b></div>
               <input type="range" min="0" max="30" v-model.number="placeMargin" @input="scheduleReauto" style="width:100%;accent-color:var(--accent)">
             </div>
-            <div style="margin-bottom:14px">
+            <div v-if="!autoCountItem" style="margin-bottom:14px">
               <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--muted)"><span>每行数量</span><b style="color:var(--text)">{{ perRow }}</b></div>
               <input type="range" min="1" max="10" v-model.number="perRow" @input="scheduleReauto" style="width:100%;accent-color:var(--accent)">
             </div>
+            <div v-else style="margin-bottom:14px;font-size:13px;color:var(--accent);line-height:1.7">📐 本项数量按需自动推导<br>动线每 150m 设 1 处 · 至少 3 处<br><span style="color:var(--muted)">(不设数量上限, 由场地尺度决定)</span></div>
             <div style="margin-bottom:4px">
               <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--muted)"><span>符号尺寸</span><b style="color:var(--text)">{{ symScale }}</b></div>
               <input type="range" min="1" max="10" v-model.number="symScale" @input="renderFacilityMarkers" style="width:100%;accent-color:var(--accent)">
@@ -1063,6 +1064,14 @@ const BasemapEditor = {
       'P5-01': ['channel', 'node', 'uniform'],
       'P6-03': ['facade', 'node', 'building'],
     }
+    // 🔴 按需数量推导 (用户规则 2026-09-02): 不设 5 个硬上限, 数量由动线几何推导
+    //   N = max(下限, floor(锚点主轴跨度 / 间隔) + 1)
+    //   P1-02 饮水点间隔 150m = 15000 图纸单位 (1单位=1cm):
+    //   ①标准引用「每200米至少1处」为达标上限 ②犬运动 15-30min 补水、携宠步行 3-5min 可达
+    //     → 服务半径≈75m, 取 150m 更稳(小型犬/短鼻犬/夏季) ③商业空间设施间距惯例 100-200m
+    //   下限 3 = P1-02 评分 5 分达标线「街区入口及中段共≥3处」
+    const AUTO_GAP = { 'P1-02': 15000 }    // 图纸单位; 按需推导间隔
+    const AUTO_MIN = { 'P1-02': 3 }        // 按需推导下限 (处)
     // 规则文案 (下拉/说明共用)
     const STRATEGY_LABEL = {
       'smart': '🧠 智能(按语义自动匹配)', 'channel': '🛤️ 沿通道/走廊线性排布',
@@ -1080,6 +1089,11 @@ const BasemapEditor = {
       const list = (id && ITEM_STRATEGIES[id]) ? ITEM_STRATEGIES[id] : null
       if (!list) return [{ v: 'smart', label: STRATEGY_LABEL.smart }]
       return list.map(v => ({ v, label: STRATEGY_LABEL[v] || v }))
+    })
+    // 按需数量项 (AUTO_GAP 配置): 隐藏"每行数量"滑杆, 数量由动线几何自动推导
+    const autoCountItem = computed(() => {
+      const id = selectedFac.value?.standard_item_id
+      return !!(id && AUTO_GAP[id])
     })
     // 不可布点标准项 (管理/制度/培训/指标类) — 与全量分析一致
     const NON_PLACABLE = new Set(['P2-02','P2-03','P2-04','P2-05','P2-06',
@@ -2365,8 +2379,17 @@ const BasemapEditor = {
         // 按主轴排序: 形状长边方向优先展开 (通道等细长带)
         const spanX = bb.maxX - bb.minX, spanY = bb.maxY - bb.minY
         cands.sort((a, b) => (spanX >= spanY) ? (a.x - b.x || a.y - b.y) : (a.y - b.y || a.x - b.x))
-        // 均匀抽样 rowCap 个 (覆盖全段, 首尾尽量包含)
-        const need = Math.min(rowCap, cands.length)
+        // 数量: 按需几何推导 (配置了 AUTO_GAP 的项) vs 原数量参数上限
+        //   推导: N = max(AUTO_MIN, floor(锚点主轴跨度/间隔)+1), 受候选数自然约束, 不硬截断
+        let need
+        const autoGap = AUTO_GAP[f?.standard_item_id]
+        if (autoGap) {
+          const span = Math.max(spanX, spanY)
+          need = Math.max(AUTO_MIN[f.standard_item_id] || 1, Math.floor(span / autoGap) + 1)
+          need = Math.min(need, cands.length)
+        } else {
+          need = Math.min(rowCap, cands.length)
+        }
         for (let k = 0; k < need; k++) {
           const idx = Math.round((cands.length - 1) * k / Math.max(need - 1, 1))
           out.push(cands[idx])
@@ -2579,7 +2602,7 @@ const BasemapEditor = {
       facSymbol, facColor, isAreaItem, areaLabelOf, placCount, placableCount, autoPlacing, placeStrategy, placeSpacing,
       placeMargin, perRow, symScale, autoOverwrite, scheduleReauto,
       openAutoPlace, runAutoPlace, autoPanelActive, legendRows, buildLegend,
-      availableStrategies, autoPlaceFacility,
+      availableStrategies, autoPlaceFacility, autoCountItem,
       facStatusCN, facStatusColor, facCats, facCountOf, toggleLayerLock,
       toggleLayerVisible, catNames, layerCN,
       opacityLayer, toggleOpacityPopup, startLeftDrag, leftWidth }
