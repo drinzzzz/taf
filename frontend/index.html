@@ -897,8 +897,14 @@ const BasemapEditor = {
             <select v-model="placeStrategy" style="width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:5px;margin-bottom:8px;font-size:14px">
               <option v-for="s in availableStrategies" :key="s.v" :value="s.v">{{ s.label }}</option>
             </select>
-            <div style="font-size:12px;color:var(--muted);background:#ffffff06;padding:6px 8px;border-radius:4px;line-height:1.7">
-              每项规则锚点不同：🛤️沿通道 · ⭕节点广场 · 🌳绿地内 · 🏢建筑周边 · 📏红线内侧 · 🚪入口段 · 🏛️沿街立面
+            <div style="font-size:12px;color:var(--muted);background:#ffffff06;padding:6px 8px;border-radius:4px;display:flex;flex-direction:column;gap:3px">
+              <span>🛤️ 沿通道/走廊线性排布</span>
+              <span>⭕ 布在节点/广场</span>
+              <span>🌳 绿地内分布</span>
+              <span>🏢 建筑周边</span>
+              <span>📏 红线边界内侧</span>
+              <span>🚪 红线入口段</span>
+              <span>🏛️ 沿街立面</span>
             </div>
           </div>
 
@@ -1010,12 +1016,13 @@ const BasemapEditor = {
       'TAF-ROAD': '#4d7cff', 'ROAD': '#4d7cff',              // ACI 5 蓝
       'TAF-FACADE': '#ff5ea8', 'FACADE': '#ff5ea8',          // ACI 6 品红
       'TAF-BUILDING_NUMBER': '#b8bcc8',
+      'TAF-DRAWING_BORDER': '#9aa0ad',
       'BASEMAP': '#6d7280',                                   // ACI 7 灰 (底图线略暗以突出语义层)
       '0': '#b8bcc8', 'Defpoints': '#b8bcc8',
     }
     // 图层默认锁定 (只读背景)
     const LOCKED_LAYERS = new Set(['BASEMAP', 'TAF-BUILDING', 'TAF-CHANNEL', 'TAF-NODE',
-      'TAF-ROAD', 'TAF-GREEN', 'TAF-FACADE', 'TAF-BOUNDARY', '0', 'Defpoints'])
+      'TAF-ROAD', 'TAF-GREEN', 'TAF-FACADE', 'TAF-BOUNDARY', 'TAF-DRAWING_BORDER', '0', 'Defpoints'])
 
     // 设施 → 空间类型映射 (与后端 layout.py pos_rules 对齐)
     const CAT_SPACE = {
@@ -1075,6 +1082,7 @@ const BasemapEditor = {
 
     // 底图图层中文名 (TAF-FACILITY-* 设施层在 merge 时已有 nameZh)
     const LAYER_CN = {
+      'TAF-DRAWING_BORDER': '图纸图框边界',
       'TAF-BOUNDARY': '红线边界', 'BOUNDARY': '红线边界',
       'TAF-BUILDING': '建筑', 'BUILDING': '建筑',
       'TAF-CHANNEL': '通道/走廊', 'CHANNEL': '通道/走廊',
@@ -1404,6 +1412,7 @@ const BasemapEditor = {
       _recompTimer = setTimeout(() => { try { renderComposite(bgScaleMul) } catch(e) { console.error('recompose fail', e) } }, 150)
     }
     let dxfWorldBounds = null   // 世界坐标 bbox
+    let drawingBorderBbox = null   // TAF-DRAWING_BORDER 图框边界 (适应窗口优先以它为界)
 
     function computeWorldBounds(layerMap) {
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
@@ -1572,6 +1581,14 @@ const BasemapEditor = {
           else if ((e.type === 'LWPOLYLINE' || e.type === 'POLYLINE') && e.vertices?.length) pts.push(...e.vertices)
           else if (e.type === 'CIRCLE' && e.center) pts.push({ x: e.center.x - e.radius, y: e.center.y - e.radius }, { x: e.center.x + e.radius, y: e.center.y + e.radius })
         }
+        // 🔴 TAF-DRAWING_BORDER 图框边界: 记录其 bbox, 适应窗口以它为界
+        if (/^TAF[-_]?DRAWING[-_]?BORDER$/i.test(name) && pts.length >= 2) {
+          const xs = pts.map(p => p.x), ys = pts.map(p => p.y)
+          drawingBorderBbox = {
+            minX: Math.min(...xs), minY: Math.min(...ys),
+            maxX: Math.max(...xs), maxY: Math.max(...ys),
+          }
+        }
         const spaceType = LAYER_TO_SPACE[name] || LAYER_TO_SPACE[name.toUpperCase()]
         if (spaceType && pts.length >= 2) {
           const xs = pts.map(p => p.x), ys = pts.map(p => p.y)
@@ -1634,6 +1651,22 @@ const BasemapEditor = {
       const wrap = canvasWrap.value
       const w = wrap.clientWidth, h = wrap.clientHeight
       if (w <= 0 || h <= 0) return
+      // 🔴 优先以 TAF-DRAWING_BORDER 图框边界为适应基准 (用户新增图层语义)
+      if (drawingBorderBbox && offCanvas) {
+        const b = drawingBorderBbox
+        const a = worldToScreen(b.minX, b.maxY)   // 左上
+        const c = worldToScreen(b.maxX, b.minY)   // 右下
+        const bw = Math.abs(c.x - a.x), bh = Math.abs(c.y - a.y)
+        if (bw > 0 && bh > 0) {
+          const zoom = Math.min(w / bw, h / bh) * 0.95
+          const cx = (a.x + c.x) / 2, cy = (a.y + c.y) / 2
+          fabricCanvas.setViewportTransform([zoom, 0, 0, zoom, w / 2 - cx * zoom, h / 2 - cy * zoom])
+          zoomPct.value = Math.round(zoom * 100)
+          fabricCanvas.requestRenderAll()
+          recomposeForZoom()
+          return
+        }
+      }
       // 基于离屏合成图尺寸精确适配 (避免遍历对象时 marker/文本干扰导致跑偏)
       if (offCanvas && offCanvas.width > 0 && offCanvas.height > 0) {
         const cw = offCanvas.width, ch = offCanvas.height
@@ -2057,7 +2090,18 @@ const BasemapEditor = {
 
     const selectFacility = (f) => {
       selectedFac.value = f
+      // 点选标准项后: 保留右侧两列可见 + 自动选第一可用策略 (供自动布点直接执行)
+      hideLib.value = false
+      hideTools.value = false
+      autoPanelActive.value = true
+      const opts = ITEM_STRATEGIES[f?.standard_item_id]
+      if (opts && opts.length && !opts.includes(placeStrategy.value)) {
+        placeStrategy.value = opts[0]   // 默认第一个策略
+      }
       if (tool.value !== 'place') setTool('place')
+      // setTool('place') 会收起工具面板 → 重新展开 (选择后需同时看策略)
+      hideTools.value = false
+      autoPanelActive.value = true
       focusFacility(f)
     }
     const placeAtPointer = async (sx, sy) => {
