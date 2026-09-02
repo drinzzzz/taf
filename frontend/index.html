@@ -867,7 +867,7 @@ const BasemapEditor = {
             </div>
             <div style="display:flex;align-items:center;gap:6px;margin:2px 0 0 23px">
               <span v-if="f.status!=='confirmed'" style="font-size:12px;padding:0 6px;border-radius:3px" :style="{background:facStatusColor(f.status)+'22',color:facStatusColor(f.status)}">{{ facStatusCN(f.status) }}</span>
-              <span v-if="placCount(f)>0" style="font-size:12px;color:#67c23a;font-weight:600">{{ placCount(f) }} 点</span>
+              <span v-if="placCount(f)>0" style="font-size:12px;color:#67c23a;font-weight:600">{{ placCount(f) }} 点位</span>
               <span v-else style="font-size:12px;color:#e6a23c">未布点</span>
               <span v-if="isAreaItem(f)" style="font-size:11px;color:var(--muted)">画布落点 = 区段标注文字位置</span>
               <span v-else style="font-size:11px;color:var(--muted)">点击选择后画布落点</span>
