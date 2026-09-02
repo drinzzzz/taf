@@ -2005,8 +2005,10 @@ const BasemapEditor = {
           marker._placementId = pt.plid      // null = 旧单点兼容
           marker._placementSeq = pt.seq
           marker._facLayer = facLayer
-          marker.selectable = true
-          marker.evented = true
+          // 🔴 可编辑性: 选中标准项时, 仅该项点位可交互 (其他项锁定不可选/拖/删)
+          const isSel = !selectedFac.value || selectedFac.value.id === f.id
+          marker.selectable = isSel
+          marker.evented = isSel
           marker.lockRotation = true
           marker.lockScalingX = true
           marker.lockScalingY = true
@@ -2206,6 +2208,8 @@ const BasemapEditor = {
       autoPanelActive.value = true
       focusFacility(f)
     }
+    // 选中项变化 → 重渲染 markers (其他项点位立即锁定/解锁)
+    watch(selectedFac, () => { renderFacilityMarkers() })
     const placeAtPointer = async (sx, sy) => {
       const f = selectedFac.value
       if (!f) { toast.show('⚠️ 先在点位库点选要布点的标准项'); return }
