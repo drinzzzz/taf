@@ -62,12 +62,15 @@ label { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; te
 .main-fullwidth { overflow:hidden; height:calc(100vh - 48px); }
 .workbench-root { height:100%; display:flex; flex-direction:column; overflow:hidden; }
 
-/* ── Dark scrollbar (全局) ── */
+/* Dark scrollbar (全局) */
 * { scrollbar-width:thin; scrollbar-color:#3a3f52 #14161f; }
 *::-webkit-scrollbar { width:8px; height:8px; }
 *::-webkit-scrollbar-track { background:#14161f; }
 *::-webkit-scrollbar-thumb { background:#3a3f52; border-radius:4px; }
 *::-webkit-scrollbar-thumb:hover { background:#4a5068; }
+
+/* 分类点位行 (右栏竖排分类) */
+.fac-cat-row { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:5px; }
 </style>
 </head>
 <body>
@@ -815,7 +818,8 @@ const BasemapEditor = {
           <!-- 分类: 竖排, 一行一类, 带中文名与计数; 0 项灰置不可选 -->
           <div style="margin-bottom:10px;display:flex;flex-direction:column;gap:4px">
             <div v-for="c in facCats" :key="c" @click="facCountOf(c)>0 && (facFilter=c)"
-                 :style="{display:'flex',alignItems:'center',gap:8px,padding:'5px 8px',borderRadius:5,cursor:facCountOf(c)>0?'pointer':'default',border:facFilter===c?'1px solid var(--accent)':'1px solid transparent',background:facFilter===c?'#4f8cff1a':'',opacity:facCountOf(c)>0?1:0.35}"
+                 class="fac-cat-row"
+                 :style="{cursor:facCountOf(c)>0?'pointer':'default',border:facFilter===c?'1px solid var(--accent)':'1px solid transparent',background:facFilter===c?'#4f8cff1a':'',opacity:facCountOf(c)>0?1:0.35}"
                  :title="facCountOf(c)>0?'点击筛选该类':'该类无可用标准项'">
               <span style="font-weight:700;font-size:13px;width:30px;flex-shrink:0" :style="{color:facFilter===c?'var(--accent)':'var(--text)'}">{{ c === 'ALL' ? '全部' : c }}</span>
               <span v-if="c!=='ALL'" style="flex:1;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="catNames[c]">{{ catNames[c] || '—' }}</span>
