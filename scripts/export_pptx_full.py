@@ -132,9 +132,10 @@ def add_maki_pt(slide, x, y, path_d, color, size_px, seq=None, base=''):
         tb.name = 'PTL_' + base
 
 def _path_polylines(path_d):
+    import html as _html
     try:
         from svgpathtools import parse_path
-        p = parse_path(path_d)
+        p = parse_path(_html.unescape(path_d))   # 🔴 实体 &#xA;/&#x9; → 换行/制表, 否则 parse ValueError
         pts = []
         for seg in p:
             n = max(2, int(seg.length() / 0.9) + 1)
