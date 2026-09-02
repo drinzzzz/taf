@@ -21,42 +21,42 @@
 /* Layout */
 .main { flex:1; padding:24px; max-width:1400px; margin:0 auto; width:100%; }
 /* 底图工作台: 占满浏览器宽 (默认全宽, 保留导航条) */
-.main-fullwidth { max-width:none; padding:0; }.card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:16px; }.wizard-steps { display:flex; align-items:center; gap:0; }.wizard-step { display:flex; flex-direction:column; align-items:center; gap:2px; }.wizard-step .step-num { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600; background:#ffffff08; color:var(--muted); border:2px solid var(--border); transition:all .3s; }.wizard-step .step-label { font-size:12px; color:var(--muted); white-space:nowrap; }.wizard-step.active .step-num { background:var(--accent); color:#fff; border-color:var(--accent); }.wizard-step.active .step-label { color:var(--accent); }.wizard-step.done .step-num { background:var(--success); color:#fff; border-color:var(--success); }.wizard-step.done .step-label { color:var(--success); }.wizard-line { flex:1; height:2px; background:var(--border); min-width:16px; transition:background .3s; }.wizard-line.done { background:var(--success); }.card-title { font-size:21px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }.card-sub { font-size:16px; color:var(--muted); margin-bottom:20px; }
+.main-fullwidth { max-width:none; padding:0; }.card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:20px; margin-bottom:16px; }.wizard-steps { display:flex; align-items:center; gap:0; }.wizard-step { display:flex; flex-direction:column; align-items:center; gap:2px; }.wizard-step .step-num { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; background:#ffffff08; color:var(--muted); border:2px solid var(--border); transition:all .3s; }.wizard-step .step-label { font-size:13px; color:var(--muted); white-space:nowrap; }.wizard-step.active .step-num { background:var(--accent); color:#fff; border-color:var(--accent); }.wizard-step.active .step-label { color:var(--accent); }.wizard-step.done .step-num { background:var(--success); color:#fff; border-color:var(--success); }.wizard-step.done .step-label { color:var(--success); }.wizard-line { flex:1; height:2px; background:var(--border); min-width:16px; transition:background .3s; }.wizard-line.done { background:var(--success); }.card-title { font-size:22px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }.card-sub { font-size:17px; color:var(--muted); margin-bottom:20px; }
 
 /* Table */
-.el-table { --el-table-bg-color:transparent; --el-table-tr-bg-color:transparent; --el-table-header-bg-color:transparent; --el-table-border-color:var(--border); --el-table-text-color:var(--text); --el-table-header-text-color:var(--muted); }.el-table th.el-table__cell { background:transparent; border-bottom:1px solid var(--border); font-size:15px; text-transform:uppercase; letter-spacing:.5px; }.el-table tr { transition:background .15s; cursor:pointer; }.el-table tr:hover > td { background:#ffffff06 !important; }
+.el-table { --el-table-bg-color:transparent; --el-table-tr-bg-color:transparent; --el-table-header-bg-color:transparent; --el-table-border-color:var(--border); --el-table-text-color:var(--text); --el-table-header-text-color:var(--muted); }.el-table th.el-table__cell { background:transparent; border-bottom:1px solid var(--border); font-size:16px; text-transform:uppercase; letter-spacing:.5px; }.el-table tr { transition:background .15s; cursor:pointer; }.el-table tr:hover > td { background:#ffffff06 !important; }
 
 /* Element Plus dark mode overrides */
 .el-loading-mask { background-color:rgba(10,10,30,0.85) !important; }.el-loading-spinner .el-loading-text { color:var(--muted) !important; }.el-loading-spinner .path { stroke:var(--accent) !important; }.el-table__empty-block { background:transparent !important; }.el-table__empty-text { color:var(--muted) !important; }
 
 
 /* Category block */
-.cat-block { border:1px solid var(--border); border-radius:8px; margin-bottom:12px; overflow:hidden; }.cat-header { display:flex; align-items:center; padding:14px 18px; background:#ffffff05; cursor:pointer; gap:12px; user-select:none; }.cat-header:hover { background:#ffffff0a; }.cat-header .drag-handle { color:var(--muted); cursor:grab; font-size:18px; }.cat-header .cat-name { font-weight:600; font-size:17px; flex:1; }.cat-header .cat-weight { font-size:15px; color:var(--muted); }.cat-header .cat-arrow { transition:transform .2s; color:var(--muted); }.cat-header .cat-arrow.open { transform:rotate(90deg); }.cat-body { border-top:1px solid var(--border); }.cat-body.hidden { display:none; }
+.cat-block { border:1px solid var(--border); border-radius:8px; margin-bottom:12px; overflow:hidden; }.cat-header { display:flex; align-items:center; padding:14px 18px; background:#ffffff05; cursor:pointer; gap:12px; user-select:none; }.cat-header:hover { background:#ffffff0a; }.cat-header .drag-handle { color:var(--muted); cursor:grab; font-size:19px; }.cat-header .cat-name { font-weight:600; font-size:18px; flex:1; }.cat-header .cat-weight { font-size:16px; color:var(--muted); }.cat-header .cat-arrow { transition:transform .2s; color:var(--muted); }.cat-header .cat-arrow.open { transform:rotate(90deg); }.cat-body { border-top:1px solid var(--border); }.cat-body.hidden { display:none; }
 
 /* Item row */
-.item-row { display:flex; align-items:center; padding:10px 18px 10px 30px; gap:12px; border-bottom:1px solid var(--border); transition:background .15s; }.item-row:last-child { border-bottom:none; }.item-row:hover { background:#ffffff03; }.item-row .drag-handle { color:var(--muted); cursor:grab; font-size:16px; }.item-row .item-id { font-size:13px; color:var(--accent); font-family:monospace; min-width:48px; }.item-row .item-name { flex:1; font-size:17px; }.item-row .item-type { font-size:15px; padding:2px 8px; border-radius:3px; }.item-row .item-type.prerequisite { background:#f56c6c1a; color:#f56c6c; }.item-row .item-type.credit { background:#67c23a1a; color:#67c23a; }.item-row .item-score { font-size:16px; color:var(--muted); min-width:40px; text-align:right; }.item-row .item-actions { display:flex; gap:4px; }
+.item-row { display:flex; align-items:center; padding:10px 18px 10px 30px; gap:12px; border-bottom:1px solid var(--border); transition:background .15s; }.item-row:last-child { border-bottom:none; }.item-row:hover { background:#ffffff03; }.item-row .drag-handle { color:var(--muted); cursor:grab; font-size:17px; }.item-row .item-id { font-size:14px; color:var(--accent); font-family:monospace; min-width:48px; }.item-row .item-name { flex:1; font-size:18px; }.item-row .item-type { font-size:16px; padding:2px 8px; border-radius:3px; }.item-row .item-type.prerequisite { background:#f56c6c1a; color:#f56c6c; }.item-row .item-type.credit { background:#67c23a1a; color:#67c23a; }.item-row .item-score { font-size:17px; color:var(--muted); min-width:40px; text-align:right; }.item-row .item-actions { display:flex; gap:4px; }
 
 /* Editable */
 /* Dark mode selects */
-select { background:#1a1a2e; color:var(--text); border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:16px; }select option { background:#1a1a2e; color:var(--text); }.el-select-dropdown { background:#1a1a2e !important; border:1px solid var(--border) !important; }.el-select-dropdown__item { color:var(--text) !important; }.el-select-dropdown__item.hover, .el-select-dropdown__item:hover { background:#ffffff0a !important; }.el-select-dropdown__item.selected { color:var(--accent) !important; }.el-popper.is-light { background:#1a1a2e !important; border:1px solid var(--border) !important; }.dialog select, .dialog-mask select { background:#0f0f23; color:var(--text); border:1px solid var(--border); border-radius:4px; padding:8px 10px; font-size:16px; }input[type=text], textarea { background:#ffffff0a; border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:4px; font-size:15px; width:100%; outline:none; }input[type=text]:focus, textarea:focus { border-color:var(--accent); }select { background:#ffffff0a; border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:4px; font-size:15px; outline:none; }.weight-slider { display:flex; align-items:center; gap:12px; padding:4px 0; }.weight-slider input[type=range] { flex:1; accent-color:var(--accent); }.weight-slider .weight-val { font-size:16px; font-weight:600; min-width:48px; text-align:right; color:var(--accent); }
+select { background:#1a1a2e; color:var(--text); border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:17px; }select option { background:#1a1a2e; color:var(--text); }.el-select-dropdown { background:#1a1a2e !important; border:1px solid var(--border) !important; }.el-select-dropdown__item { color:var(--text) !important; }.el-select-dropdown__item.hover, .el-select-dropdown__item:hover { background:#ffffff0a !important; }.el-select-dropdown__item.selected { color:var(--accent) !important; }.el-popper.is-light { background:#1a1a2e !important; border:1px solid var(--border) !important; }.dialog select, .dialog-mask select { background:#0f0f23; color:var(--text); border:1px solid var(--border); border-radius:4px; padding:8px 10px; font-size:17px; }input[type=text], textarea { background:#ffffff0a; border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:4px; font-size:16px; width:100%; outline:none; }input[type=text]:focus, textarea:focus { border-color:var(--accent); }select { background:#ffffff0a; border:1px solid var(--border); color:var(--text); padding:6px 10px; border-radius:4px; font-size:16px; outline:none; }.weight-slider { display:flex; align-items:center; gap:12px; padding:4px 0; }.weight-slider input[type=range] { flex:1; accent-color:var(--accent); }.weight-slider .weight-val { font-size:17px; font-weight:600; min-width:48px; text-align:right; color:var(--accent); }
 
 /* Buttons */
-.btn { padding:6px 14px; border-radius:4px; font-size:15px; border:1px solid var(--border); background:transparent; color:var(--text); cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all .15s; }.btn:hover { background:#ffffff0a; }.btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }.btn.primary:hover { opacity:.9; }.btn.danger { color:var(--danger); border-color:var(--danger); }.btn.sm { padding:3px 8px; font-size:14px; }
+.btn { padding:6px 14px; border-radius:4px; font-size:16px; border:1px solid var(--border); background:transparent; color:var(--text); cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all .15s; }.btn:hover { background:#ffffff0a; }.btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }.btn.primary:hover { opacity:.9; }.btn.danger { color:var(--danger); border-color:var(--danger); }.btn.sm { padding:3px 8px; font-size:15px; }
 
 /* Dialog overlay */
-.dialog-mask { position:fixed; inset:0; background:#00000080; z-index:1000; display:flex; align-items:center; justify-content:center; }.dialog { background:var(--card); border:1px solid var(--border); border-radius:12px; width:520px; max-height:80vh; overflow-y:auto; padding:24px; }.dialog h3 { margin-bottom:16px; font-size:18px; }.dialog .form-group { margin-bottom:14px; }.dialog .form-group label { display:block; font-size:14px; color:var(--muted); margin-bottom:4px; text-transform:none; letter-spacing:0; }.dialog .form-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+.dialog-mask { position:fixed; inset:0; background:#00000080; z-index:1000; display:flex; align-items:center; justify-content:center; }.dialog { background:var(--card); border:1px solid var(--border); border-radius:12px; width:520px; max-height:80vh; overflow-y:auto; padding:24px; }.dialog h3 { margin-bottom:16px; font-size:19px; }.dialog .form-group { margin-bottom:14px; }.dialog .form-group label { display:block; font-size:15px; color:var(--muted); margin-bottom:4px; text-transform:none; letter-spacing:0; }.dialog .form-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
 /* Field display */
-label { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; }.field-val { padding:6px 0; font-size:17px; }.card label { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; }.card .field-val { padding:6px 0; font-size:17px; }
+label { display:block; font-size:14px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; }.field-val { padding:6px 0; font-size:18px; }.card label { display:block; font-size:14px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; }.card .field-val { padding:6px 0; font-size:18px; }
 
 /* Sortable ghost */
 .sortable-ghost { opacity:.3; background:var(--accent) !important; }.sortable-chosen { background:#ffffff0a !important; }
 
 /* Toast */
-.toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--success); color:#fff; padding:10px 24px; border-radius:6px; font-size:16px; z-index:2000; animation:toastIn .3s; }
+.toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--success); color:#fff; padding:10px 24px; border-radius:6px; font-size:17px; z-index:2000; animation:toastIn .3s; }
 @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)} }
 
 /* Empty state */
-.empty { text-align:center; padding:60px 20px; color:var(--muted); }.empty .icon { font-size:50px; margin-bottom:16px; }.scoring-row { display:flex; gap:8px; align-items:center; margin-bottom:6px; }.scoring-row input { flex:1; }.scoring-row input[type=number] { width:60px; flex:0 0 60px; }
+.empty { text-align:center; padding:60px 20px; color:var(--muted); }.empty .icon { font-size:51px; margin-bottom:16px; }.scoring-row { display:flex; gap:8px; align-items:center; margin-bottom:6px; }.scoring-row input { flex:1; }.scoring-row input[type=number] { width:60px; flex:0 0 60px; }
 
 /* ── 底图工作台: 高度锁定, 页面无滚动, 仅内部面板滚动 (防双滚动条) ── */
 .main-fullwidth { overflow:hidden; height:calc(100vh - 48px); }
@@ -160,8 +160,8 @@ const StandardsDetail = {
   <div>
     <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
       <button class="btn" @click="$router.back()">← 返回</button>
-      <span style="font-size:20px;font-weight:600">{{ standard?.name }}</span>
-      <span style="font-size:14px;color:var(--muted)">{{ standard?.code }} · v{{ standard?.version }}</span>
+      <span style="font-size:21px;font-weight:600">{{ standard?.name }}</span>
+      <span style="font-size:15px;color:var(--muted)">{{ standard?.code }} · v{{ standard?.version }}</span>
     </div>
 
     <div v-if="loading" class="empty"><div class="icon">⏳</div>加载中...</div>
@@ -171,17 +171,17 @@ const StandardsDetail = {
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
-            <span style="font-size:15px;color:var(--muted)">产品线：</span>
-            <span v-for="pl in config?.product_lines" :key="pl" style="margin-right:8px;font-size:15px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:3px">{{ pl }}</span>
+            <span style="font-size:16px;color:var(--muted)">产品线：</span>
+            <span v-for="pl in config?.product_lines" :key="pl" style="margin-right:8px;font-size:16px;background:var(--accent);color:#fff;padding:2px 8px;border-radius:3px">{{ pl }}</span>
           </div>
-          <div style="font-size:15px;color:var(--muted)">
+          <div style="font-size:16px;color:var(--muted)">
             总计 {{ config?.total_items || 0 }} 项 · 必选 {{ config?.prerequisite_count || 0 }} 项
           </div>
         </div>
       </div>
 
       <!-- Tip -->
-      <div style="padding:0 0 16px;font-size:14px;color:var(--muted)">
+      <div style="padding:0 0 16px;font-size:15px;color:var(--muted)">
         ↕ 拖拽排序 · 点击板块展开编辑 · 
         权重总和: <span :style="{color:weightTotal===100?'#67c23a':'#f56c6c'}">{{ weightTotal }}%</span>
         <button class="btn sm primary" @click="save" style="margin-left:16px">💾 保存</button>
@@ -213,7 +213,7 @@ const StandardsDetail = {
                 </span>
               </div>
             </div>
-            <div v-if="!cat.items.length" style="padding:16px;text-align:center;color:var(--muted);font-size:15px">暂无评估项</div>
+            <div v-if="!cat.items.length" style="padding:16px;text-align:center;color:var(--muted);font-size:16px">暂无评估项</div>
             <button class="btn sm" style="margin:8px 18px" @click="addItem(cat.id)">+ 添加评估项</button>
           </div>
         </div>
@@ -515,8 +515,8 @@ const ProjectDetail = {
     <!-- Header -->
     <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
       <button class="btn" @click="$router.back()">← 返回</button>
-      <span style="font-size:20px;font-weight:600">{{ project?.name }}</span>
-      <span style="font-size:14px;color:var(--muted)">{{ project?.code }}</span>
+      <span style="font-size:21px;font-weight:600">{{ project?.name }}</span>
+      <span style="font-size:15px;color:var(--muted)">{{ project?.code }}</span>
       <div style="flex:1"></div>
       <button class="btn" v-if="!editing" @click="startEdit">✎ 编辑</button>
       <button class="btn primary" v-if="editing" @click="save">💾 保存</button>
@@ -576,7 +576,7 @@ const ProjectDetail = {
           <div style="grid-column:1/-1">
             <label>描述</label>
             <textarea v-if="editing" v-model="form.description" rows="2" style="width:100%"></textarea>
-            <div v-else class="field-val" style="font-size:15px;color:var(--muted)">{{ project.description || '-' }}</div>
+            <div v-else class="field-val" style="font-size:16px;color:var(--muted)">{{ project.description || '-' }}</div>
           </div>
         </div>
       </div>
@@ -588,13 +588,13 @@ const ProjectDetail = {
           <!-- Standard info -->
           <div style="min-width:200px;flex-shrink:0">
             <div v-if="boundStandard">
-              <div style="font-size:17px;font-weight:600">{{ boundStandard.name }}</div>
-              <div style="font-size:14px;color:var(--muted)">{{ boundStandard.code }} · v{{ boundStandard.version }}</div>
-              <div v-if="boundStandard.config" style="font-size:14px;color:var(--muted);margin-top:2px">
+              <div style="font-size:18px;font-weight:600">{{ boundStandard.name }}</div>
+              <div style="font-size:15px;color:var(--muted)">{{ boundStandard.code }} · v{{ boundStandard.version }}</div>
+              <div v-if="boundStandard.config" style="font-size:15px;color:var(--muted);margin-top:2px">
                 {{ (boundStandard.config.items && boundStandard.config.items.length) || 0 }} 项指标 · {{ (boundStandard.config.items && boundStandard.config.items.filter(i => i.type === 'prerequisite').length) || 0 }} 必选
               </div>
             </div>
-            <div v-else style="color:var(--muted);font-size:15px">未绑定标准</div>
+            <div v-else style="color:var(--muted);font-size:16px">未绑定标准</div>
           </div>
           <!-- Stepper -->
           <div style="flex:1;min-width:360px">
@@ -615,7 +615,7 @@ const ProjectDetail = {
                 <div class="step-num">4</div><div class="step-label">生成成果</div>
               </div>
             </div>
-            <div style="margin-top:8px;font-size:14px;color:var(--muted)">
+            <div style="margin-top:8px;font-size:15px;color:var(--muted)">
               <template v-if="wizardStep===1">
                 <span v-if="boundStandard">✅ 已绑定标准</span>
                 <span v-else>⚠️ 尚未绑定评估标准</span>
@@ -656,7 +656,7 @@ const ProjectDetail = {
       <div class="dialog" style="width:560px">
         <h3>切换评估标准</h3>
         <div style="margin-bottom:12px">
-          <label style="font-size:14px;color:var(--muted)">选择目标标准</label>
+          <label style="font-size:15px;color:var(--muted)">选择目标标准</label>
           <select v-model="switchTarget" style="width:100%;margin-top:4px">
             <option value="">-- 选择 --</option>
             <option v-for="s in standards" :key="s.code" :value="s.code">{{ s.name }} ({{ s.code }})</option>
@@ -664,11 +664,11 @@ const ProjectDetail = {
         </div>
         <button class="btn sm" @click="previewSwitch" :disabled="!switchTarget">🔍 预览影响</button>
         <div v-if="preview" style="margin-top:16px;padding:12px;background:#ffffff05;border-radius:6px">
-          <div style="font-size:15px;display:flex;gap:12px;flex-wrap:wrap">
+          <div style="font-size:16px;display:flex;gap:12px;flex-wrap:wrap">
             <span>当前: <b>{{ preview.current_code }}</b></span>
             <span>→ 目标: <b>{{ preview.new_code }}</b></span>
           </div>
-          <div style="margin-top:8px;font-size:14px;color:var(--muted)">
+          <div style="margin-top:8px;font-size:15px;color:var(--muted)">
             <div v-if="preview.new_prerequisites?.length">新增必选项: {{ preview.new_prerequisites.join(', ') }}</div>
             <div v-if="preview.removed_items?.length">移除项: {{ preview.removed_items.join(', ') }}</div>
           </div>
@@ -746,8 +746,10 @@ const BasemapEditor = {
     <!-- Toolbar -->
     <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;flex-wrap:wrap;background:var(--card);border-bottom:1px solid var(--border)">
       <button class="btn" @click="$router.back()">← 返回项目</button>
-      <span style="font-size:16px;font-weight:600;margin:0 8px">{{ projectName }}</span>
+      <span style="font-size:17px;font-weight:600;margin:0 8px">{{ projectName }}<span v-if="projectCode" style="font-size:13px;color:var(--muted);font-weight:400;margin-left:6px">({{ projectCode }})</span></span>
       <span style="flex:1"></span>
+      <button class="btn" @click="undoPlacement" :disabled="!undoStack.length" title="撤销上一步布点 (Ctrl+Z)">↶ 撤销</button>
+      <button class="btn" @click="redoPlacement" :disabled="!redoStack.length" title="重做 (Ctrl+Y)">↷ 重做</button>
       <button class="btn" :class="{primary:tool==='pan'}" @click="setTool('pan')" title="平移图纸/选择">✋ 平移图纸</button>
       <button class="btn" :class="{primary:tool==='place'}" @click="setTool('place')" title="手动布点(再点或 Esc 取消)" style="color:#67c23a">📍 手动布点</button>
       <button class="btn primary" @click="openAutoPlace" title="按策略自动布点">⚡ 自动布点</button>
@@ -763,15 +765,15 @@ const BasemapEditor = {
       <!-- Left: Layer panel 440px+ (底图+设施 28 层, 可拖拽调宽) -->
       <div style="display:flex;flex-shrink:0" v-if="!hideLeft">
         <div :style="{width: leftWidth + 'px', minWidth: leftWidth + 'px', background:'var(--card)', overflowY:'auto', padding:'10px 12px'}">
-        <div style="font-size:14px;color:var(--muted);margin-bottom:10px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
-          <span>📐 图层 ({{ layers.length }})</span>
+        <div style="font-size:15px;color:var(--muted);margin-bottom:10px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
+          <span>🗂️ 图层管理 ({{ layers.length }})</span>
           <button class="btn sm" @click="hideLeft=true" title="收起左栏">«</button>
         </div>
-        <div v-if="!layers.length" style="font-size:14px;color:var(--muted);padding:16px 0;text-align:center">
+        <div v-if="!layers.length" style="font-size:15px;color:var(--muted);padding:16px 0;text-align:center">
           暂无底图<br><br>
           <button class="btn sm primary" @click="triggerUpload">上传 DXF</button>
         </div>
-        <div v-for="l in layers" :key="l.name" style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <div v-for="l in layers" :key="l.name" style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">
           <!-- 行1: 可见性(眼睛) + 图标/色块 + 中文名 + (N) + 透明度 + 锁 -->
           <div style="display:flex;align-items:center;gap:6px;position:relative">
             <button class="btn sm" style="padding:2px;flex-shrink:0;width:24px;height:22px;display:inline-flex;align-items:center;justify-content:center" @click="toggleLayerVisible(l)" :title="l.visible?'点击隐藏':'点击显示'">
@@ -780,18 +782,19 @@ const BasemapEditor = {
             </button>
             <svg v-if="l.iconPath" :viewBox="l.viewbox||'0 0 15 15'" style="width:15px;height:15px;flex-shrink:0" :style="{fill:l.color}"><path :d="l.iconPath"/></svg>
             <span v-else :style="{width:'12px',height:'12px',borderRadius:'2px',background:l.color,flexShrink:0}"></span>
-            <span @click="toggleLayerVisible(l)" style="flex:1;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3" :title="l.name + (l.visible?' (点击隐藏)':' (点击显示)')">
-              <span v-if="layerCN(l.name)">{{ layerCN(l.name) }}<span style="font-size:10px;color:var(--muted);margin-left:4px">{{ l.name }}</span></span>
+            <span @click="toggleLayerVisible(l)" style="flex:1;cursor:pointer;text-transform:none;letter-spacing:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3" :title="l.name + (l.visible?' (点击隐藏)':' (点击显示)')">
+              <span v-if="layerCN(l.name)">{{ layerCN(l.name) }}<span style="font-size:11px;color:var(--muted);margin-left:4px">{{ l.name }}</span></span>
               <span v-else>{{ l.name }}</span>
             </span>
-            <span style="font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap">({{ l.count }})</span>
+            <span style="font-size:12px;color:var(--muted);flex-shrink:0;white-space:nowrap">({{ l.count }})</span>
             <button class="btn sm" style="padding:2px;flex-shrink:0;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center" @click="toggleOpacityPopup(l)" :title="'调节透明度 (当前 ' + (l.opacity||100) + '%)'" :style="{borderColor: opacityLayer===l.name ? 'var(--accent)' : ''}">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
             </button>
-            <button class="btn sm" style="padding:1px 5px;font-size:11px;flex-shrink:0" @click="toggleLayerLock(l)" :title="l.locked?'点击解锁':'点击锁定'">{{ l.locked ? '🔒' : '🔓' }}</button>
+            <span v-if="l.locked && !l.isFacilityLayer" style="color:#f56c6c;font-size:13px;flex-shrink:0" title="底图图层固定不可编辑">🔒</span>
+            <button v-else class="btn sm" style="padding:1px 5px;font-size:13px;flex-shrink:0" @click="toggleLayerLock(l)" :title="l.locked?'点击解锁':'点击锁定'">{{ l.locked ? '🔒' : '🔓' }}</button>
             <!-- 透明度浮动面板 -->
             <div v-if="opacityLayer===l.name" style="position:absolute;top:100%;right:0;z-index:30;background:#232735;border:1px solid var(--border);border-radius:6px;padding:8px 10px;box-shadow:0 4px 16px rgba(0,0,0,.4);width:150px">
-              <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:4px"><span>透明度</span><b style="color:var(--text)">{{ l.opacity }}%</b></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:4px"><span>透明度</span><b style="color:var(--text)">{{ l.opacity }}%</b></div>
               <input type="range" min="0" max="100" v-model.number="l.opacity" @input="updateLayerOpacity(l)" style="width:100%;accent-color:var(--accent)">
             </div>
           </div>
@@ -806,11 +809,11 @@ const BasemapEditor = {
         <canvas ref="canvasEl" id="taf-canvas"></canvas>
         <!-- 加载进度条 -->
         <div v-if="loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,12,20,0.75);z-index:20;gap:14px">
-          <div style="font-size:14px;color:var(--text);font-weight:600">{{ loadStage || '加载中...' }}</div>
+          <div style="font-size:15px;color:var(--text);font-weight:600">{{ loadStage || '加载中...' }}</div>
           <div style="width:60%;max-width:420px;height:8px;background:#ffffff14;border-radius:4px;overflow:hidden">
             <div style="height:100%;background:var(--accent);border-radius:4px;transition:width .25s ease" :style="{width: loadProgress + '%'}"></div>
           </div>
-          <div style="font-size:12px;color:var(--muted)">{{ loadProgress }}%</div>
+          <div style="font-size:13px;color:var(--muted)">{{ loadProgress }}%</div>
         </div>
         <div v-if="hideLeft" style="position:absolute;top:8px;left:8px;z-index:5"><button class="btn sm" @click="hideLeft=false">» 图层</button></div>
         <div v-if="hideRight" style="position:absolute;top:8px;right:8px;z-index:5"><button class="btn sm" @click="hideRight=false">« 布点</button></div>
@@ -820,13 +823,13 @@ const BasemapEditor = {
       <div style="display:flex;flex-shrink:0;background:var(--card);border-left:1px solid var(--border)" v-if="!hideRight">
         <!-- 右2 (靠左): 设施清单 -->
         <div style="width:320px;min-width:320px;overflow-y:auto;padding:10px 12px;border-right:1px solid var(--border)">
-          <div style="font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:15px;font-weight:600;color:var(--text);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <span>📍 标准项分类点位库</span>
             <button class="btn sm" @click="hideRight=true" title="收起右栏">»</button>
           </div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
             <button class="btn sm" @click="showAllFac=!showAllFac" :class="{primary:showAllFac}" :title="showAllFac?'仅显示可布点设施':'显示全部含管理制度类'">{{ showAllFac ? '📋 全部(含管理项)' : '📍 仅可布点' }}</button>
-            <span style="font-size:12px;color:var(--muted)">共 {{ facilities.length }} 项 · 可布点 {{ placableCount }} 项</span>
+            <span style="font-size:13px;color:var(--muted)">共 {{ facilities.length }} 项 · 可布点 {{ placableCount }} 项</span>
           </div>
           <!-- 分类: 竖排, 一行一类, 带中文名与计数; 0 项灰置不可选 -->
           <div style="margin-bottom:10px;display:flex;flex-direction:column;gap:4px">
@@ -834,15 +837,15 @@ const BasemapEditor = {
                  class="fac-cat-row"
                  :style="{cursor:facCountOf(c)>0?'pointer':'default',border:facFilter===c?'1px solid var(--accent)':'1px solid transparent',background:facFilter===c?'#4f8cff1a':'',opacity:facCountOf(c)>0?1:0.35}"
                  :title="facCountOf(c)>0?'点击筛选该类':'该类无可用标准项'">
-              <span style="font-weight:700;font-size:13px;width:30px;flex-shrink:0" :style="{color:facFilter===c?'var(--accent)':'var(--text)'}">{{ c === 'ALL' ? '全部' : c }}</span>
-              <span v-if="c!=='ALL'" style="flex:1;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="catNames[c]">{{ catNames[c] || '—' }}</span>
+              <span style="font-weight:700;font-size:14px;width:30px;flex-shrink:0" :style="{color:facFilter===c?'var(--accent)':'var(--text)'}">{{ c === 'ALL' ? '全部' : c }}</span>
+              <span v-if="c!=='ALL'" style="flex:1;font-size:14px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="catNames[c]">{{ catNames[c] || '—' }}</span>
               <span v-else style="flex:1"></span>
-              <span style="font-size:12px;color:var(--accent);font-weight:600">{{ facCountOf(c) }}</span>
-              <span v-if="facCountOf(c)===0" style="font-size:10px;color:var(--muted)">(无)</span>
+              <span style="font-size:13px;color:var(--accent);font-weight:600">{{ facCountOf(c) }}</span>
+              <span v-if="facCountOf(c)===0" style="font-size:11px;color:var(--muted)">(无)</span>
             </div>
           </div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">点选后手动放置 · 拖动微调 · 双击定位</div>
-          <div v-for="f in filteredFacilities" :key="f.id" style="padding:5px 6px;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;border-radius:4px"
+          <div style="font-size:13px;color:var(--muted);margin-bottom:6px">点选后手动放置 · 拖动微调 · 双击定位</div>
+          <div v-for="f in filteredFacilities" :key="f.id" style="padding:5px 6px;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer;border-radius:4px"
                :style="{'background':selectedFac?.id===f.id?'#ffffff12':''}"
                @click="selectFacility(f)" @dblclick="focusFacility(f)"
                @mouseenter="e=>e.currentTarget.style.background='#ffffff0a'" @mouseleave="e=>e.currentTarget.style.background=selectedFac?.id===f.id?'#ffffff12':''">
@@ -850,38 +853,41 @@ const BasemapEditor = {
               <svg v-if="facSymbol(f)?.path" :viewBox="facSymbol(f).viewbox" style="width:17px;height:17px;flex-shrink:0" :style="{fill:facColor(f)}"><path :d="facSymbol(f).path"/></svg>
               <span v-else :style="{width:'10px',height:'10px',borderRadius:'50%',background:facColor(f),flexShrink:0}"></span>
               <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="f.name">{{ f.name }}</span>
-              <span style="font-size:11px;color:var(--muted);flex-shrink:0">{{ f.standard_item_id }}</span>
+              <span style="font-size:12px;color:var(--muted);flex-shrink:0">{{ f.standard_item_id }}</span>
+              <button v-if="f.position?.x!=null" class="btn sm" style="padding:1px 6px;font-size:12px;flex-shrink:0;color:#f56c6c" @click.stop="removePlacement(f)" title="移除布点 (也可选中后按 Delete)">🗑</button>
             </div>
             <div style="display:flex;align-items:center;gap:6px;margin:2px 0 0 23px">
-              <span v-if="f.status!=='confirmed'" style="font-size:11px;padding:0 6px;border-radius:3px" :style="{background:facStatusColor(f.status)+'22',color:facStatusColor(f.status)}">{{ facStatusCN(f.status) }}</span>
-              <span v-if="f.position?.x!=null" style="font-size:11px;color:var(--muted)">· ({{ Math.round(f.position.x) }}, {{ Math.round(f.position.y) }})</span>
-              <span v-else style="font-size:11px;color:#e6a23c">未布点</span>
+              <span v-if="f.status!=='confirmed'" style="font-size:12px;padding:0 6px;border-radius:3px" :style="{background:facStatusColor(f.status)+'22',color:facStatusColor(f.status)}">{{ facStatusCN(f.status) }}</span>
+              <span v-if="f.position?.x!=null" style="font-size:12px;color:var(--muted)">· ({{ Math.round(f.position.x) }}, {{ Math.round(f.position.y) }})</span>
+              <span v-else style="font-size:12px;color:#e6a23c">未布点</span>
             </div>
           </div>
-          <div v-if="!filteredFacilities.length" style="font-size:13px;color:var(--muted);padding:12px 0;text-align:center">无设施</div>
+          <div v-if="!filteredFacilities.length" style="font-size:14px;color:var(--muted);padding:12px 0;text-align:center">无设施</div>
         </div>
 
         <!-- 右1 (靠右): 布点工具 -->
         <div style="width:300px;min-width:300px;overflow-y:auto;padding:10px 12px">
           <!-- ① 自动布点 -->
-          <div style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:10px">
-            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:12px;margin-right:6px">1</span>⚡ 自动布点</div>
-            <div style="font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.6">共 {{ facilities.length }} 项标准项，其中 {{ placableCount }} 项可物理布点（管理/制度/培训类已自动排除）。点击下方按钮按策略自动落位。</div>
-            <button class="btn" style="width:100%;background:#e6a23c;border-color:#e6a23c;color:#fff;font-weight:600" @click="runAutoPlace" :disabled="autoPlacing">🚀 {{ autoPlacing ? '布点中...' : '一键自动布点' }}</button>
+          <div style="border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <span style="font-size:15px;font-weight:600;color:var(--text);flex:1"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:13px;margin-right:6px">1</span>⚡ 自动布点</span>
+              <button class="btn" style="background:#e6a23c;border-color:#e6a23c;color:#fff;font-weight:600;padding:5px 16px" @click="runAutoPlace" :disabled="autoPlacing">🚀 {{ autoPlacing ? '布点中...' : '自动布点' }}</button>
+            </div>
+            <div style="font-size:14px;color:var(--muted);line-height:1.7">共 {{ facilities.length }} 项标准项，其中 {{ placableCount }} 项可物理布点（管理/制度/培训类已自动排除）。自动落位范围随右侧分类筛选：当前为 <b style="color:var(--text)">{{ facFilter==='ALL' ? '全部可布点' : facFilter + ' ' + (catNames[facFilter]||'') }}</b>。</div>
           </div>
 
           <!-- ② 选择策略 -->
-          <div style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:10px">
-            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:12px;margin-right:6px">2</span>📍 选择布点策略</div>
-            <div style="font-size:13px;color:var(--muted);margin-bottom:6px">设施落位到哪类空间？</div>
-            <select v-model="placeStrategy" style="width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:5px;margin-bottom:8px;font-size:13px">
+          <div style="border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:16px">
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:13px;margin-right:6px">2</span>📍 选择布点策略</div>
+            <div style="font-size:14px;color:var(--muted);margin-bottom:6px">设施落位到哪类空间？</div>
+            <select v-model="placeStrategy" style="width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:5px;margin-bottom:8px;font-size:14px">
               <option value="smart">🧠 智能: 按标准分类映射空间</option>
               <option value="channel">🛤️ 沿通道/走廊线性排布</option>
               <option value="node">⭕ 全部布在节点/广场</option>
               <option value="uniform">📐 均匀网格散布(区域内)</option>
               <option value="boundary">📏 沿红线边界内侧分布</option>
             </select>
-            <div style="font-size:12px;color:var(--muted);background:#ffffff06;padding:6px 8px;border-radius:4px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:13px;color:var(--muted);background:#ffffff06;padding:6px 8px;border-radius:4px;display:flex;flex-direction:column;gap:4px">
               <span>🧠 智能: P1建筑+通道 / P2建筑+立面 / P3节点 / P4绿地+通道 / P5节点+通道 / P6建筑+立面</span>
               <span>🛤️ 全部设施沿通道线性排布</span>
               <span>⭕ 全部设施集中在广场/节点</span>
@@ -891,36 +897,36 @@ const BasemapEditor = {
           </div>
 
           <!-- ③ 微调参数 -->
-          <div style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:10px">
-            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:12px;margin-right:6px">3</span>🎛️ 微调参数</div>
-            <div style="font-size:13px;color:var(--muted);margin-bottom:10px">拖动拉杆即按新参数实时重排</div>
+          <div style="border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:16px">
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:13px;margin-right:6px">3</span>🎛️ 微调参数</div>
+            <div style="font-size:14px;color:var(--muted);margin-bottom:14px">拖动拉杆即按新参数实时重排</div>
 
-            <div style="margin-bottom:8px">
-              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>设施间距</span><b style="color:var(--text)">{{ placeSpacing }} m</b></div>
+            <div style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--muted)"><span>设施间距</span><b style="color:var(--text)">{{ placeSpacing }} m</b></div>
               <input type="range" min="5" max="60" v-model.number="placeSpacing" @input="scheduleReauto" style="width:100%;accent-color:var(--accent)">
             </div>
-            <div style="margin-bottom:8px">
-              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>边界留白</span><b style="color:var(--text)">{{ placeMargin }} m</b></div>
+            <div style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--muted)"><span>边界留白</span><b style="color:var(--text)">{{ placeMargin }} m</b></div>
               <input type="range" min="0" max="30" v-model.number="placeMargin" @input="scheduleReauto" style="width:100%;accent-color:var(--accent)">
             </div>
-            <div style="margin-bottom:8px">
-              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>每行数量</span><b style="color:var(--text)">{{ perRow }}</b></div>
+            <div style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--muted)"><span>每行数量</span><b style="color:var(--text)">{{ perRow }}</b></div>
               <input type="range" min="1" max="10" v-model.number="perRow" @input="scheduleReauto" style="width:100%;accent-color:var(--accent)">
             </div>
             <div style="margin-bottom:4px">
-              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>符号尺寸</span><b style="color:var(--text)">{{ symScale }}</b></div>
+              <div style="display:flex;justify-content:space-between;font-size:14px;color:var(--muted)"><span>符号尺寸</span><b style="color:var(--text)">{{ symScale }}</b></div>
               <input type="range" min="1" max="10" v-model.number="symScale" @input="renderFacilityMarkers" style="width:100%;accent-color:var(--accent)">
             </div>
 
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);cursor:pointer;margin-top:8px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text);cursor:pointer;margin-top:8px">
               <input type="checkbox" v-model="autoOverwrite"> 覆盖已有布点位置
             </label>
           </div>
 
           <!-- ④ 手动布点 -->
           <div>
-            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:12px;margin-right:6px">4</span>✋ 手动布点 (可选补充)</div>
-            <div style="font-size:13px;color:var(--muted);line-height:1.8">
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:13px;margin-right:6px">4</span>✋ 手动布点 (可选补充)</div>
+            <div style="font-size:14px;color:var(--muted);line-height:1.8">
               <b style="color:var(--text)">① 在左侧点位库</b> 点选一项（点选后自动进入布点模式）<br>
               <b style="color:var(--text)">② 在图纸上</b> 点击目标位置落点<br>
               <b style="color:var(--text)">③ 拖动符号</b> 微调（松手自动保存坐标）<br>
@@ -932,7 +938,7 @@ const BasemapEditor = {
     </div>
 
     <!-- Status bar -->
-    <div style="display:flex;gap:16px;padding:4px 12px;font-size:13px;color:var(--muted);flex-shrink:0;background:var(--card);border-top:1px solid var(--border)">
+    <div style="display:flex;gap:16px;padding:4px 12px;font-size:14px;color:var(--muted);flex-shrink:0;background:var(--card);border-top:1px solid var(--border)">
       <span>缩放: {{ zoomPct }}%</span>
       <span>画布: {{ canvasSize }}</span>
       <span v-if="selectedObj">选中: {{ selectedObj }}</span>
@@ -954,6 +960,9 @@ const BasemapEditor = {
   setup() {
     const route = VueRouter.useRoute()
     const projectName = ref('')
+    const projectCode = ref('')
+    const undoStack = ref([])   // undo/redo 历史栈 (position 快照)
+    const redoStack = ref([])
     const layers = ref([])
     const tool = ref('pan')
     const zoomPct = ref(100)
@@ -968,7 +977,7 @@ const BasemapEditor = {
     const hideLeft = ref(false), hideRight = ref(false)
     const fullscreen = ref(true)   // 底图工作台默认浏览器内全宽 (路由级 .main-fullwidth)
     const trueFs = ref(false)      // 全屏 (Fullscreen API)
-    const leftWidth = ref(440)     // 左栏宽度 (可拖拽调节)
+    const leftWidth = ref(480)     // 左栏宽度 (可拖拽调节)
     const facFilter = ref('ALL')
     const selectedFac = ref(null)
     const facPlaceHint = ref('')
@@ -1053,6 +1062,7 @@ const BasemapEditor = {
       try {
         const p = await API.get('/projects/' + route.params.id)
         projectName.value = p.name
+        projectCode.value = p.code || ''
         // 拉标准分类中文名 (P1→公共空间物理环境 等)
         try {
           const std = await API.get('/projects/' + route.params.id + '/standard')
@@ -1512,9 +1522,10 @@ const BasemapEditor = {
         fabricCanvas.add(img)
         fabricCanvas.sendToBack(img)
         fabricCanvas.requestRenderAll()
-        // 适配视图
+        // 适配视图 (若无历史视图状态则全图适配)
         fitScreen()
         buildLegend()
+        restoreViewState()   // 恢复上次图层显隐/透明度/视图
         loading.value = false
         loadProgress.value = 100
         loadStage.value = '完成'
@@ -1574,6 +1585,7 @@ const BasemapEditor = {
       } else {
         redrawComposite()   // 底图层: 重绘合成图
       }
+      if (typeof saveViewState === 'function') saveViewState()
     }
 
     const updateLayerOpacity = (layer) => {
@@ -1586,9 +1598,58 @@ const BasemapEditor = {
       } else {
         redrawComposite()
       }
+      if (typeof saveViewState === 'function') saveViewState()
     }
 
-    // 锁定切换 (设施层真实生效; 底图合成层为视觉提示)
+    // ── 自动保存视图状态 (图层显隐/透明度/缩放平移; position 已实时入库) ──
+    const viewKey = () => 'taf_view_' + (route.params.id || '')
+    const saveViewState = () => {
+      try {
+        const state = {
+          layers: layers.value.map(l => ({ name: l.name, visible: l.visible, opacity: l.opacity || 100 })),
+          viewport: fabricCanvas ? fabricCanvas.viewportTransform : null,
+          t: Date.now(),
+        }
+        localStorage.setItem(viewKey(), JSON.stringify(state))
+      } catch(e) { /* localStorage 不可用时静默 */ }
+    }
+    const restoreViewState = () => {
+      try {
+        const raw = localStorage.getItem(viewKey())
+        if (!raw) return
+        const st = JSON.parse(raw)
+        // 恢复图层显隐/透明度 (统一设置后单次重绘)
+        let changed = false
+        st.layers?.forEach(s => {
+          const l = layers.value.find(x => x.name === s.name)
+          if (l) {
+            l.visible = s.visible !== false
+            l.opacity = s.opacity || 100
+            changed = true
+          }
+        })
+        if (changed) {
+          redrawComposite()
+          renderFacilityMarkers()
+        }
+        // 恢复视图变换
+        if (st.viewport && fabricCanvas) {
+          fabricCanvas.setViewportTransform(st.viewport)
+          zoomPct.value = Math.round(fabricCanvas.getZoom() * 100)
+          fabricCanvas.requestRenderAll()
+        }
+      } catch(e) { console.warn('restore view state failed', e) }
+    }
+    // 定时自动保存 (每 30s) + 视图变更时立即保存
+    if (typeof window !== 'undefined') {
+      setInterval(() => { saveViewState() }, 30000)
+    }
+
+    // 图层显隐/透明度切换后保存
+    const saveAfterLayerChange = (fn) => {
+      return (layer) => { fn(layer); saveViewState() }
+    }
+
     const toggleLayerLock = (layer) => {
       layer.locked = !layer.locked
       if (layer.isFacilityLayer) {
@@ -1770,6 +1831,80 @@ const BasemapEditor = {
       }
     }
     if (typeof document !== 'undefined') document.addEventListener('keydown', _keyHandler)
+    // ── Undo/Redo: 基于全量 position 快照 (含 null 状态) ──
+    const snapPositions = () => {
+      const m = {}
+      facilities.value.forEach(f => {
+        m[f.id] = (f.position && f.position.x != null) ? { x: f.position.x, y: f.position.y } : null
+      })
+      return m
+    }
+    const pushUndo = () => {
+      undoStack.value.push(snapPositions())
+      if (undoStack.value.length > 100) undoStack.value.shift()
+      redoStack.value = []
+    }
+    const applyPositions = async (snap) => {
+      for (const f of facilities.value) {
+        const pos = snap[f.id]   // {x,y} | null
+        try {
+          await API.put('/projects/' + route.params.id + '/facilities/' + f.id, {
+            position: pos ? { x: pos.x, y: pos.y, lng: null, lat: null } : null
+          })
+          f.position = pos ? { x: pos.x, y: pos.y } : null
+        } catch(e) { console.error('undo sync fail', f.id, e) }
+      }
+      updateFacilityLayerCounts()
+      renderFacilityMarkers()
+    }
+    const undoPlacement = async () => {
+      if (!undoStack.value.length) { toast.show('无可撤销操作'); return }
+      const prev = undoStack.value.pop()
+      redoStack.value.push(snapPositions())
+      await applyPositions(prev)
+      toast.show('↶ 已撤销上一步')
+    }
+    const redoPlacement = async () => {
+      if (!redoStack.value.length) { toast.show('无可重做操作'); return }
+      const next = redoStack.value.pop()
+      undoStack.value.push(snapPositions())
+      await applyPositions(next)
+      toast.show('↷ 已重做')
+    }
+    // Ctrl+Z / Ctrl+Y 快捷键
+    const _undoKey = (e) => {
+      if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undoPlacement() }
+      else if (e.ctrlKey && e.key.toLowerCase() === 'y') { e.preventDefault(); redoPlacement() }
+    }
+    if (typeof document !== 'undefined') document.addEventListener('keydown', _undoKey)
+
+    // 删除布点 (清空 position; 支持点位库 🗑 按钮 / Delete 键)
+    const removePlacement = async (f) => {
+      pushUndo()
+      try {
+        await API.put('/projects/' + route.params.id + '/facilities/' + f.id, {
+          position: null
+        })
+        f.position = null
+        renderFacilityMarkers()
+        updateFacilityLayerCounts()
+        toast.show('🗑 已移除布点: ' + f.name)
+      } catch(e) { console.error(e); toast.show('❌ 移除布点失败') }
+    }
+    // Delete 键移除选中设施布点
+    const _delKey = (e) => {
+      const tgt = e.target
+      const inInput = tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.isContentEditable)
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !textInput.value && !inInput) {
+        const f = selectedFac.value
+        if (f && f.position?.x != null) {
+          e.preventDefault()
+          removePlacement(f); selectedFac.value = null
+        }
+      }
+    }
+    if (typeof document !== 'undefined') document.addEventListener('keydown', _delKey)
+
     const selectFacility = (f) => {
       selectedFac.value = f
       if (tool.value !== 'place') setTool('place')
@@ -1778,6 +1913,7 @@ const BasemapEditor = {
     const placeAtPointer = async (sx, sy) => {
       const f = selectedFac.value
       if (!f) { toast.show('⚠️ 先在右侧设施清单选择要布点的设施'); return }
+      pushUndo()
       const w = screenToWorld(sx, sy)   // 场景 → 世界坐标 (CAD 用)
       const x = Math.round(w.x), y = Math.round(w.y)
       try {
@@ -1808,7 +1944,7 @@ const BasemapEditor = {
       _reautoTimer = setTimeout(() => {
         const placed = facilities.value.filter(f => f.position?.x != null).length
         if (placed > 0 && autoOverwrite.value) runAutoPlace()
-        else if (placed > 0) toast.show('💡 调整后点「🚀 一键自动布点」或勾选覆盖后重算')
+        else if (placed > 0) toast.show('💡 调整后点「🚀 自动布点」或勾选覆盖后重算')
       }, 600)
     }
 
@@ -1817,7 +1953,11 @@ const BasemapEditor = {
       const spacing = placeSpacing.value
       const margin = placeMargin.value
       const rowCap = perRow.value
-      const placable = facilities.value.filter(isPlacable)
+      // 问题7: 分类别布点 — 跟随点位库当前分类筛选 (facFilter), ALL=全部可布点
+      let placable = facilities.value.filter(isPlacable)
+      if (facFilter.value !== 'ALL') {
+        placable = placable.filter(f => (f.category || '').toUpperCase() === facFilter.value)
+      }
       const placed = []
 
       // 可用锚点池
@@ -1959,7 +2099,9 @@ const BasemapEditor = {
       if (autoPlacing.value) return
       autoPlacing.value = true
       try {
+        pushUndo()
         const { placed, keepExisting } = computePlacements()
+        const scope = facFilter.value === 'ALL' ? '全部可布点' : '分类 ' + facFilter.value
         if (!placed.length) { toast.show('⚠️ 无可用布点锚点，请先加载含 TAF 图层的 DXF'); return }
         let n = 0
         for (const p of placed) {
@@ -1974,7 +2116,7 @@ const BasemapEditor = {
           } catch(e) { console.error('place fail', f.id, e) }
         }
         renderFacilityMarkers()
-        toast.show(`✅ 自动布点完成: ${n} 项已布点 (策略: ${placeStrategy.value}, 间距 ${placeSpacing.value}m)`)
+        toast.show(`✅ 自动布点完成: ${n} 项已布点 (范围: ${scope}, 间距 ${placeSpacing.value}m)`)
         if (n === 0 && !keepExisting) toast.show('⚠️ 0 项更新 (可能已全部布点, 勾选「覆盖已有布点」重算)')
       } finally {
         autoPlacing.value = false
@@ -2116,7 +2258,8 @@ const BasemapEditor = {
       } catch(e) { console.error(e) }
     }
 
-    return { projectName, layers, tool, zoomPct, canvasSize, selectedObj, facilities,
+    return { projectName, projectCode, layers, tool, zoomPct, canvasSize, selectedObj, facilities,
+      undoStack, redoStack, undoPlacement, redoPlacement, removePlacement,
       textInput, textValue, canvasWrap, canvasEl, fileInput,
       triggerUpload, onFileUpload, fitScreen, updateLayerVisibility, updateLayerOpacity,
       confirmText, cancelText, exportView, refreshFacilities, focusFacility,
@@ -2138,8 +2281,8 @@ const FacilitiesPage = {
   <div>
     <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
       <button class="btn" @click="$router.back()">← 返回</button>
-      <span style="font-size:20px;font-weight:600">{{ projectName }}</span>
-      <span style="font-size:14px;color:var(--muted)">设施清单</span>
+      <span style="font-size:21px;font-weight:600">{{ projectName }}</span>
+      <span style="font-size:15px;color:var(--muted)">设施清单</span>
       <span style="flex:1"></span>
       <button class="btn" @click="evaluate" :disabled="evaluating">📊 评估</button>
       <button class="btn primary" @click="addFacility">+ 添加设施</button>
@@ -2148,20 +2291,20 @@ const FacilitiesPage = {
     </div>
     <div v-if="evalResult" class="card" style="margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-        <div style="font-size:34px;font-weight:700" :style="{color: evalResult.stars>=4?'#67c23a':evalResult.stars>=3?'#e6a23c':'#f56c6c'}">{{ evalResult.total_score }}分</div>
-        <div><div style="font-size:20px;font-weight:600">{{ evalResult.level }}</div><div style="font-size:14px;color:var(--muted)">⭐ × {{ evalResult.stars }} · 必选项 {{ evalResult.prerequisite_passed }}/{{ evalResult.prerequisite_total }}</div></div>
+        <div style="font-size:35px;font-weight:700" :style="{color: evalResult.stars>=4?'#67c23a':evalResult.stars>=3?'#e6a23c':'#f56c6c'}">{{ evalResult.total_score }}分</div>
+        <div><div style="font-size:21px;font-weight:600">{{ evalResult.level }}</div><div style="font-size:15px;color:var(--muted)">⭐ × {{ evalResult.stars }} · 必选项 {{ evalResult.prerequisite_passed }}/{{ evalResult.prerequisite_total }}</div></div>
         <div style="flex:1"></div>
-        <div v-for="cs in evalResult.category_scores" :key="cs.category_id" style="text-align:center;min-width:60px"><div style="font-size:20px;font-weight:600" :style="{color:cs.percentage>=60?'#67c23a':cs.percentage>=30?'#e6a23c':'#f56c6c'}">{{ cs.percentage }}%</div><div style="font-size:12px;color:var(--muted)">{{ cs.category_id }}</div></div>
+        <div v-for="cs in evalResult.category_scores" :key="cs.category_id" style="text-align:center;min-width:60px"><div style="font-size:21px;font-weight:600" :style="{color:cs.percentage>=60?'#67c23a':cs.percentage>=30?'#e6a23c':'#f56c6c'}">{{ cs.percentage }}%</div><div style="font-size:13px;color:var(--muted)">{{ cs.category_id }}</div></div>
       </div>
-      <div v-if="evalResult.recommendations?.length" style="margin-top:12px;padding:10px 14px;background:#ffffff05;border-radius:6px;font-size:15px">
+      <div v-if="evalResult.recommendations?.length" style="margin-top:12px;padding:10px 14px;background:#ffffff05;border-radius:6px;font-size:16px">
         <div v-for="r in evalResult.recommendations" :key="r" style="padding:2px 0">{{ r }}</div>
       </div>
     </div>
     <div v-for="cat in groupedFacilities" :key="cat.id" class="card">
-      <div class="card-title" style="justify-content:space-between"><span>{{ cat.id }} {{ cat.name }}</span><span style="font-size:14px;color:var(--muted)">{{ cat.items.length }} 项</span></div>
-      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:15px">
-        <thead><tr style="color:var(--muted);font-size:13px;text-align:left"><th style="padding:8px;border-bottom:1px solid var(--border);width:60px">编号</th><th style="padding:8px;border-bottom:1px solid var(--border)">名称</th><th style="padding:8px;border-bottom:1px solid var(--border);width:60px">类型</th><th style="padding:8px;border-bottom:1px solid var(--border);width:70px">状态</th><th style="padding:8px;border-bottom:1px solid var(--border);width:50px">数量</th><th style="padding:8px;border-bottom:1px solid var(--border)">规格/备注</th><th style="padding:8px;border-bottom:1px solid var(--border);width:50px"></th></tr></thead>
-        <tbody><tr v-for="f in cat.items" :key="f.id" @click="editFacility(f)" style="cursor:pointer" @mouseenter="e=>e.currentTarget.style.background='#ffffff04'" @mouseleave="e=>e.currentTarget.style.background=''"><td style="padding:8px;font-family:monospace;font-size:13px;color:var(--accent)">{{ f.standard_item_id }}</td><td style="padding:8px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:{f.status==='installed'?'#67c23a':f.status==='confirmed'?'#e6a23c':f.status==='selected'?'#4f8cff':'#8b8fa3'}"></span>{{ f.name }}</td><td style="padding:8px"><span style="font-size:13px;padding:2px 6px;border-radius:3px" :style="{background:f.type==='prerequisite'?'#f56c6c1a':'#67c23a1a',color:f.type==='prerequisite'?'#f56c6c':'#67c23a'}">{{ f.type==='prerequisite'?'必选':'可选' }}</span></td><td style="padding:8px"><span :style="{color:f.status==='installed'?'#67c23a':f.status==='confirmed'?'#e6a23c':'#8b8fa3'}">{{ facStatusLabel(f.status) }}</span></td><td style="padding:8px">{{ f.quantity }}</td><td style="padding:8px;font-size:14px;color:var(--muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.notes || '-' }}</td><td style="padding:8px"><button class="btn sm" @click.stop="editFacility(f)">✎</button></td></tr></tbody>
+      <div class="card-title" style="justify-content:space-between"><span>{{ cat.id }} {{ cat.name }}</span><span style="font-size:15px;color:var(--muted)">{{ cat.items.length }} 项</span></div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:16px">
+        <thead><tr style="color:var(--muted);font-size:14px;text-align:left"><th style="padding:8px;border-bottom:1px solid var(--border);width:60px">编号</th><th style="padding:8px;border-bottom:1px solid var(--border)">名称</th><th style="padding:8px;border-bottom:1px solid var(--border);width:60px">类型</th><th style="padding:8px;border-bottom:1px solid var(--border);width:70px">状态</th><th style="padding:8px;border-bottom:1px solid var(--border);width:50px">数量</th><th style="padding:8px;border-bottom:1px solid var(--border)">规格/备注</th><th style="padding:8px;border-bottom:1px solid var(--border);width:50px"></th></tr></thead>
+        <tbody><tr v-for="f in cat.items" :key="f.id" @click="editFacility(f)" style="cursor:pointer" @mouseenter="e=>e.currentTarget.style.background='#ffffff04'" @mouseleave="e=>e.currentTarget.style.background=''"><td style="padding:8px;font-family:monospace;font-size:14px;color:var(--accent)">{{ f.standard_item_id }}</td><td style="padding:8px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:{f.status==='installed'?'#67c23a':f.status==='confirmed'?'#e6a23c':f.status==='selected'?'#4f8cff':'#8b8fa3'}"></span>{{ f.name }}</td><td style="padding:8px"><span style="font-size:14px;padding:2px 6px;border-radius:3px" :style="{background:f.type==='prerequisite'?'#f56c6c1a':'#67c23a1a',color:f.type==='prerequisite'?'#f56c6c':'#67c23a'}">{{ f.type==='prerequisite'?'必选':'可选' }}</span></td><td style="padding:8px"><span :style="{color:f.status==='installed'?'#67c23a':f.status==='confirmed'?'#e6a23c':'#8b8fa3'}">{{ facStatusLabel(f.status) }}</span></td><td style="padding:8px">{{ f.quantity }}</td><td style="padding:8px;font-size:15px;color:var(--muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.notes || '-' }}</td><td style="padding:8px"><button class="btn sm" @click.stop="editFacility(f)">✎</button></td></tr></tbody>
       </table></div>
     </div>
     <div class="dialog-mask" v-if="editDlg" @click.self="editDlg=false"><div class="dialog" style="width:480px"><h3>{{ editForm.id ? '编辑' : '新增' }}设施</h3><div class="form-group"><label>关联标准项</label><input type="text" v-model="editForm.standard_item_id"></div><div class="form-group"><label>名称</label><input type="text" v-model="editForm.name"></div><div class="form-group"><label>类型</label><select v-model="editForm.type"><option value="prerequisite">必选</option><option value="credit">可选</option></select></div><div class="form-group"><label>类别</label><select v-model="editForm.category"><option v-for="c in cats" :key="c.id" :value="c.id">{{ c.id }} {{ c.name }}</option></select></div><div class="form-group"><label>状态</label><select v-model="editForm.status"><option value="draft">草稿</option><option value="selected">已选</option><option value="confirmed">已确认</option><option value="installed">已安装</option></select></div><div class="form-group"><label>数量</label><input type="number" v-model.number="editForm.quantity" min="1"></div><div class="form-group"><label>备注</label><textarea v-model="editForm.notes" rows="2"></textarea></div><div class="form-actions"><button class="btn" @click="editDlg=false">取消</button><button class="btn danger" v-if="editForm.id" @click="deleteFacility">删除</button><button class="btn primary" @click="saveFacility">保存</button></div></div></div>
@@ -2213,7 +2356,7 @@ const DeliverablesPage = {
   <div>
     <div style="margin-bottom:16px;display:flex;align-items:center;gap:12px">
       <button class="btn" @click="$router.back()">← 返回</button>
-      <span style="font-size:20px;font-weight:600">{{ projectName }} · 策划成果</span>
+      <span style="font-size:21px;font-weight:600">{{ projectName }} · 策划成果</span>
     </div>
 
     <div v-if="loading" class="empty"><div class="icon">⏳</div>加载中...</div>
@@ -2240,9 +2383,9 @@ const DeliverablesPage = {
       <div v-if="results.length" class="card" style="margin-top:16px">
         <div class="card-title">✅ 已生成 ({{ results.length }})</div>
         <div v-for="r in results" :key="r.id" style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);gap:12px">
-          <span style="width:120px;font-size:15px">{{ r.name }}</span>
-          <span style="font-size:13px;color:var(--muted)">{{ r.format }}</span>
-          <span v-if="r.size" style="font-size:13px;color:var(--muted)">{{ (r.size/1024).toFixed(1) }} KB</span>
+          <span style="width:120px;font-size:16px">{{ r.name }}</span>
+          <span style="font-size:14px;color:var(--muted)">{{ r.format }}</span>
+          <span v-if="r.size" style="font-size:14px;color:var(--muted)">{{ (r.size/1024).toFixed(1) }} KB</span>
           <span v-if="r.status==='ok'" style="color:var(--success)">✅</span>
           <span v-if="r.status==='error'" style="color:var(--danger)">❌ {{ r.error }}</span>
           <button v-if="r.download_url" class="btn sm" @click="download(r)">⬇ 下载</button>
@@ -2251,9 +2394,9 @@ const DeliverablesPage = {
 
       <div v-if="packageResult" class="card" style="margin-top:16px">
         <div class="card-title">📦 打包结果</div>
-        <div style="font-size:15px">ZIP: {{ (packageResult.zip_size/1024).toFixed(0) }} KB</div>
-        <div v-if="packageResult.nutstore?.status===201" style="color:var(--success);font-size:15px">✅ 已上传坚果云</div>
-        <div v-if="packageResult.nutstore?.path" style="font-size:13px;color:var(--muted)">{{ packageResult.nutstore.path }}</div>
+        <div style="font-size:16px">ZIP: {{ (packageResult.zip_size/1024).toFixed(0) }} KB</div>
+        <div v-if="packageResult.nutstore?.status===201" style="color:var(--success);font-size:16px">✅ 已上传坚果云</div>
+        <div v-if="packageResult.nutstore?.path" style="font-size:14px;color:var(--muted)">{{ packageResult.nutstore.path }}</div>
       </div>
     </div>
   </div>`,
