@@ -783,7 +783,7 @@ const BasemapEditor = {
             <svg v-if="l.iconPath" :viewBox="l.viewbox||'0 0 15 15'" style="width:15px;height:15px;flex-shrink:0" :style="{fill:l.color}"><path :d="l.iconPath"/></svg>
             <span v-else :style="{width:'12px',height:'12px',borderRadius:'2px',background:l.color,flexShrink:0}"></span>
             <span @click="toggleLayerVisible(l)" style="flex:1;cursor:pointer;text-transform:none;letter-spacing:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3" :title="l.name + (l.visible?' (点击隐藏)':' (点击显示)')">
-              <span v-if="layerCN(l.name)">{{ layerCN(l.name) }}<span style="font-size:11px;color:var(--muted);margin-left:4px">{{ l.name }}</span></span>
+              <span v-if="layerCN(l.name)">{{ layerCN(l.name) }}<span style="font-size:12px;color:var(--muted);margin-left:4px">{{ l.name }}</span></span>
               <span v-else>{{ l.name }}</span>
             </span>
             <span style="font-size:12px;color:var(--muted);flex-shrink:0;white-space:nowrap">({{ l.count }})</span>
@@ -841,7 +841,7 @@ const BasemapEditor = {
               <span v-if="c!=='ALL'" style="flex:1;font-size:14px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="catNames[c]">{{ catNames[c] || '—' }}</span>
               <span v-else style="flex:1"></span>
               <span style="font-size:13px;color:var(--accent);font-weight:600">{{ facCountOf(c) }}</span>
-              <span v-if="facCountOf(c)===0" style="font-size:11px;color:var(--muted)">(无)</span>
+              <span v-if="facCountOf(c)===0" style="font-size:12px;color:var(--muted)">(无)</span>
             </div>
           </div>
           <div style="font-size:13px;color:var(--muted);margin-bottom:6px">点选后手动放置 · 拖动微调 · 双击定位</div>
