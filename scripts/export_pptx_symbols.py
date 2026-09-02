@@ -113,7 +113,7 @@ def draw_page(mode):
         SUB = '黑色正圆 = 设施图标 · 白色轮廓线 = 布点符号'
     else:
         TITLE = '兴顺里 TAF · 点位符号总览（18 项）· 实心 + 镂空细节'
-        SUB = '黑色正圆 = 设施图标 · 白色实心 + 内部细节镂空'
+        SUB = '黑色正圆 = 设施图标 · 白色实心剪影 + 黑色结构线'
     GRID_TOP = 210
     COLS, ROWS = 4, 5
     CELL_W, CELL_H = PAGE_W / COLS, (PAGE_H - GRID_TOP) / ROWS
@@ -146,27 +146,19 @@ def draw_page(mode):
         tarea = max(1e-6, (tx1 - tx0) * (ty1 - ty0))
         def to_px(u, v):
             return ((cx + (u - (tx0 + tx1) / 2) * k) * EMU, (cy_c + (v - (ty0 + ty1) / 2) * k) * EMU)
-        for l in lines:
-            b = bbox(l['pts'])
-            cxm = (b[0] + b[2]) / 2; cym = (b[1] + b[3]) / 2
-            l['inner'] = (l['close'] and (b[2] - b[0]) * (b[3] - b[1]) < 0.30 * tarea
-                          and tx0 < cxm < tx1 and ty0 < cym < ty1)
         if mode == 'outline':
             for l in lines:
                 px = [to_px(u, v) for u, v in l['pts']]
                 add_freeform(slide, px, l['close'], fill_rgb=None, line_rgb=WHITE, lw_px=2.0)
         else:
+            # 实心页: 白色实心剪影 (全部折线 fill 白) + 黑色结构线 (每条折线黑描,
+            # 外轮廓与内部结构/接缝/水花全部保留, 不做大面积黑块误判)
             for l in lines:
                 px = [to_px(u, v) for u, v in l['pts']]
-                add_freeform(slide, px, l['close'], fill_rgb=WHITE, line_rgb=None)
+                add_freeform(slide, px, l['close'], fill_rgb=WHITE, line_rgb=BLACK, lw_px=1.8)
             for l in lines:
-                if not l['inner']:
-                    continue
                 px = [to_px(u, v) for u, v in l['pts']]
-                if l['close']:
-                    add_freeform(slide, px, True, fill_rgb=BLACK, line_rgb=None)
-                else:
-                    add_freeform(slide, px, False, fill_rgb=None, line_rgb=BLACK, lw_px=2.5)
+                add_freeform(slide, px, l['close'], fill_rgb=None, line_rgb=BLACK, lw_px=2.6)
         t0 = cy_c + CIRCLE_D / 2 + 26
         add_text(slide, cx, t0, item, 26, bold=True)
         add_text(slide, cx, t0 + 52, sym['name_zh'], 20)
