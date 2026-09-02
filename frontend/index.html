@@ -1429,6 +1429,68 @@ const BasemapEditor = {
     let dxfWorldBounds = null   // 世界坐标 bbox
     let drawingBorderBbox = null   // TAF-DRAWING_BORDER 图框边界 (适应窗口优先以它为界)
 
+    // ═══ 多边形几何工具 (大环包小环 = 洞, 自动布点排除) ═══
+    function ringBBox(ring) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+      for (const p of ring) { if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x; if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y }
+      return { minX, minY, maxX, maxY }
+    }
+    // 点在环内 (射线法, 世界坐标)
+    function pointInRing(x, y, ring) {
+      let inside = false
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i].x, yi = ring[i].y, xj = ring[j].x, yj = ring[j].y
+        if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / ((yj - yi) || 1e-12) + xi)) inside = !inside
+      }
+      return inside
+    }
+    // 环 A 是否包含环 B (bbox 预筛 + B 任一顶点在 A 内)
+    function ringContains(A, B) {
+      const ba = ringBBox(A), bb = ringBBox(B)
+      if (bb.minX <= ba.minX || bb.minY <= ba.minY || bb.maxX >= ba.maxX || bb.maxY >= ba.maxY) return false
+      return B.some(p => pointInRing(p.x, p.y, A))
+    }
+    // 环组 → [{ring: 外环, holes: [内环...]}] (大包小 = 洞)
+    function buildPolysWithHoles(rings) {
+      const polys = []
+      const used = new Set()
+      // 1) 找外环: 不被任何其他环包含的环 (按面积降序保证大环先判)
+      const areas = rings.map(r => { const b = ringBBox(r); return (b.maxX - b.minX) * (b.maxY - b.minY) })
+      const idxs = rings.map((_, i) => i).sort((a, b) => areas[b] - areas[a])
+      for (const i of idxs) {
+        if (used.has(i)) continue
+        // 判定是否被任一更大/未用环包含
+        let parent = -1
+        for (const j of idxs) {
+          if (i === j || used.has(j)) continue
+          if (areas[j] > areas[i] && ringContains(rings[j], rings[i])) { parent = j; break }
+        }
+        if (parent === -1) {
+          // 独立外环: 它包含的未用小环都是洞
+          const poly = { ring: rings[i], holes: [] }
+          used.add(i)
+          for (const k of idxs) {
+            if (k === i || used.has(k)) continue
+            if (areas[i] > areas[k] && ringContains(rings[i], rings[k])) { poly.holes.push(rings[k]); used.add(k) }
+          }
+          polys.push(poly)
+        } else {
+          used.add(i)   // 被包含环已被父外环收为洞
+        }
+      }
+      return polys
+    }
+    // 点是否在任一 poly 内且不在其洞内 (世界坐标; 无 polys 时视为全域可用)
+    function pointInPlaceableArea(x, y, polys) {
+      if (!polys || !polys.length) return true
+      for (const poly of polys) {
+        if (!pointInRing(x, y, poly.ring)) continue
+        if (poly.holes.some(h => pointInRing(x, y, h))) return false   // 在洞内 → 排除
+        return true
+      }
+      return false
+    }
+
     function computeWorldBounds(layerMap) {
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
       for (const ents of Object.values(layerMap)) {
@@ -1607,12 +1669,24 @@ const BasemapEditor = {
         const spaceType = LAYER_TO_SPACE[name] || LAYER_TO_SPACE[name.toUpperCase()]
         if (spaceType && pts.length >= 2) {
           const xs = pts.map(p => p.x), ys = pts.map(p => p.y)
-          geoAnchors[spaceType].push({
+          // 🔴 多边形收集: 闭合 LWPOLYLINE/POLYLINE → 环; 环间包含关系 = 洞 (大包小=排除)
+          const rings = []
+          for (const e of ents) {
+            if ((e.type === 'LWPOLYLINE' || e.type === 'POLYLINE') && (e.shape || e.closed) && e.vertices?.length >= 3) {
+              rings.push(e.vertices.map(v => ({ x: v.x, y: v.y })))
+            }
+          }
+          const anchor = {
             minX: Math.min(...xs), minY: Math.min(...ys),
             maxX: Math.max(...xs), maxY: Math.max(...ys),
             cx: (Math.min(...xs) + Math.max(...xs)) / 2,
             cy: (Math.min(...ys) + Math.max(...ys)) / 2,
-          })
+            polys: rings.length ? buildPolysWithHoles(rings) : null,
+          }
+          // 仅当有有效外环才收 (防只有洞环/退化环)
+          if (anchor.polys && !anchor.polys.some(p => p.ring.length >= 3)) anchor.polys = null
+          if (!anchor.polys) delete anchor.polys
+          geoAnchors[spaceType].push(anchor)
         }
         newLayers.push({
           name, color, count: ents.length, visible: true, opacity: 100,
@@ -2194,16 +2268,20 @@ const BasemapEditor = {
       const pools = (STRATEGY_POOL[strat] || ['channel']).map(t => poolOf(t)).filter(p => p.length)
       const anchors = pools.length ? pools[0] : allPool
       // 目标数量: 锚点可用承载 (弹性: 每锚点 至少1, 按 bbox 尺寸/间距推导, 上限=规则默认 cap)
+      // 🔴 洞语义: 锚点带 polys 时仅保留"外环内且非洞内"候选点 (大 polygon 包小 polygon = 排除)
       const out = []
       for (const bb of anchors) {
         const capW = Math.max(1, Math.floor((bb.maxX - bb.minX) / Math.max(spacing, 8)))
-        const n = Math.min(rowCap, capW)
-        for (let k = 0; k < n; k++) {
-          const col = k % Math.min(n, rowCap)
-          const row = Math.floor(k / Math.min(n, rowCap))
-          const x = bb.minX + margin + col * spacing + (row % 2) * (spacing / 2)
-          const y = bb.minY + margin + row * spacing
-          out.push({ x: Math.round(x), y: Math.round(y) })
+        const capH = Math.max(1, Math.floor((bb.maxY - bb.minY) / Math.max(spacing, 8)))
+        let got = 0
+        for (let row = 0; row < capH && got < rowCap; row++) {
+          for (let col = 0; col < capW && got < rowCap; col++) {
+            const x = bb.minX + margin + col * spacing + (row % 2) * (spacing / 2)
+            const y = bb.minY + margin + row * spacing
+            if (bb.polys && !pointInPlaceableArea(x, y, bb.polys)) continue   // 洞内/环外 → 跳过
+            out.push({ x: Math.round(x), y: Math.round(y) })
+            got++
+          }
         }
       }
       // 锚点不足但期望多些 → 均匀散布区域 (弹性: 至少能布出来)
