@@ -489,7 +489,7 @@ $SKPOLY
   9
 $TDCREATE
  40
-2461259.8197916667
+2461286.146886574
   9
 $TDUCREATE
  40
@@ -497,7 +497,7 @@ $TDUCREATE
   9
 $TDUPDATE
  40
-2461259.8197916667
+2461286.146886574
   9
 $TDUUPDATE
  40
@@ -549,7 +549,7 @@ $SPLINESEGS
   9
 $HANDSEED
   5
-5A
+6D
   9
 $SURFTAB1
  70
@@ -933,7 +933,7 @@ $FINGERPRINTGUID
   9
 $VERSIONGUID
   2
-{05DC64E3-9D60-4235-80AF-321101810602}
+{F6F5DC9C-9A42-4EAC-9217-A0694890BFC9}
   9
 $EXTNAMES
 290
@@ -1469,7 +1469,7 @@ LTYPE
 100
 AcDbSymbolTable
  70
-3
+4
   0
 LTYPE
   5
@@ -1537,6 +1537,32 @@ Continuous
  40
 0.0
   0
+LTYPE
+  5
+64
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLinetypeTableRecord
+  2
+DASHED
+ 70
+0
+  3
+Dashed __ __ __
+ 72
+65
+ 73
+1
+ 40
+0.5
+ 49
+-0.25
+ 74
+0
+  0
 ENDTAB
   0
 TABLE
@@ -1549,7 +1575,7 @@ LAYER
 100
 AcDbSymbolTable
  70
-8
+9
   0
 LAYER
   5
@@ -1615,7 +1641,7 @@ TAF-BUILDING
  70
 0
  62
-1
+2
   6
 Continuous
 370
@@ -1639,7 +1665,7 @@ TAF-CHANNEL
  70
 0
  62
-3
+1
   6
 Continuous
 370
@@ -1711,7 +1737,7 @@ TAF-GREEN
  70
 0
  62
-2
+3
   6
 Continuous
 370
@@ -1738,6 +1764,30 @@ TAF-FACADE
 6
   6
 Continuous
+370
+-3
+390
+13
+347
+21
+  0
+LAYER
+  5
+65
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+TAF-BOUNDARY
+ 70
+0
+ 62
+1
+  6
+DASHED
 370
 -3
 390
@@ -2415,30 +2465,6 @@ TAF-CN
 100
 AcDbText
   0
-LINE
-  5
-3A
-330
-17
-100
-AcDbEntity
-  8
-TAF-CHANNEL
-100
-AcDbLine
- 10
-10.0
- 20
--45.0
- 30
-0.0
- 11
-200.0
- 21
--45.0
- 31
-0.0
-  0
 TEXT
   5
 3B
@@ -2550,30 +2576,6 @@ also: CHANNEL  (others -> transition)
 TAF-CN
 100
 AcDbText
-  0
-LINE
-  5
-40
-330
-17
-100
-AcDbEntity
-  8
-TAF-NODE
-100
-AcDbLine
- 10
-10.0
- 20
--85.0
- 30
-0.0
- 11
-200.0
- 21
--85.0
- 31
-0.0
   0
 TEXT
   5
@@ -3090,6 +3092,466 @@ AcDbText
 2.0
   1
 also: FACADE  (others -> transition)
+  7
+TAF-CN
+100
+AcDbText
+  0
+LWPOLYLINE
+  5
+5A
+330
+17
+100
+AcDbEntity
+  8
+TAF-CHANNEL
+100
+AcDbPolyline
+ 90
+4
+ 70
+1
+ 10
+10.0
+ 20
+-47.0
+ 10
+60.0
+ 20
+-47.0
+ 10
+60.0
+ 20
+-41.0
+ 10
+10.0
+ 20
+-41.0
+  0
+TEXT
+  5
+5B
+330
+17
+100
+AcDbEntity
+  8
+TAF-CHANNEL
+100
+AcDbText
+ 10
+210.0
+ 20
+-59.0
+ 30
+0.0
+ 40
+2.5
+  1
+绘制规范: 通道用闭合 PLINE 多边形(面), 一条通道一个闭合多边形, 不自交
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+5C
+330
+17
+100
+AcDbEntity
+  8
+TAF-CHANNEL
+100
+AcDbText
+ 10
+210.0
+ 20
+-62.0
+ 30
+0.0
+ 40
+2.5
+  1
+边界对齐实际可通行区域(墙线/铺装边), 不含花坛/立柱等障碍
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+5D
+330
+17
+100
+AcDbEntity
+  8
+TAF-CHANNEL
+100
+AcDbText
+ 10
+210.0
+ 20
+-65.0
+ 30
+0.0
+ 40
+2.0
+  1
+Drawing rule: closed PLINE polygon (area), one corridor = one closed polyline, no self-intersection
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+5E
+330
+17
+100
+AcDbEntity
+  8
+TAF-CHANNEL
+100
+AcDbText
+ 10
+210.0
+ 20
+-68.0
+ 30
+0.0
+ 40
+2.0
+  1
+Boundary = walkable area (wall/paving edge), excluding obstacles; dimensions/text on separate layer
+  7
+TAF-CN
+100
+AcDbText
+  0
+LWPOLYLINE
+  5
+5F
+330
+17
+100
+AcDbEntity
+  8
+TAF-NODE
+100
+AcDbPolyline
+ 90
+4
+ 70
+1
+ 10
+10.0
+ 20
+-87.0
+ 10
+30.0
+ 20
+-87.0
+ 10
+30.0
+ 20
+-83.0
+ 10
+10.0
+ 20
+-83.0
+  0
+TEXT
+  5
+60
+330
+17
+100
+AcDbEntity
+  8
+TAF-NODE
+100
+AcDbText
+ 10
+210.0
+ 20
+-99.0
+ 30
+0.0
+ 40
+2.5
+  1
+绘制规范: 节点用闭合 PLINE 多边形(面), 广场/交汇口/出入口; 中心点取质心
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+61
+330
+17
+100
+AcDbEntity
+  8
+TAF-NODE
+100
+AcDbText
+ 10
+210.0
+ 20
+-102.0
+ 30
+0.0
+ 40
+2.0
+  1
+Drawing rule: closed PLINE polygon (area) for plazas/intersections; centroid = node point
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+62
+330
+17
+100
+AcDbEntity
+  8
+TAF-FACADE
+100
+AcDbText
+ 10
+210.0
+ 20
+-219.0
+ 30
+0.0
+ 40
+2.5
+  1
+绘制规范: 沿建筑临街边画单根线(界面), 不闭合; 每段临街面一条线
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+63
+330
+17
+100
+AcDbEntity
+  8
+TAF-FACADE
+100
+AcDbText
+ 10
+210.0
+ 20
+-222.0
+ 30
+0.0
+ 40
+2.0
+  1
+Drawing rule: single LINE along building frontage, not closed; one segment per street face
+  7
+TAF-CN
+100
+AcDbText
+  0
+LWPOLYLINE
+  5
+66
+330
+17
+100
+AcDbEntity
+  8
+TAF-BOUNDARY
+100
+AcDbPolyline
+ 90
+4
+ 70
+1
+ 10
+10.0
+ 20
+15.0
+ 10
+200.0
+ 20
+15.0
+ 10
+200.0
+ 20
+30.0
+ 10
+10.0
+ 20
+30.0
+  0
+TEXT
+  5
+67
+330
+17
+100
+AcDbEntity
+  8
+TAF-BOUNDARY
+100
+AcDbText
+ 10
+210.0
+ 20
+33.0
+ 30
+0.0
+ 40
+5.0
+  1
+TAF-BOUNDARY  [红线边界/项目范围]
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+68
+330
+17
+100
+AcDbEntity
+  8
+TAF-BOUNDARY
+100
+AcDbText
+ 10
+210.0
+ 20
+28.0
+ 30
+0.0
+ 40
+3.5
+  1
+Project Boundary / Red Line
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+69
+330
+17
+100
+AcDbEntity
+  8
+TAF-BOUNDARY
+100
+AcDbText
+ 10
+210.0
+ 20
+24.0
+ 30
+0.0
+ 40
+2.5
+  1
+项目用地红线, 闭合多边形; 红线外建筑不参与评估  |  Site red line, closed polygon; outside = excluded
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+6A
+330
+17
+100
+AcDbEntity
+  8
+TAF-BOUNDARY
+100
+AcDbText
+ 10
+210.0
+ 20
+20.5
+ 30
+0.0
+ 40
+2.0
+  1
+also: BOUNDARY
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+6B
+330
+17
+100
+AcDbEntity
+  8
+TAF-BOUNDARY
+100
+AcDbText
+ 10
+210.0
+ 20
+17.0
+ 30
+0.0
+ 40
+2.5
+  1
+绘制规范: 沿用地红线画闭合 PLINE(虚线), 红线内=分析范围, 红线外=忽略
+  7
+TAF-CN
+100
+AcDbText
+  0
+TEXT
+  5
+6C
+330
+17
+100
+AcDbEntity
+  8
+TAF-BOUNDARY
+100
+AcDbText
+ 10
+210.0
+ 20
+14.0
+ 30
+0.0
+ 40
+2.0
+  1
+Drawing rule: closed PLINE along the red line (dashed); inside = analysis scope, outside = ignored
   7
 TAF-CN
 100
@@ -4109,7 +4571,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-08-06T11:40:30.642329+00:00
+1.4.4 @ 2026-09-01T19:31:31.283229+00:00
   0
 ENDSEC
   0
