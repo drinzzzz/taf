@@ -2148,11 +2148,13 @@ const BasemapEditor = {
         const insts = snap[f.id] || []
         try {
           if (insts.length) {
-            await API.put('/facilities/' + f.id + '/placements/batch', insts.map(i => ({
+            const resp = await API.put('/facilities/' + f.id + '/placements/batch', insts.map(i => ({
               position: { x: i.x, y: i.y, lng: null, lat: null }
             })))
-            f.placements = insts.map(i => ({ id: 'undo-' + Math.random().toString(36).slice(2), seq: 0, position: { x: i.x, y: i.y } }))
-            f.placements.forEach((p, idx) => { p.seq = idx + 1 })
+            // 🔴 用后端真实 id (勿伪造 'undo-' 假 id → 之后拖动保存 404)
+            f.placements = (Array.isArray(resp) ? resp : []).map((r, idx) => ({
+              id: r.id, seq: r.seq != null ? r.seq : idx + 1, position: r.position
+            }))
             f.position = null
           } else {
             await API.delete('/facilities/' + f.id + '/placements')
@@ -2429,10 +2431,13 @@ const BasemapEditor = {
       pushUndo()
       try {
         if (autoOverwrite.value || !placCount(f)) {
-          await API.put('/facilities/' + f.id + '/placements/batch', pts.map(p => ({
+          const resp = await API.put('/facilities/' + f.id + '/placements/batch', pts.map(p => ({
             position: { x: p.x, y: p.y, lng: null, lat: null }
           })))
-          f.placements = pts.map((p, i) => ({ id: 'auto-' + Date.now() + '-' + i, seq: i + 1, position: { x: p.x, y: p.y } }))
+          // 🔴 用后端返回的真实 placement id (勿伪造 'auto-' 假 id → 拖动保存会 404)
+          f.placements = (Array.isArray(resp) ? resp : []).map((r, i) => ({
+            id: r.id, seq: r.seq != null ? r.seq : i + 1, position: r.position
+          }))
         } else {
           // 保留已有: 只追加缺失 (补齐到目标数量)
           const have = placCount(f)
