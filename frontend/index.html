@@ -750,18 +750,19 @@ const BasemapEditor = {
       <span style="flex:1"></span>
       <button class="btn" :class="{primary:tool==='pan'}" @click="setTool('pan')" title="平移图纸/选择">✋ 平移图纸</button>
       <button class="btn" :class="{primary:tool==='place'}" @click="setTool('place')" title="手动布点(再点或 Esc 取消)" style="color:#67c23a">📍 手动布点</button>
-      <button class="btn" style="background:#e6a23c;border-color:#e6a23c;color:#fff" @click="openAutoPlace" title="按策略自动布点">⚡ 自动布点</button>
+      <button class="btn primary" @click="openAutoPlace" title="按策略自动布点">⚡ 自动布点</button>
       <button class="btn" @click="fitScreen">⊞ 适应窗口</button>
-      <button class="btn" @click="toggleTrueFullscreen" :title="trueFs ? '退出全屏' : '全屏(沉浸式)'">{{ trueFs ? '⛶ 退出全屏' : '🖥️ 全屏' }}</button>
-      <button class="btn" @click="exportView">📸 截图</button>
-      <button class="btn" @click="triggerUpload">⬆ 上传DXF</button>
+      <button class="btn" @click="toggleTrueFullscreen" :title="trueFs ? '退出全屏' : '进入全屏(沉浸式)'">{{ trueFs ? '⛶ 退出全屏' : '🖥️ 进入全屏' }}</button>
+      <button class="btn" @click="exportView">📸 截图导出</button>
+      <button class="btn" @click="triggerUpload">⬆ 上传底图</button>
       <input type="file" ref="fileInput" accept=".dxf" style="display:none" @change="onFileUpload">
     </div>
 
     <!-- Main area: 左栏 | 画布 | 右栏 -->
     <div style="display:flex;flex:1;gap:0;overflow:hidden">
-      <!-- Left: Layer panel 340px (底图+设施 28 层, 每层≤2行) -->
-      <div style="width:340px;min-width:340px;background:var(--card);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:10px 12px" v-if="!hideLeft">
+      <!-- Left: Layer panel 440px+ (底图+设施 28 层, 可拖拽调宽) -->
+      <div style="display:flex;flex-shrink:0" v-if="!hideLeft">
+        <div :style="{width: leftWidth + 'px', minWidth: leftWidth + 'px', background:'var(--card)', overflowY:'auto', padding:'10px 12px'}">
         <div style="font-size:14px;color:var(--muted);margin-bottom:10px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
           <span>📐 图层 ({{ layers.length }})</span>
           <button class="btn sm" @click="hideLeft=true" title="收起左栏">«</button>
@@ -770,9 +771,9 @@ const BasemapEditor = {
           暂无底图<br><br>
           <button class="btn sm primary" @click="triggerUpload">上传 DXF</button>
         </div>
-        <div v-for="l in layers" :key="l.name" style="padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">
-          <!-- 行1: 可见性(眼睛) + 图标/色块 + 名称 + (N) + 锁 -->
-          <div style="display:flex;align-items:center;gap:6px">
+        <div v-for="l in layers" :key="l.name" style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <!-- 行1: 可见性(眼睛) + 图标/色块 + 中文名 + (N) + 透明度 + 锁 -->
+          <div style="display:flex;align-items:center;gap:6px;position:relative">
             <button class="btn sm" style="padding:2px;flex-shrink:0;width:24px;height:22px;display:inline-flex;align-items:center;justify-content:center" @click="toggleLayerVisible(l)" :title="l.visible?'点击隐藏':'点击显示'">
               <svg v-if="l.visible" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
@@ -784,14 +785,20 @@ const BasemapEditor = {
               <span v-else>{{ l.name }}</span>
             </span>
             <span style="font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap">({{ l.count }})</span>
+            <button class="btn sm" style="padding:2px;flex-shrink:0;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center" @click="toggleOpacityPopup(l)" :title="'调节透明度 (当前 ' + (l.opacity||100) + '%)'" :style="{borderColor: opacityLayer===l.name ? 'var(--accent)' : ''}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+            </button>
             <button class="btn sm" style="padding:1px 5px;font-size:11px;flex-shrink:0" @click="toggleLayerLock(l)" :title="l.locked?'点击解锁':'点击锁定'">{{ l.locked ? '🔒' : '🔓' }}</button>
-          </div>
-          <!-- 行2: 透明度 (设施层有图标/可布点时也显示滑杆) -->
-          <div style="display:flex;align-items:center;gap:8px;margin:2px 0 0 24px">
-            <input type="range" min="10" max="100" v-model.number="l.opacity" @input="updateLayerOpacity(l)" style="flex:1;accent-color:var(--accent);height:4px">
-            <span style="font-size:10px;color:var(--muted);width:34px;text-align:right;flex-shrink:0">{{ l.opacity }}%</span>
+            <!-- 透明度浮动面板 -->
+            <div v-if="opacityLayer===l.name" style="position:absolute;top:100%;right:0;z-index:30;background:#232735;border:1px solid var(--border);border-radius:6px;padding:8px 10px;box-shadow:0 4px 16px rgba(0,0,0,.4);width:150px">
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:4px"><span>透明度</span><b style="color:var(--text)">{{ l.opacity }}%</b></div>
+              <input type="range" min="0" max="100" v-model.number="l.opacity" @input="updateLayerOpacity(l)" style="width:100%;accent-color:var(--accent)">
+            </div>
           </div>
         </div>
+        </div>
+        <!-- 拖拽拉手 -->
+        <div @mousedown="startLeftDrag" title="拖动调节宽度" style="width:6px;cursor:col-resize;background:var(--border);opacity:.6;transition:background .2s;flex-shrink:0" @mouseenter="e=>e.currentTarget.style.background='var(--accent)'" @mouseleave="e=>e.currentTarget.style.background='var(--border)'"></div>
       </div>
 
       <!-- Canvas -->
@@ -847,7 +854,6 @@ const BasemapEditor = {
             </div>
             <div style="display:flex;align-items:center;gap:6px;margin:2px 0 0 23px">
               <span v-if="f.status!=='confirmed'" style="font-size:11px;padding:0 6px;border-radius:3px" :style="{background:facStatusColor(f.status)+'22',color:facStatusColor(f.status)}">{{ facStatusCN(f.status) }}</span>
-              <span v-if="f.status==='confirmed'" style="font-size:11px;color:var(--muted);opacity:.6">已采纳</span>
               <span v-if="f.position?.x!=null" style="font-size:11px;color:var(--muted)">· ({{ Math.round(f.position.x) }}, {{ Math.round(f.position.y) }})</span>
               <span v-else style="font-size:11px;color:#e6a23c">未布点</span>
             </div>
@@ -861,7 +867,7 @@ const BasemapEditor = {
           <div style="border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:10px">
             <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:12px;margin-right:6px">1</span>⚡ 自动布点</div>
             <div style="font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.6">共 {{ facilities.length }} 项标准项，其中 {{ placableCount }} 项可物理布点（管理/制度/培训类已自动排除）。点击下方按钮按策略自动落位。</div>
-            <button class="btn primary" style="width:100%" @click="runAutoPlace" :disabled="autoPlacing">🚀 {{ autoPlacing ? '布点中...' : '一键自动布点' }}</button>
+            <button class="btn" style="width:100%;background:#e6a23c;border-color:#e6a23c;color:#fff;font-weight:600" @click="runAutoPlace" :disabled="autoPlacing">🚀 {{ autoPlacing ? '布点中...' : '一键自动布点' }}</button>
           </div>
 
           <!-- ② 选择策略 -->
@@ -875,10 +881,12 @@ const BasemapEditor = {
               <option value="uniform">📐 均匀网格散布(区域内)</option>
               <option value="boundary">📏 沿红线边界内侧分布</option>
             </select>
-            <div style="font-size:12px;color:var(--muted);line-height:1.6;background:#ffffff06;padding:6px 8px;border-radius:4px">
-              🧠 智能: P1建筑+通道 / P2建筑+立面 / P3节点 / P4绿地+通道 / P5节点+通道 / P6建筑+立面<br>
-              🛤️ 全部设施沿通道线性排 · ⭕ 集中在广场节点<br>
-              📐 均匀网格填充 · 📏 绕红线边界内侧
+            <div style="font-size:12px;color:var(--muted);background:#ffffff06;padding:6px 8px;border-radius:4px;display:flex;flex-direction:column;gap:4px">
+              <span>🧠 智能: P1建筑+通道 / P2建筑+立面 / P3节点 / P4绿地+通道 / P5节点+通道 / P6建筑+立面</span>
+              <span>🛤️ 全部设施沿通道线性排布</span>
+              <span>⭕ 全部设施集中在广场/节点</span>
+              <span>📐 均匀网格填充整个区域</span>
+              <span>📏 绕红线边界内侧分布</span>
             </div>
           </div>
 
@@ -911,7 +919,7 @@ const BasemapEditor = {
 
           <!-- ④ 手动布点 -->
           <div>
-            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--success);color:#fff;align-items:center;justify-content:center;font-size:12px;margin-right:6px">4</span>✋ 手动布点 (可选补充)</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px"><span style="display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;font-size:12px;margin-right:6px">4</span>✋ 手动布点 (可选补充)</div>
             <div style="font-size:13px;color:var(--muted);line-height:1.8">
               <b style="color:var(--text)">① 在左侧点位库</b> 点选一项（点选后自动进入布点模式）<br>
               <b style="color:var(--text)">② 在图纸上</b> 点击目标位置落点<br>
@@ -960,9 +968,12 @@ const BasemapEditor = {
     const hideLeft = ref(false), hideRight = ref(false)
     const fullscreen = ref(true)   // 底图工作台默认浏览器内全宽 (路由级 .main-fullwidth)
     const trueFs = ref(false)      // 全屏 (Fullscreen API)
+    const leftWidth = ref(440)     // 左栏宽度 (可拖拽调节)
     const facFilter = ref('ALL')
     const selectedFac = ref(null)
     const facPlaceHint = ref('')
+    // 透明度浮动面板 (记录当前操作图层名)
+    const opacityLayer = ref(null)
     const autoPlacing = ref(false)
     const placeStrategy = ref('smart')
     const placeSpacing = ref(20), placeMargin = ref(5), perRow = ref(5), symScale = ref(3)
@@ -1051,6 +1062,28 @@ const BasemapEditor = {
           catNames.value = m
         } catch(e) { /* 无标准时分类名缺省 */ }
       } catch(e) { console.error(e) }
+    }
+
+    // 左栏拖拽拉手 (调整宽度)
+    const startLeftDrag = (e) => {
+      e.preventDefault()
+      const startX = e.clientX
+      const startW = leftWidth.value
+      const onMove = (ev) => {
+        const nw = Math.min(680, Math.max(300, startW + (ev.clientX - startX)))
+        leftWidth.value = nw
+      }
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove)
+        document.removeEventListener('mouseup', onUp)
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+        setTimeout(() => { if (fabricCanvas) fabricCanvas.renderAll() }, 60)
+      }
+      document.addEventListener('mousemove', onMove)
+      document.addEventListener('mouseup', onUp)
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
     }
 
     const initCanvas = () => {
@@ -1564,6 +1597,11 @@ const BasemapEditor = {
       } else {
         toast.show(layer.locked ? `🔒 ${layer.name} 锁定` : `🔓 ${layer.name} 解锁 (底图为合成图层, 几何不可单独编辑)`)
       }
+    }
+
+    // 透明度浮动面板开关 (再点关闭)
+    const toggleOpacityPopup = (layer) => {
+      opacityLayer.value = (opacityLayer.value === layer.name) ? null : layer.name
     }
 
     const confirmText = () => {
@@ -2089,7 +2127,8 @@ const BasemapEditor = {
       placeMargin, perRow, symScale, autoOverwrite, scheduleReauto,
       openAutoPlace, runAutoPlace, legendRows, buildLegend,
       facStatusCN, facStatusColor, facCats, facCountOf, toggleLayerLock,
-      toggleLayerVisible, catNames, layerCN }
+      toggleLayerVisible, catNames, layerCN,
+      opacityLayer, toggleOpacityPopup, startLeftDrag, leftWidth }
   }
 }
 
