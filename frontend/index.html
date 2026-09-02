@@ -816,16 +816,17 @@ const BasemapEditor = {
           <div style="font-size:13px;color:var(--muted)">{{ loadProgress }}%</div>
         </div>
         <div v-if="hideLeft" style="position:absolute;top:8px;left:8px;z-index:5"><button class="btn sm" @click="hideLeft=false">» 图层</button></div>
-        <div v-if="hideRight" style="position:absolute;top:8px;right:8px;z-index:5"><button class="btn sm" @click="hideRight=false">« 布点</button></div>
+        <div v-if="hideLib" style="position:absolute;top:8px;right:110px;z-index:5"><button class="btn sm" @click="hideLib=false">« 点位库</button></div>
+        <div v-if="hideTools" style="position:absolute;top:8px;right:8px;z-index:5"><button class="btn sm" @click="openAutoPlace">« 布点工具</button></div>
       </div>
 
-      <!-- Right: 双列 (右1=布点工具 靠右 / 右2=设施清单 靠左) -->
-      <div style="display:flex;flex-shrink:0;background:var(--card);border-left:1px solid var(--border)" v-if="!hideRight">
-        <!-- 右2 (靠左): 设施清单 -->
-        <div style="width:320px;min-width:320px;overflow-y:auto;padding:10px 12px;border-right:1px solid var(--border)">
+      <!-- Right 双列: 右2=点位库 / 右1=布点工具, 各自独立收展 -->
+      <div v-if="!hideLib || !hideTools" style="display:flex;flex-shrink:0;background:var(--card);border-left:1px solid var(--border)">
+        <!-- 右2 (靠左): 标准项分类点位库 -->
+        <div v-if="!hideLib" style="width:320px;min-width:320px;overflow-y:auto;padding:10px 12px;border-right:1px solid var(--border)">
           <div style="font-size:15px;font-weight:600;color:var(--text);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <span>📍 标准项分类点位库</span>
-            <button class="btn sm" @click="hideRight=true" title="收起右栏">»</button>
+            <button class="btn sm" @click="hideLib=true" title="收起点位库">»</button>
           </div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
             <button class="btn sm" @click="showAllFac=!showAllFac" :class="{primary:showAllFac}" :title="showAllFac?'仅显示可布点设施':'显示全部含管理制度类'">{{ showAllFac ? '📋 全部(含管理项)' : '📍 仅可布点' }}</button>
@@ -865,8 +866,11 @@ const BasemapEditor = {
           <div v-if="!filteredFacilities.length" style="font-size:14px;color:var(--muted);padding:12px 0;text-align:center">无设施</div>
         </div>
 
-        <!-- 右1 (靠右): 布点工具 -->
-        <div style="width:300px;min-width:300px;overflow-y:auto;padding:10px 12px">
+        <!-- 右1 (靠右): 布点工具 (独立收展, 由导航「自动布点」toggle) -->
+        <div v-if="!hideTools" style="width:300px;min-width:300px;overflow-y:auto;padding:10px 12px">
+          <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:4px">
+            <button class="btn sm" @click="openAutoPlace" title="收起布点工具">»</button>
+          </div>
           <!-- ① 自动布点 -->
           <div style="border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:14px">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
@@ -979,8 +983,9 @@ const BasemapEditor = {
     let fabricCanvas = null, textTargetX = 0, textTargetY = 0
     const facilities = ref([])
     let facilityMarkers = []  // Fabric objects for facility markers
-    // UI 状态
-    const hideLeft = ref(false), hideRight = ref(false)
+    // UI 状态 — 右侧两列独立收展: hideLib=点位库 / hideTools=布点工具
+    const hideLeft = ref(false)
+    const hideLib = ref(false), hideTools = ref(false)
     const fullscreen = ref(true)   // 底图工作台默认浏览器内全宽 (路由级 .main-fullwidth)
     const trueFs = ref(false)      // 全屏 (Fullscreen API)
     const leftWidth = ref(480)     // 左栏宽度 (可拖拽调节)
@@ -1819,6 +1824,10 @@ const BasemapEditor = {
       }
       tool.value = t
       if (t === 'place') {
+        // 手动布点模式: 展开点位库 (选设施需要), 收起自动工具面板避免混淆
+        hideLib.value = false
+        autoPanelActive.value = false
+        hideTools.value = true
         if (!selectedFac.value) {
           // 自动选择第一个未布点的可布点设施
           const next = facilities.value.find(f => isPlacable(f) && (f.position?.x == null))
@@ -1842,7 +1851,7 @@ const BasemapEditor = {
       }
       if (e.key === 'Escape' && autoPanelActive.value) {
         autoPanelActive.value = false
-        hideRight.value = true
+        hideTools.value = true
       }
     }
     if (typeof document !== 'undefined') document.addEventListener('keydown', _keyHandler)
@@ -1946,20 +1955,16 @@ const BasemapEditor = {
     }
 
     // ── 自动布点引擎 ──
-    // 自动布点 toggle: 展开/收起右侧布点工具面板 (与手动布点 toggle 一致)
+    // 自动布点 = 右侧「布点工具」面板 toggle (与「手动布点」画布模式互不干扰, 可同时开)
     const autoPanelActive = ref(false)
     const openAutoPlace = () => {
+      autoPanelActive.value = !autoPanelActive.value
+      hideTools.value = !autoPanelActive.value    // 面板随 toggle 显示/隐藏
       if (autoPanelActive.value) {
-        // 再点 = 收起
-        autoPanelActive.value = false
-        hideRight.value = true
-        toast.show('自动布点面板已收起')
-        return
+        toast.show('⚡ 自动布点工具已展开 — 配置后点「🚀 自动布点」执行')
+      } else {
+        toast.show('自动布点工具已收起')
       }
-      autoPanelActive.value = true
-      hideRight.value = false
-      setTool('pan')
-      toast.show('⚡ 自动布点面板已展开 — 点「🚀 自动布点」执行或 Esc 收起')
     }
 
     // 防抖: 拉杆拖动时延迟重算
@@ -2288,7 +2293,7 @@ const BasemapEditor = {
       textInput, textValue, canvasWrap, canvasEl, fileInput,
       triggerUpload, onFileUpload, fitScreen, updateLayerVisibility, updateLayerOpacity,
       confirmText, cancelText, exportView, refreshFacilities, focusFacility,
-      hideLeft, hideRight, fullscreen, trueFs, toggleTrueFullscreen, showAllFac,
+      hideLeft, hideLib, hideTools, fullscreen, trueFs, toggleTrueFullscreen, showAllFac,
       loading, loadProgress, loadStage,
       setTool, selectFacility, facFilter, filteredFacilities, selectedFac, facPlaceHint,
       facSymbol, facColor, placableCount, autoPlacing, placeStrategy, placeSpacing,
