@@ -89,6 +89,9 @@ const { createRouter, createWebHashHistory } = VueRouter
 const PRODUCT_LINES = ['HT','OS','AP','HO','RE','OF','MC']
 const STATUS_LABELS = { draft: '草稿', active: '进行中', completed: '已完成', archived: '归档' }
 const statusLabel = (s) => STATUS_LABELS[s] || s
+// 设施状态中文 (全局, 供清单/工作台共用)
+const FAC_STATUS_CN2 = { draft: '草稿', selected: '已选', confirmed: '已确认', installed: '已安装' }
+const facStatusLabel = (s) => FAC_STATUS_CN2[s] || s
 
 // ─── API helper ───
 const API = {
@@ -751,9 +754,9 @@ const BasemapEditor = {
 
     <!-- Main area: 左栏 | 画布 | 右栏 -->
     <div style="display:flex;flex:1;gap:0;overflow:hidden">
-      <!-- Left: Layer panel 300px -->
-      <div style="width:300px;min-width:300px;background:var(--card);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:12px" v-if="!hideLeft">
-        <div style="font-size:14px;color:var(--muted);margin-bottom:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
+      <!-- Left: Layer panel 340px (底图+设施 28 层, 每层≤2行) -->
+      <div style="width:340px;min-width:340px;background:var(--card);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:10px 12px" v-if="!hideLeft">
+        <div style="font-size:14px;color:var(--muted);margin-bottom:10px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
           <span>📐 图层 ({{ layers.length }})</span>
           <button class="btn sm" @click="hideLeft=true" title="收起左栏">«</button>
         </div>
@@ -761,35 +764,22 @@ const BasemapEditor = {
           暂无底图<br><br>
           <button class="btn sm primary" @click="triggerUpload">上传 DXF</button>
         </div>
-        <div v-for="l in layers" :key="l.name" style="padding:6px 0;border-bottom:1px solid var(--border);font-size:14px">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-            <input type="checkbox" v-model="l.visible" @change="updateLayerVisibility(l)" :id="'lyr_'+l.name">
-            <span :style="{width:'12px',height:'12px',borderRadius:'2px',background:l.color,flexShrink:0}"></span>
-            <label :for="'lyr_'+l.name" style="flex:1;cursor:pointer;text-transform:none;letter-spacing:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="l.name">{{ l.name }}</label>
-            <span v-if="l.locked" title="锁定(只读)" style="font-size:12px;color:var(--muted)">🔒</span>
+        <div v-for="l in layers" :key="l.name" style="padding:5px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <!-- 行1: 可见性 + 图标/色块 + 名称 + (N) + 锁 -->
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="checkbox" v-model="l.visible" @change="updateLayerVisibility(l)" :id="'lyr_'+l.name" style="flex-shrink:0">
+            <svg v-if="l.iconPath" :viewBox="l.viewbox||'0 0 15 15'" style="width:15px;height:15px;flex-shrink:0" :style="{fill:l.color}"><path :d="l.iconPath"/></svg>
+            <span v-else :style="{width:'12px',height:'12px',borderRadius:'2px',background:l.color,flexShrink:0}"></span>
+            <label :for="'lyr_'+l.name" style="flex:1;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3" :title="l.name">{{ l.name }}</label>
+            <span style="font-size:11px;color:var(--muted);flex-shrink:0;white-space:nowrap">({{ l.count }} 实体)</span>
+            <button class="btn sm" style="padding:1px 5px;font-size:11px;flex-shrink:0" @click="toggleLayerLock(l)" :title="l.locked?'点击解锁':'点击锁定'">{{ l.locked ? '🔒' : '🔓' }}</button>
           </div>
-          <div style="margin-left:24px" v-if="l.visible">
-            <span style="font-size:13px;color:var(--muted)">{{ l.count }} 实体</span>
-            <div style="margin-top:2px">
-              <input type="range" min="10" max="100" v-model.number="l.opacity" @input="updateLayerOpacity(l)" style="width:100%;accent-color:var(--accent)">
-            </div>
+          <!-- 行2: 透明度 (设施层有图标/可布点时也显示滑杆) -->
+          <div style="display:flex;align-items:center;gap:8px;margin:2px 0 0 24px">
+            <input type="range" min="10" max="100" v-model.number="l.opacity" @input="updateLayerOpacity(l)" style="flex:1;accent-color:var(--accent);height:4px">
+            <span style="font-size:10px;color:var(--muted);width:34px;text-align:right;flex-shrink:0">{{ l.opacity }}%</span>
           </div>
         </div>
-        <!-- Legend 图例表格 -->
-        <div style="font-size:14px;color:var(--muted);margin:16px 0 8px;font-weight:600;border-top:1px solid var(--border);padding-top:12px">📋 图例 Legend ({{ legendRows.length }})</div>
-        <table style="width:100%;border-collapse:collapse;font-size:13px">
-          <tr v-for="lg in legendRows" :key="lg.layer" style="border-bottom:1px solid var(--border)">
-            <td style="padding:4px;text-align:center;width:34px;vertical-align:top">
-              <svg v-if="lg.icon" :viewBox="lg.viewbox||'0 0 15 15'" style="width:22px;height:22px;fill:'+'" :style="{fill:lg.color||'#e4e6eb'}"><path :d="lg.icon"/></svg>
-              <span v-else :style="{display:'inline-block',width:'11px',height:'11px',background:lg.color,borderRadius:'2px',marginTop:'3px'}"></span>
-            </td>
-            <td style="padding:4px">
-              <div style="color:var(--text);white-space:nowrap">{{ lg.main }}</div>
-              <div style="font-size:11px;color:var(--accent);font-family:monospace;white-space:nowrap;word-break:break-all">{{ lg.layer }}</div>
-            </td>
-          </tr>
-        </table>
-        <div v-if="!legendRows.length" style="font-size:13px;color:var(--muted);padding:8px 0">暂无图例</div>
       </div>
 
       <!-- Canvas -->
@@ -807,66 +797,96 @@ const BasemapEditor = {
         <div v-if="hideRight" style="position:absolute;top:8px;right:8px;z-index:5"><button class="btn sm" @click="hideRight=false">« 布点</button></div>
       </div>
 
-      <!-- Right: Facility placement panel 300px -->
-      <div style="width:300px;min-width:300px;background:var(--card);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:12px" v-if="!hideRight">
-        <div style="font-size:14px;color:var(--muted);margin-bottom:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
-          <span>📍 设施布点 ({{ facilities.length }})</span>
-          <button class="btn sm" @click="hideRight=true">»</button>
-        </div>
-
-        <!-- Auto-place settings -->
-        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px">⚡ 自动布点策略</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:8px">候选 {{ placableCount }}/{{ facilities.length }} 项（管理/制度/培训类自动排除）</div>
-        <button class="btn primary" style="width:100%;margin-bottom:12px" @click="runAutoPlace" :disabled="autoPlacing">🚀 一键自动布点</button>
-
-        <div style="font-size:13px;color:var(--muted);margin-bottom:4px">布点空间偏好</div>
-        <select v-model="placeStrategy" style="width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px;margin-bottom:10px;font-size:14px">
-          <option value="smart">🧠 智能: 按标准分类映射空间 (P1建筑+通道 / P2建筑+立面 / P3节点 / P4绿地+通道 / P5节点+通道 / P6建筑+立面)</option>
-          <option value="channel">🛤️ 全部沿通道/走廊线性排布</option>
-          <option value="node">⭕ 全部布在节点/广场</option>
-          <option value="uniform">📐 均匀网格散布(区域内)</option>
-          <option value="boundary">📏 沿红线边界内侧分布</option>
-        </select>
-
-        <!-- Sliders -->
-        <div style="font-size:13px;color:var(--muted);margin-bottom:2px">间距 (m): <b>{{ placeSpacing }}</b></div>
-        <input type="range" min="5" max="60" v-model.number="placeSpacing" @input="scheduleReauto" style="width:100%;accent-color:var(--accent);margin-bottom:8px">
-
-        <div style="font-size:13px;color:var(--muted);margin-bottom:2px">边距 (m): <b>{{ placeMargin }}</b></div>
-        <input type="range" min="0" max="30" v-model.number="placeMargin" @input="scheduleReauto" style="width:100%;accent-color:var(--accent);margin-bottom:8px">
-
-        <div style="font-size:13px;color:var(--muted);margin-bottom:2px">每行数量: <b>{{ perRow }}</b></div>
-        <input type="range" min="1" max="10" v-model.number="perRow" @input="scheduleReauto" style="width:100%;accent-color:var(--accent);margin-bottom:8px">
-
-        <div style="font-size:13px;color:var(--muted);margin-bottom:2px">符号尺寸: <b>{{ symScale }}</b></div>
-        <input type="range" min="1" max="10" v-model.number="symScale" @input="renderFacilityMarkers" style="width:100%;accent-color:var(--accent);margin-bottom:8px">
-
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:14px">
-          <input type="checkbox" v-model="autoOverwrite"> 覆盖已有布点
-        </div>
-
-        <!-- Facilities list -->
-        <div style="display:flex;align-items:center;gap:6px;margin:8px 0;border-top:1px solid var(--border);padding-top:10px">
-          <span style="font-size:14px;font-weight:600;color:var(--text);flex:1">设施清单 ({{ showAllFac ? facilities.length : placableCount }})</span>
-          <button class="btn sm" @click="showAllFac=!showAllFac" :title="showAllFac?'仅显示可布点设施':'显示全部含管理制度类'">{{ showAllFac ? '📋 全部' : '📍 仅可布点' }}</button>
-        </div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:8px">点选后可手动放置, 拖动可微调</div>
-        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-          <button v-for="c in ['ALL','P1','P2','P3','P4','P5','P6']" :key="c" class="btn sm" :class="{primary:facFilter===c}" @click="facFilter=c">{{c}}</button>
-        </div>
-        <div v-for="f in filteredFacilities" :key="f.id" style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer"
-             :style="{'background':selectedFac?.id===f.id?'#ffffff12':''}"
-             @click="selectFacility(f)" @dblclick="focusFacility(f)"
-             @mouseenter="e=>e.currentTarget.style.background='#ffffff08'" @mouseleave="e=>e.currentTarget.style.background=selectedFac?.id===f.id?'#ffffff12':''">
-          <div style="display:flex;align-items:center;gap:4px">
-            <svg v-if="facSymbol(f)?.path" :viewBox="facSymbol(f).viewbox" style="width:16px;height:16px;flex-shrink:0" :style="{fill:facColor(f)}"><path :d="facSymbol(f).path"/></svg>
-            <span v-else style="font-size:16px">{{ f.custom_fields?.icon||'📌' }}</span>
-            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="f.name">{{ f.name }}</span>
-            <span :style="{fontSize:'10px',color:f.status==='installed'?'#67c23a':f.status==='confirmed'?'#e6a23c':'#8b8fa3'}">{{ f.status }}</span>
+      <!-- Right: 双列 (右1=布点工具 靠右 / 右2=设施清单 靠左) -->
+      <div style="display:flex;flex-shrink:0;background:var(--card);border-left:1px solid var(--border)" v-if="!hideRight">
+        <!-- 右2 (靠左): 设施清单 -->
+        <div style="width:320px;min-width:320px;overflow-y:auto;padding:10px 12px;border-right:1px solid var(--border)">
+          <div style="font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span>📍 设施清单</span>
+            <button class="btn sm" @click="hideRight=true" title="收起右栏">»</button>
           </div>
-          <div style="margin-left:22px;font-size:12px;color:var(--muted)">{{ f.standard_item_id }} · {{ facSymbol(f)?.name_zh||'' }} <span v-if="f.position?.x!=null">· ({{ Math.round(f.position.x) }},{{ Math.round(f.position.y) }})</span><span v-else style="color:#e6a23c"> 未布点</span></div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+            <button class="btn sm" @click="showAllFac=!showAllFac" :class="{primary:showAllFac}" :title="showAllFac?'仅显示可布点设施':'显示全部含管理制度类'">{{ showAllFac ? '📋 全部' : '📍 可布点' }}</button>
+            <span style="font-size:12px;color:var(--muted)">{{ filteredFacilities.length }} 项</span>
+          </div>
+          <!-- 分类行: 不换行内联 -->
+          <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:nowrap;overflow-x:auto">
+            <button v-for="c in facCats" :key="c" class="btn sm" style="flex:1;padding:3px 4px;font-size:12px;white-space:nowrap" :class="{primary:facFilter===c}" @click="facFilter=c">{{c}}<span style="opacity:.7;font-size:10px;margin-left:2px">{{ facCountOf(c) }}</span></button>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px">点选后手动放置 · 拖动微调 · 双击定位</div>
+          <div v-for="f in filteredFacilities" :key="f.id" style="padding:5px 6px;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;border-radius:4px"
+               :style="{'background':selectedFac?.id===f.id?'#ffffff12':''}"
+               @click="selectFacility(f)" @dblclick="focusFacility(f)"
+               @mouseenter="e=>e.currentTarget.style.background='#ffffff0a'" @mouseleave="e=>e.currentTarget.style.background=selectedFac?.id===f.id?'#ffffff12':''">
+            <div style="display:flex;align-items:center;gap:6px">
+              <svg v-if="facSymbol(f)?.path" :viewBox="facSymbol(f).viewbox" style="width:17px;height:17px;flex-shrink:0" :style="{fill:facColor(f)}"><path :d="facSymbol(f).path"/></svg>
+              <span v-else :style="{width:'10px',height:'10px',borderRadius:'50%',background:facColor(f),flexShrink:0}"></span>
+              <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="f.name">{{ f.name }}</span>
+              <span style="font-size:11px;color:var(--muted);flex-shrink:0">{{ f.standard_item_id }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin:2px 0 0 23px">
+              <span style="font-size:11px;padding:0 6px;border-radius:3px" :style="{background:facStatusColor(f.status)+'22',color:facStatusColor(f.status)}">{{ facStatusCN(f.status) }}</span>
+              <span v-if="f.position?.x!=null" style="font-size:11px;color:var(--muted)">· ({{ Math.round(f.position.x) }}, {{ Math.round(f.position.y) }})</span>
+              <span v-else style="font-size:11px;color:#e6a23c">未布点</span>
+            </div>
+          </div>
+          <div v-if="!filteredFacilities.length" style="font-size:13px;color:var(--muted);padding:12px 0;text-align:center">无设施</div>
         </div>
-        <div v-if="!filteredFacilities.length" style="font-size:13px;color:var(--muted);padding:8px 0">无设施</div>
+
+        <!-- 右1 (靠右): 布点工具 -->
+        <div style="width:300px;min-width:300px;overflow-y:auto;padding:10px 12px">
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">⚡ 自动布点</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5">候选 {{ placableCount }}/{{ facilities.length }} 项可布点设施。管理/制度/培训类标准项已自动排除，不会出现在图纸上。</div>
+          <button class="btn primary" style="width:100%;margin-bottom:10px" @click="runAutoPlace" :disabled="autoPlacing">🚀 {{ autoPlacing ? '布点中...' : '一键自动布点' }}</button>
+
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin:10px 0 6px">📍 布点策略</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:4px">选择设施落位的空间逻辑</div>
+          <select v-model="placeStrategy" style="width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:5px;margin-bottom:8px;font-size:13px">
+            <option value="smart">🧠 智能: 按标准分类映射空间</option>
+            <option value="channel">🛤️ 沿通道/走廊线性排布</option>
+            <option value="node">⭕ 全部布在节点/广场</option>
+            <option value="uniform">📐 均匀网格散布(区域内)</option>
+            <option value="boundary">📏 沿红线边界内侧分布</option>
+          </select>
+          <div style="font-size:11px;color:var(--muted);margin:0 0 8px;line-height:1.5;background:#ffffff06;padding:6px 8px;border-radius:4px">
+            🧠 智能: P1建筑+通道 / P2建筑+立面 / P3节点 / P4绿地+通道 / P5节点+通道 / P6建筑+立面<br>
+            🛤️ 全部设施沿通道线性排 · ⭕ 集中在广场节点<br>
+            📐 均匀网格填充 · 📏 绕红线边界内侧
+          </div>
+
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin:12px 0 4px">🎛️ 微调参数</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px">调整后自动布点会按新参数重排</div>
+
+          <div style="margin-bottom:6px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>间距</span><b style="color:var(--text)">{{ placeSpacing }} m</b></div>
+            <input type="range" min="5" max="60" v-model.number="placeSpacing" @input="scheduleReauto" style="width:100%;accent-color:var(--accent)">
+          </div>
+          <div style="margin-bottom:6px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>边界留白</span><b style="color:var(--text)">{{ placeMargin }} m</b></div>
+            <input type="range" min="0" max="30" v-model.number="placeMargin" @input="scheduleReauto" style="width:100%;accent-color:var(--accent)">
+          </div>
+          <div style="margin-bottom:6px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>每行数量</span><b style="color:var(--text)">{{ perRow }}</b></div>
+            <input type="range" min="1" max="10" v-model.number="perRow" @input="scheduleReauto" style="width:100%;accent-color:var(--accent)">
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>符号尺寸</span><b style="color:var(--text)">{{ symScale }}</b></div>
+            <input type="range" min="1" max="10" v-model.number="symScale" @input="renderFacilityMarkers" style="width:100%;accent-color:var(--accent)">
+          </div>
+
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text);cursor:pointer;margin-bottom:10px">
+            <input type="checkbox" v-model="autoOverwrite"> 覆盖已有布点位置
+          </label>
+
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin:12px 0 6px">✋ 手动布点</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;background:#ffffff06;padding:6px 8px;border-radius:4px">
+            1. 在设施清单点选一项<br>
+            2. 点工具栏「📍 手动布点」<br>
+            3. 在画布点击落点<br>
+            4. 拖动符号可微调 (自动保存)<br>
+            落点完成后自动跳到下一项
+          </div>
+        </div>
       </div>
     </div>
 
@@ -944,6 +964,16 @@ const BasemapEditor = {
       'P5-02','P5-03','P6-01','P6-02','P6-04'])
     // 图例行颜色 (P 类)
     const CAT_COLORS = { 'P1': '#4f8cff', 'P2': '#67c23a', 'P3': '#e6a23c', 'P4': '#c97dff', 'P5': '#f56c6c', 'P6': '#8b8fa3' }
+
+    // 设施状态中文 (引用全局映射, 与 FacilitiesPage 单一事实源)
+    const facStatusCN = (s) => facStatusLabel(s)
+    const facStatusColor = (s) => s === 'installed' ? '#67c23a' : s === 'confirmed' ? '#e6a23c' : s === 'selected' ? '#4f8cff' : '#8b8fa3'
+    // 分类行内联按钮 (不换行)
+    const facCats = ['ALL', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6']
+    const facCountOf = (cat) => {
+      if (cat === 'ALL') return filteredFacilities.value.length
+      return filteredFacilities.value.filter(f => (f.category || '').toUpperCase() === cat).length
+    }
 
     const loadProject = async () => {
       try {
@@ -1245,6 +1275,28 @@ const BasemapEditor = {
       }
     }
 
+    // 把 19 个设施标准项图层合并进图层数组 (未布点也列出; markers 由 renderFacilityMarkers 管理)
+    const mergeFacilityLayersInto = (layerArr) => {
+      const existing = new Set(layerArr.map(l => l.name))
+      for (const [itemId, sym] of Object.entries(makiSymbols)) {
+        if (existing.has(sym.layer)) continue
+        const cat = itemId.split('-')[0]
+        const placedN = facilities.value.filter(f => f.standard_item_id === itemId && f.position?.x != null).length
+        layerArr.push({
+          name: sym.layer,
+          color: CAT_COLORS[cat] || '#4f8cff',
+          count: placedN,
+          visible: true, opacity: 100,
+          objects: [],
+          locked: false,
+          isFacilityLayer: true,
+          itemId,
+          iconPath: sym.path, viewbox: sym.viewbox,
+          nameZh: sym.name_zh,
+        })
+      }
+    }
+
     const doParseDXF = (dxfText) => {
       const parser = new DxfParser()
       const dxf = parser.parseSync(dxfText)
@@ -1278,6 +1330,8 @@ const BasemapEditor = {
       }
       loadProgress.value = 50
       loadStage.value = '创建合成画布...'
+      // 画布状态栏: 世界尺寸 (米/单位)
+      canvasSize.value = `${Math.round(ww)} × ${Math.round(wh)} (世界单位)`
 
       offCanvas = document.createElement('canvas')
       offCanvas.width = Math.max(1, cw)
@@ -1324,6 +1378,8 @@ const BasemapEditor = {
           locked,
         })
       }
+      // 融合 19 个设施标准项图层 (即使未布点也列出, 供显隐/锁定管理)
+      mergeFacilityLayersInto(newLayers)
       layers.value = newLayers
       loadProgress.value = 70
       loadStage.value = '绘制合成图...'
@@ -1388,12 +1444,38 @@ const BasemapEditor = {
 
     const updateLayerVisibility = (layer) => {
       layer.visible = layer.visible !== false
-      redrawComposite()
+      if (layer.isFacilityLayer) {
+        // 设施层: markers 可见性
+        facilityMarkers.forEach(m => {
+          if (m._facLayer === layer.name) m.visible = layer.visible
+        })
+        fabricCanvas.requestRenderAll()
+      } else {
+        redrawComposite()   // 底图层: 重绘合成图
+      }
     }
 
     const updateLayerOpacity = (layer) => {
       if (layer.opacity == null) layer.opacity = 100
-      redrawComposite()
+      if (layer.isFacilityLayer) {
+        facilityMarkers.forEach(m => {
+          if (m._facLayer === layer.name) m.opacity = layer.opacity / 100
+        })
+        fabricCanvas.requestRenderAll()
+      } else {
+        redrawComposite()
+      }
+    }
+
+    // 锁定切换 (设施层真实生效; 底图合成层为视觉提示)
+    const toggleLayerLock = (layer) => {
+      layer.locked = !layer.locked
+      if (layer.isFacilityLayer) {
+        renderFacilityMarkers()   // 重建 markers 应用锁定
+        toast.show(layer.locked ? `🔒 ${layer.name} 已锁定 (不可拖动)` : `🔓 ${layer.name} 已解锁 (可拖动微调)`)
+      } else {
+        toast.show(layer.locked ? `🔒 ${layer.name} 锁定` : `🔓 ${layer.name} 解锁 (底图为合成图层, 几何不可单独编辑)`)
+      }
     }
 
     const confirmText = () => {
@@ -1438,10 +1520,23 @@ const BasemapEditor = {
       return list
     })
 
+    // 更新设施层已布点计数
+    const updateFacilityLayerCounts = () => {
+      layers.value.forEach(l => {
+        if (l.isFacilityLayer) {
+          l.count = facilities.value.filter(f => f.standard_item_id === l.itemId && f.position?.x != null).length
+        }
+      })
+    }
+
     const refreshFacilities = async () => {
       try {
         const list = await API.get('/projects/' + route.params.id + '/facilities')
         facilities.value = Array.isArray(list) ? list : (list.items || [])
+        if (layers.value.length) {
+          mergeFacilityLayersInto(layers.value)
+          updateFacilityLayerCounts()
+        }
         renderFacilityMarkers()
         buildLegend()
       } catch(e) { console.error(e) }
@@ -1461,6 +1556,7 @@ const BasemapEditor = {
         const x = sp.x, y = sp.y
         const color = facColor(f)
         const sym = facSymbol(f)
+        const facLayer = sym?.layer || null   // 所属设施图层
 
         let marker
         if (sym?.path) {
@@ -1468,6 +1564,7 @@ const BasemapEditor = {
           marker._isFacility = true
           marker._facilityId = f.id
           marker._facilityData = f
+          marker._facLayer = facLayer
           marker.selectable = true
           marker.evented = true
           marker.lockRotation = true
@@ -1484,6 +1581,7 @@ const BasemapEditor = {
           circle._isFacility = true
           circle._facilityId = f.id
           circle._facilityData = f
+          circle._facLayer = facLayer
           marker = circle
         }
         // 编号标签
@@ -1493,8 +1591,20 @@ const BasemapEditor = {
           selectable: false, evented: false,
         })
         lbl._isFacilityLabel = true
-        fabricCanvas.add(marker)
-        fabricCanvas.add(lbl)
+        // 应用所在图层的可见性/锁定
+        const lobj = layers.value.find(l => l.name === facLayer)
+        if (lobj) {
+          if (!lobj.visible) { /* 隐藏层不显示 */ } else {
+            fabricCanvas.add(marker)
+            fabricCanvas.add(lbl)
+          }
+          marker.visible = lobj.visible
+          lbl.visible = lobj.visible
+          if (lobj.locked) { marker.selectable = false; marker.evented = false }
+        } else {
+          fabricCanvas.add(marker)
+          fabricCanvas.add(lbl)
+        }
         facilityMarkers.push(marker, lbl)
       })
       fabricCanvas.requestRenderAll()
@@ -1797,6 +1907,11 @@ const BasemapEditor = {
         if (resp.ok) {
           const d = await resp.json()
           makiSymbols = d.symbols || {}
+          // maki 晚到时补合并设施层进已有图层
+          if (layers.value.length) {
+            mergeFacilityLayersInto(layers.value)
+            updateFacilityLayerCounts()
+          }
           buildLegend()
         } else {
           console.warn('maki_symbols.json not served, facility symbols fallback to dots')
@@ -1854,7 +1969,8 @@ const BasemapEditor = {
       setTool, selectFacility, facFilter, filteredFacilities, selectedFac, facPlaceHint,
       facSymbol, facColor, placableCount, autoPlacing, placeStrategy, placeSpacing,
       placeMargin, perRow, symScale, autoOverwrite, scheduleReauto,
-      openAutoPlace, runAutoPlace, legendRows, buildLegend }
+      openAutoPlace, runAutoPlace, legendRows, buildLegend,
+      facStatusCN, facStatusColor, facCats, facCountOf, toggleLayerLock }
   }
 }
 
@@ -1887,7 +2003,7 @@ const FacilitiesPage = {
       <div class="card-title" style="justify-content:space-between"><span>{{ cat.id }} {{ cat.name }}</span><span style="font-size:14px;color:var(--muted)">{{ cat.items.length }} 项</span></div>
       <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:15px">
         <thead><tr style="color:var(--muted);font-size:13px;text-align:left"><th style="padding:8px;border-bottom:1px solid var(--border);width:60px">编号</th><th style="padding:8px;border-bottom:1px solid var(--border)">名称</th><th style="padding:8px;border-bottom:1px solid var(--border);width:60px">类型</th><th style="padding:8px;border-bottom:1px solid var(--border);width:70px">状态</th><th style="padding:8px;border-bottom:1px solid var(--border);width:50px">数量</th><th style="padding:8px;border-bottom:1px solid var(--border)">规格/备注</th><th style="padding:8px;border-bottom:1px solid var(--border);width:50px"></th></tr></thead>
-        <tbody><tr v-for="f in cat.items" :key="f.id" @click="editFacility(f)" style="cursor:pointer" @mouseenter="e=>e.currentTarget.style.background='#ffffff04'" @mouseleave="e=>e.currentTarget.style.background=''"><td style="padding:8px;font-family:monospace;font-size:13px;color:var(--accent)">{{ f.standard_item_id }}</td><td style="padding:8px">{{ (f.custom_fields?.icon||'📌')+' '+f.name }}</td><td style="padding:8px"><span style="font-size:13px;padding:2px 6px;border-radius:3px" :style="{background:f.type==='prerequisite'?'#f56c6c1a':'#67c23a1a',color:f.type==='prerequisite'?'#f56c6c':'#67c23a'}">{{ f.type==='prerequisite'?'必选':'可选' }}</span></td><td style="padding:8px"><span :style="{color:f.status==='installed'?'#67c23a':f.status==='confirmed'?'#e6a23c':'#8b8fa3'}">{{ f.status }}</span></td><td style="padding:8px">{{ f.quantity }}</td><td style="padding:8px;font-size:14px;color:var(--muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.notes || '-' }}</td><td style="padding:8px"><button class="btn sm" @click.stop="editFacility(f)">✎</button></td></tr></tbody>
+        <tbody><tr v-for="f in cat.items" :key="f.id" @click="editFacility(f)" style="cursor:pointer" @mouseenter="e=>e.currentTarget.style.background='#ffffff04'" @mouseleave="e=>e.currentTarget.style.background=''"><td style="padding:8px;font-family:monospace;font-size:13px;color:var(--accent)">{{ f.standard_item_id }}</td><td style="padding:8px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:{f.status==='installed'?'#67c23a':f.status==='confirmed'?'#e6a23c':f.status==='selected'?'#4f8cff':'#8b8fa3'}"></span>{{ f.name }}</td><td style="padding:8px"><span style="font-size:13px;padding:2px 6px;border-radius:3px" :style="{background:f.type==='prerequisite'?'#f56c6c1a':'#67c23a1a',color:f.type==='prerequisite'?'#f56c6c':'#67c23a'}">{{ f.type==='prerequisite'?'必选':'可选' }}</span></td><td style="padding:8px"><span :style="{color:f.status==='installed'?'#67c23a':f.status==='confirmed'?'#e6a23c':'#8b8fa3'}">{{ facStatusLabel(f.status) }}</span></td><td style="padding:8px">{{ f.quantity }}</td><td style="padding:8px;font-size:14px;color:var(--muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.notes || '-' }}</td><td style="padding:8px"><button class="btn sm" @click.stop="editFacility(f)">✎</button></td></tr></tbody>
       </table></div>
     </div>
     <div class="dialog-mask" v-if="editDlg" @click.self="editDlg=false"><div class="dialog" style="width:480px"><h3>{{ editForm.id ? '编辑' : '新增' }}设施</h3><div class="form-group"><label>关联标准项</label><input type="text" v-model="editForm.standard_item_id"></div><div class="form-group"><label>名称</label><input type="text" v-model="editForm.name"></div><div class="form-group"><label>类型</label><select v-model="editForm.type"><option value="prerequisite">必选</option><option value="credit">可选</option></select></div><div class="form-group"><label>类别</label><select v-model="editForm.category"><option v-for="c in cats" :key="c.id" :value="c.id">{{ c.id }} {{ c.name }}</option></select></div><div class="form-group"><label>状态</label><select v-model="editForm.status"><option value="draft">草稿</option><option value="selected">已选</option><option value="confirmed">已确认</option><option value="installed">已安装</option></select></div><div class="form-group"><label>数量</label><input type="number" v-model.number="editForm.quantity" min="1"></div><div class="form-group"><label>备注</label><textarea v-model="editForm.notes" rows="2"></textarea></div><div class="form-actions"><button class="btn" @click="editDlg=false">取消</button><button class="btn danger" v-if="editForm.id" @click="deleteFacility">删除</button><button class="btn primary" @click="saveFacility">保存</button></div></div></div>
@@ -1929,7 +2045,7 @@ const FacilitiesPage = {
         toast.show('📄 报告已下载')
       } catch(e) { toast.show('❌ 导出失败') }
     }
-    return { projectName, facilities, evalResult, evaluating, editDlg, editForm, cats, groupedFacilities, editFacility, addFacility, saveFacility, deleteFacility, evaluate, batchConfirm, exportReport }
+    return { projectName, facilities, evalResult, evaluating, editDlg, editForm, cats, groupedFacilities, editFacility, addFacility, saveFacility, deleteFacility, evaluate, batchConfirm, exportReport, facStatusLabel }
   }
 }
 
