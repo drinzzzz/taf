@@ -126,30 +126,6 @@ class FacilityUpdate(BaseModel):
     custom_fields: Optional[Dict] = None
 
 
-class FacilityOut(BaseModel):
-    id: UUID
-    project_id: UUID
-    standard_item_id: str
-    name: str
-    type: str
-    category: str
-    status: str
-    quantity: int
-    position: Optional[Dict]
-    spec: Optional[Dict]
-    supplier: Optional[str]
-    price: Optional[float]
-    notes: Optional[str]
-    created_at: datetime
-    updated_at: datetime
-
-    model_config = {"from_attributes": True}
-
-
-class FacilityBatchCreate(BaseModel):
-    facilities: List[FacilityCreate]
-
-
 # ── 布点实例 (一标准项多点位) ──
 
 class PlacementIn(BaseModel):
@@ -173,6 +149,32 @@ class PlacementOut(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+
+class FacilityOut(BaseModel):
+    id: UUID
+    project_id: UUID
+    standard_item_id: str
+    name: str
+    type: str
+    category: str
+    status: str
+    quantity: int
+    position: Optional[Dict]
+    placements: List[PlacementOut] = Field(default_factory=list)   # 多实例布点 (P0)
+    spec: Optional[Dict]
+    supplier: Optional[str]
+    price: Optional[float]
+    notes: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class FacilityBatchCreate(BaseModel):
+    facilities: List[FacilityCreate]
 
 
 # ── 空间 ──

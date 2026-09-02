@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from sqlalchemy.orm import selectinload
 
 from models.database import Facility, Project, StandardPlugin, FacilityPlacement
 from schemas.models import (
@@ -29,7 +30,7 @@ async def list_facilities(
     if not p:
         raise HTTPException(404, "项目不存在")
 
-    query = select(Facility).where(Facility.project_id == project_id)
+    query = select(Facility).options(selectinload(Facility.placements)).where(Facility.project_id == project_id)
     if category:
         query = query.where(Facility.category == category)
     if type:
