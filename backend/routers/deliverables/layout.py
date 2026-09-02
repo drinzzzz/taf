@@ -12,6 +12,8 @@ from sqlalchemy import select
 from models.database import Basemap, Space
 from deps import get_db, get_current_user
 from .helpers import _get_project, _get_standard, _get_facilities
+import logging
+logger = logging.getLogger("taf.layout")
 
 router = APIRouter(prefix="/api/projects", tags=["策划成果"])
 
@@ -90,103 +92,155 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
 
     cat_colors = {"P1": 1, "P2": 2, "P3": 3, "P4": 4, "P5": 5, "P6": 6}
 
-    facility_positions = []
-    cat_counters = {}
+    # ═══ Maki 符号表 (与前端 maki_symbols.json 同源) ═══
+    import json as _json
+    _sym_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "frontend", "maki_symbols.json")
+    _maki = {}
+    try:
+        with open(os.path.normpath(_sym_path), encoding="utf-8") as _f:
+            _maki = _json.load(_f).get("symbols", {})
+    except Exception as _e:
+        logger.warning(f"maki_symbols.json load failed: {_e}")
+
+    # 布点候选白名单 (与前端 NON_PLACABLE 互补: 这些项才可布点)
+    _non_placable = {"P2-02","P2-03","P2-04","P2-05","P2-06","P3-01","P3-02","P3-03",
+                     "P3-04","P3-05","P3-06","P5-02","P5-03","P6-01","P6-02","P6-04"}
+
+    def _svg_path_to_polylines(path_d: str, scale: float = 0.4) -> list:
+        """Maki SVG path → 折线点列表 (相对坐标, 中心在原点, 单位尺寸)"""
+        try:
+            from svgpathtools import parse_path
+            p = parse_path(path_d)
+            pts = []
+            for seg in p:
+                n = max(2, int(seg.length() / 0.8) + 1)
+                for i in range(n):
+                    z = seg.point(i / n)
+                    pts.append((z.real, z.imag))
+            # 归一化到中心
+            if not pts:
+                return []
+            xs = [q[0] for q in pts]; ys = [q[1] for q in pts]
+            cx = (min(xs) + max(xs)) / 2; cy = (min(ys) + max(ys)) / 2
+            w = max(max(xs) - min(xs), max(ys) - min(ys), 1e-6)
+            s = scale / w
+            return [((x - cx) * s, (y - cy) * s) for x, y in pts]
+        except Exception:
+            return []
+
+    # ═══ 设施布点: 每设施独立图层 + Maki 符号 ═══
+    # 每个标准项一个图层: TAF-FACILITY-P1-02-PUBLIC-FOUNTAIN
+    layer_sym_cache = {}   # layer name -> block name
     for f in facilities:
-        cat = f.category or "P1"
-        cat_counters.setdefault(cat, 0)
-        idx = cat_counters[cat]
-        pos_rules = {
-            "P1": ["building", "channel"], "P2": ["building", "facade"],
-            "P3": ["node"], "P4": ["green", "channel"],
-            "P5": ["node", "channel"], "P6": ["building", "facade"],
-        }
-        space_types = pos_rules.get(cat, ["building", "channel"])
-        chosen_layer = None
-        for st in space_types:
-            target_layer = type_to_layer.get(st)
-            if target_layer and target_layer in space_centers:
-                chosen_layer = target_layer
-                break
-        base_x, base_y = space_centers.get(chosen_layer, (400, 250)) if chosen_layer else (400, 250)
-        col = idx % 5
-        row = idx // 5
-        x = base_x + col * 35 - (5 * 35 // 2)
-        y = base_y + row * 25
-        facility_positions.append({
-            "facility": f, "x": x, "y": y, "cat": cat, "color": cat_colors.get(cat, 7),
-        })
-
-    for fp in facility_positions:
-        f = fp["facility"]
-        x, y = fp["x"], fp["y"]
-        color = fp["color"]
-        cat = fp["cat"]
-        if cat == "P1":
-            msp.add_lwpolyline([(x-6,y-6),(x+6,y-6),(x+6,y+6),(x-6,y+6)], close=True,
-                               dxfattribs={"layer": "TAF-FACILITY", "color": color})
-            hatch = msp.add_hatch(color=color, dxfattribs={"layer": "TAF-FACILITY"})
-            hatch.paths.add_polyline_path([(x-5,y-5),(x+5,y-5),(x+5,y+5),(x-5,y+5)], is_closed=True)
-        elif cat == "P2":
-            msp.add_circle(center=(x, y), radius=6, dxfattribs={"layer": "TAF-FACILITY", "color": color})
-            msp.add_circle(center=(x, y), radius=3, dxfattribs={"layer": "TAF-FACILITY", "color": color})
-        elif cat == "P3":
-            pts = [(x,y-7),(x+6,y+5),(x-6,y+5)]
-            msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": "TAF-FACILITY", "color": color})
-            hatch = msp.add_hatch(color=color, dxfattribs={"layer": "TAF-FACILITY"})
-            hatch.paths.add_polyline_path(pts, is_closed=True)
-        elif cat == "P4":
-            pts4 = [(x+6*math.cos(2*math.pi*i/5), y+6*math.sin(2*math.pi*i/5)) for i in range(5)]
-            msp.add_lwpolyline(pts4, close=True, dxfattribs={"layer": "TAF-FACILITY", "color": color})
-            hatch = msp.add_hatch(color=color, dxfattribs={"layer": "TAF-FACILITY"})
-            hatch.paths.add_polyline_path(pts4, is_closed=True)
-        elif cat == "P5":
-            pts5 = [(x,y-7),(x+5,y),(x,y+7),(x-5,y)]
-            msp.add_lwpolyline(pts5, close=True, dxfattribs={"layer": "TAF-FACILITY", "color": color})
-            hatch = msp.add_hatch(color=color, dxfattribs={"layer": "TAF-FACILITY"})
-            hatch.paths.add_polyline_path(pts5, is_closed=True)
-        else:
-            msp.add_circle(center=(x, y), radius=6, dxfattribs={"layer": "TAF-FACILITY", "color": color})
-            hatch = msp.add_hatch(color=color, dxfattribs={"layer": "TAF-FACILITY"})
-            hatch.paths.add_polyline_path([(x-5,y-5),(x+5,y-5),(x+5,y+5),(x-5,y+5)], is_closed=True)
-        label_id = f.standard_item_id.replace("P", "").replace("-", "")[:6]
-        msp.add_text(label_id, dxfattribs={
-            "layer": "TAF-LABEL", "color": colors.CYAN, "height": 8,
-        }).set_placement((x + 9, y + 3))
-        if f.status in ("confirmed", "installed"):
-            msp.add_line(start=(x, y-7), end=(x, y-16), dxfattribs={"layer": "TAF-FACILITY", "color": 3})
-
-    legend_x, legend_y = 50, 50
-    msp.add_text("TAF 设施布点图例", dxfattribs={
-        "layer": "TAF-LEGEND", "color": colors.WHITE, "height": 12,
-    }).set_placement((legend_x, legend_y))
-    for i, (cat, name) in enumerate(cat_names.items()):
-        ly = legend_y - 18 - i * 16
+        item_id = f.standard_item_id or ""
+        if item_id in _non_placable:
+            continue
+        sym = _maki.get(item_id)
+        pos = f.position or {}
+        if pos.get("x") is None or pos.get("y") is None:
+            continue  # 未布点
+        x, y = float(pos["x"]), float(pos["y"])
+        cat = (f.category or "P1").upper()
         color = cat_colors.get(cat, 7)
-        if cat == "P1":
-            msp.add_lwpolyline([(legend_x+1,ly-4),(legend_x+9,ly-4),(legend_x+9,ly+4),(legend_x+1,ly+4)], close=True,
-                               dxfattribs={"layer": "TAF-LEGEND", "color": color})
-        elif cat == "P2":
-            msp.add_circle(center=(legend_x+5, ly), radius=4, dxfattribs={"layer": "TAF-LEGEND", "color": color})
-            msp.add_circle(center=(legend_x+5, ly), radius=2, dxfattribs={"layer": "TAF-LEGEND", "color": color})
-        elif cat == "P3":
-            pts = [(legend_x+5,ly-5),(legend_x+10,ly+3),(legend_x,ly+3)]
-            msp.add_lwpolyline(pts, close=True, dxfattribs={"layer": "TAF-LEGEND", "color": color})
-        elif cat == "P4":
-            pts4 = [(legend_x+5+4*math.cos(2*math.pi*i/5), ly+4*math.sin(2*math.pi*i/5)) for i in range(5)]
-            msp.add_lwpolyline(pts4, close=True, dxfattribs={"layer": "TAF-LEGEND", "color": color})
-        elif cat == "P5":
-            pts5 = [(legend_x+5,ly-5),(legend_x+9,ly),(legend_x+5,ly+5),(legend_x+1,ly)]
-            msp.add_lwpolyline(pts5, close=True, dxfattribs={"layer": "TAF-LEGEND", "color": color})
-        else:
-            msp.add_circle(center=(legend_x+5, ly), radius=4, dxfattribs={"layer": "TAF-LEGEND", "color": color})
-        msp.add_text(f"{cat}: {name}", dxfattribs={
-            "layer": "TAF-LEGEND", "color": colors.WHITE, "height": 8,
-        }).set_placement((legend_x + 18, ly - 2))
+        layer_name = sym["layer"] if sym else f"TAF-FACILITY-{item_id}"
+        if layer_name not in doc.layers:
+            doc.layers.add(name=layer_name, color=color)
 
+        if sym and sym.get("path"):
+            # 生成/复用 block
+            block_name = f"SYM_{item_id.replace('-', '_')}"
+            if block_name not in doc.blocks:
+                blk = doc.blocks.new(name=block_name)
+                for qx, qy in _svg_path_to_polylines(sym["path"], scale=6):
+                    pass
+                # 画轮廓 (polyline 折线近似, 闭合首尾)
+                poly = _svg_path_to_polylines(sym["path"], scale=6)
+                if len(poly) >= 3:
+                    blk.add_lwpolyline(poly, close=True, dxfattribs={"color": color, "layer": "0"})
+            msp.add_blockref(block_name, (x, y), dxfattribs={"layer": layer_name})
+        else:
+            # fallback: 圆
+            msp.add_circle(center=(x, y), radius=4, dxfattribs={"layer": layer_name, "color": color})
+        # 编号标签 (独立 TAF-LABEL 层, 便于统一关闭)
+        label_id = item_id.replace("P", "").replace("-", "")[:6]
+        if "TAF-LABEL" not in doc.layers:
+            doc.layers.add(name="TAF-LABEL", color=colors.CYAN)
+        msp.add_text(label_id, dxfattribs={
+            "layer": "TAF-LABEL", "color": colors.CYAN, "height": 6,
+        }).set_placement((x + 6, y + 4))
+
+    # ═══ Legend: 表格, 一行一图例 (旧层 + 新布点层) ═══
+    legend_x, legend_y = 50, 50
+    if "TAF-LEGEND" not in doc.layers:
+        doc.layers.add(name="TAF-LEGEND", color=colors.WHITE)
+    msp.add_text("TAF 底图与设施布点图例", dxfattribs={
+        "layer": "TAF-LEGEND", "color": colors.WHITE, "height": 14,
+    }).set_placement((legend_x, legend_y + 6))
+
+    # 表头
+    row_h = 14
+    hy = legend_y - 10
+    msp.add_text("图层", dxfattribs={"layer": "TAF-LEGEND", "color": 3, "height": 7}).set_placement((legend_x + 4, hy))
+    msp.add_text("图例", dxfattribs={"layer": "TAF-LEGEND", "color": 3, "height": 7}).set_placement((legend_x + 120, hy))
+    msp.add_text("说明", dxfattribs={"layer": "TAF-LEGEND", "color": 3, "height": 7}).set_placement((legend_x + 170, hy))
+    hy -= row_h
+
+    # 表格线
+    def _draw_legend_row(y, swatch_draw, layer_name, desc, color=colors.WHITE):
+        # 行分隔线
+        msp.add_line(start=(legend_x, y - 2), end=(legend_x + 260, y - 2),
+                     dxfattribs={"layer": "TAF-LEGEND", "color": 8})
+        msp.add_text(layer_name, dxfattribs={"layer": "TAF-LEGEND", "color": color, "height": 6}
+                     ).set_placement((legend_x + 4, y - 5))
+        msp.add_text(desc, dxfattribs={"layer": "TAF-LEGEND", "color": colors.WHITE, "height": 6}
+                     ).set_placement((legend_x + 170, y - 5))
+        swatch_draw(legend_x + 128, y - 3)
+
+    def _swatch_circle(cx, cy, r=3, color=7):
+        msp.add_circle(center=(cx, cy), radius=r, dxfattribs={"layer": "TAF-LEGEND", "color": color})
+
+    def _swatch_line(cx, cy, color=7):
+        msp.add_line(start=(cx - 4, cy), end=(cx + 4, cy), dxfattribs={"layer": "TAF-LEGEND", "color": color})
+
+    def _swatch_symbol(cx, cy, sym, color):
+        pts = _svg_path_to_polylines(sym["path"], scale=5)
+        if len(pts) >= 3:
+            msp.add_lwpolyline([(cx + qx, cy + qy) for qx, qy in pts], close=True,
+                               dxfattribs={"layer": "TAF-LEGEND", "color": color})
+
+    # 旧底图空间图层
+    _base_layers = [
+        ("TAF-BOUNDARY", "红线边界", 1),
+        ("TAF-BUILDING", "建筑", 2),
+        ("TAF-CHANNEL", "通道/走廊", 30),
+        ("TAF-ROAD", "道路", 5),
+        ("TAF-GREEN", "绿地", 3),
+        ("TAF-NODE", "节点/广场", 4),
+        ("TAF-FACADE", "立面", 6),
+        ("BASEMAP", "原始底图", 7),
+    ]
+    for nm, desc, c in _base_layers:
+        if nm in doc.layers:
+            _draw_legend_row(hy, lambda cx, cy, c=c: _swatch_line(cx, cy, c), nm, desc, c)
+            hy -= row_h
+
+    # 布点符号层 (按 maki 顺序)
+    _fac_by_item = {f.standard_item_id: f for f in facilities if f.standard_item_id not in _non_placable}
+    for item_id, sym in _maki.items():
+        if item_id not in _fac_by_item:
+            continue
+        cat = item_id.split("-")[0]
+        c = cat_colors.get(cat, 7)
+        f = _fac_by_item[item_id]
+        _draw_legend_row(hy, lambda cx, cy, s=sym, c=c: _swatch_symbol(cx, cy, s, c),
+                         sym["layer"], f"{item_id} {f.name}", c)
+        hy -= row_h
+
+    # 图名
     msp.add_text(f"{project.name} — 设施布点图 ({project.code})", dxfattribs={
         "layer": "TAF-LEGEND", "color": colors.WHITE, "height": 16,
-    }).set_placement((legend_x, legend_y + 30))
+    }).set_placement((legend_x, legend_y + 26))
+
 
     tmp = tempfile.NamedTemporaryFile(suffix=".dxf", delete=False)
     tmp_path = tmp.name
