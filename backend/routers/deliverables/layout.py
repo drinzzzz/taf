@@ -188,78 +188,159 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
                 "layer": "TAF-LABEL", "color": colors.CYAN, "height": 6,
             }).set_placement((x + 6, y + 4))
 
-    # ═══ Legend: 表格, 一行一图例 (旧层 + 新布点层) ═══
-    legend_x, legend_y = 50, 50
-    if "TAF-LEGEND" not in doc.layers:
-        doc.layers.add(name="TAF-LEGEND", color=colors.WHITE)
-    msp.add_text("TAF 底图与设施布点图例", dxfattribs={
-        "layer": "TAF-LEGEND", "color": colors.WHITE, "height": 14,
-    }).set_placement((legend_x, legend_y + 6))
+    # ═══ Legend 完善版: 序号|图层名|线型示例|中文名称|颜色|说明 (一行一层, 图框右侧独立表格) ═══
+    # 覆盖: 图纸全部源图层 + 已布点设施层; 中文用 TAF-CN 样式 (txt.shx+gbcbig)
+    cn_style = 'TAF-CN'
+    if cn_style not in doc.styles:
+        doc.styles.new(cn_style, dxfattribs={'font': 'txt.shx', 'bigfont': 'gbcbig.shx'})
 
-    # 表头
-    row_h = 14
-    hy = legend_y - 10
-    msp.add_text("图层", dxfattribs={"layer": "TAF-LEGEND", "color": 3, "height": 7}).set_placement((legend_x + 4, hy))
-    msp.add_text("图例", dxfattribs={"layer": "TAF-LEGEND", "color": 3, "height": 7}).set_placement((legend_x + 120, hy))
-    msp.add_text("说明", dxfattribs={"layer": "TAF-LEGEND", "color": 3, "height": 7}).set_placement((legend_x + 170, hy))
-    hy -= row_h
+    def _add_cn(x, y, h, txt, layer='TAF-LEGEND', color=7):
+        t = msp.add_text(txt, dxfattribs={'layer': layer, 'color': color, 'height': h, 'style': cn_style})
+        t.set_placement((x, y))
+        return t
 
-    # 表格线
-    def _draw_legend_row(y, swatch_draw, layer_name, desc, color=colors.WHITE):
-        # 行分隔线
-        msp.add_line(start=(legend_x, y - 2), end=(legend_x + 260, y - 2),
-                     dxfattribs={"layer": "TAF-LEGEND", "color": 8})
-        msp.add_text(layer_name, dxfattribs={"layer": "TAF-LEGEND", "color": color, "height": 6}
-                     ).set_placement((legend_x + 4, y - 5))
-        msp.add_text(desc, dxfattribs={"layer": "TAF-LEGEND", "color": colors.WHITE, "height": 6}
-                     ).set_placement((legend_x + 170, y - 5))
-        swatch_draw(legend_x + 128, y - 3)
+    # ── 收集每层内容形态 (面/线/圆) 与虚线 ──
+    layer_face, layer_line, layer_circle = {}, {}, {}
+    for e in msp:
+        lay = e.dxf.layer
+        lt = e.dxftype()
+        if lt == 'LWPOLYLINE':
+            (layer_face if e.closed else layer_line)[lay] = True
+        elif lt == 'POLYLINE':
+            (layer_face if e.is_closed else layer_line)[lay] = True
+        elif lt in ('LINE', 'SPLINE', 'ARC'):
+            layer_line[lay] = True
+        elif lt == 'CIRCLE':
+            layer_circle[lay] = True
 
-    def _swatch_circle(cx, cy, r=3, color=7):
-        msp.add_circle(center=(cx, cy), radius=r, dxfattribs={"layer": "TAF-LEGEND", "color": color})
+    def _dashed(lay):
+        try:
+            return doc.layers.get(lay).dxf.linetype not in (None, 'Continuous')
+        except Exception:
+            return False
 
-    def _swatch_line(cx, cy, color=7):
-        msp.add_line(start=(cx - 4, cy), end=(cx + 4, cy), dxfattribs={"layer": "TAF-LEGEND", "color": color})
+    aci_cn = {1: '红', 2: '黄', 3: '绿', 4: '青', 5: '蓝', 6: '品红', 7: '白', 8: '灰', 9: '浅灰',
+              30: '橙', 40: '黄绿', 50: '紫', 140: '深蓝', 250: '深灰'}
+    base_order = ['TAF-DRAWING_BORDER', 'TAF-BOUNDARY', 'BOUNDARY', 'TAF-BUILDING', 'TAF-BUILDING_NUMBER',
+                  'TAF-CHANNEL', 'TAF-NODE', 'TAF-GREEN', 'TAF-ROAD', 'TAF-FACADE', 'TAF-BASEMAP', 'BASEMAP']
+    base_cn = {'TAF-DRAWING_BORDER': '图纸图框边界', 'TAF-BOUNDARY': '红线边界', 'BOUNDARY': '红线边界',
+               'TAF-BUILDING': '建筑', 'BUILDING': '建筑', 'TAF-BUILDING_NUMBER': '建筑编号',
+               'TAF-CHANNEL': '通道/走廊', 'CHANNEL': '通道/走廊', 'TAF-NODE': '节点/广场', 'NODE': '节点/广场',
+               'TAF-GREEN': '绿地', 'GREEN': '绿地', 'TAF-ROAD': '道路', 'ROAD': '道路',
+               'TAF-FACADE': '沿街立面', 'FACADE': '沿街立面', 'TAF-BASEMAP': '原始底图', 'BASEMAP': '原始底图'}
+    base_desc = {'TAF-DRAWING_BORDER': '图幅边界与定位基准', 'TAF-BOUNDARY': '项目用地红线, 评估/布点范围边界', 'BOUNDARY': '项目用地红线',
+                 'TAF-BUILDING': '建筑实体 (室内禁区, 设施布其外沿)', 'TAF-BUILDING_NUMBER': '建筑编号文字',
+                 'TAF-CHANNEL': '通道/走廊可通行面', 'TAF-NODE': '节点/广场开放空间', 'TAF-GREEN': '绿地开放空间',
+                 'TAF-ROAD': '道路', 'TAF-FACADE': '沿街立面线', 'TAF-BASEMAP': '原始底图参照线', 'BASEMAP': '原始底图参照线'}
 
-    def _swatch_symbol(cx, cy, sym, color):
-        pts = _svg_path_to_polylines(sym["path"], scale=5)
-        if len(pts) >= 3:
-            msp.add_lwpolyline([(cx + qx, cy + qy) for qx, qy in pts], close=True,
-                               dxfattribs={"layer": "TAF-LEGEND", "color": color})
-
-    # 旧底图空间图层
-    _base_layers = [
-        ("TAF-BOUNDARY", "红线边界", 1),
-        ("TAF-BUILDING", "建筑", 2),
-        ("TAF-CHANNEL", "通道/走廊", 30),
-        ("TAF-ROAD", "道路", 5),
-        ("TAF-GREEN", "绿地", 3),
-        ("TAF-NODE", "节点/广场", 4),
-        ("TAF-FACADE", "立面", 6),
-        ("BASEMAP", "原始底图", 7),
-    ]
-    for nm, desc, c in _base_layers:
-        if nm in doc.layers:
-            _draw_legend_row(hy, lambda cx, cy, c=c: _swatch_line(cx, cy, c), nm, desc, c)
-            hy -= row_h
-
-    # 布点符号层 (按 maki 顺序)
-    _fac_by_item = {f.standard_item_id: f for f in facilities if f.standard_item_id not in _non_placable}
-    for item_id, sym in _maki.items():
-        if item_id not in _fac_by_item:
+    rows = []  # (layer, 中文, aci, kind, 说明)
+    seen = set()
+    all_layer_names = sorted(l.dxf.name for l in doc.layers)
+    for nm in base_order + [n for n in all_layer_names if n not in base_order]:
+        if nm == '0' or nm in seen:
             continue
-        cat = item_id.split("-")[0]
-        c = cat_colors.get(cat, 7)
-        f = _fac_by_item[item_id]
-        _draw_legend_row(hy, lambda cx, cy, s=sym, c=c: _swatch_symbol(cx, cy, s, c),
-                         sym["layer"], f"{item_id} {f.name}", c)
-        hy -= row_h
+        if nm.startswith('TAF-FACILITY-') or nm in ('TAF-LEGEND', 'TAF-LABEL', 'TAF-FACILITY', 'TAF-CN', 'Defpoints'):
+            continue
+        seen.add(nm)
+        try:
+            aci = doc.layers.get(nm).dxf.color
+        except Exception:
+            aci = 7
+        if layer_face.get(nm):
+            kind = 'face'
+        elif layer_circle.get(nm):
+            kind = 'circle'
+        else:
+            kind = 'line'
+        rows.append([nm, base_cn.get(nm, nm), aci, kind, base_desc.get(nm, '底图图层')])
 
-    # 图名
-    msp.add_text(f"{project.name} — 设施布点图 ({project.code})", dxfattribs={
-        "layer": "TAF-LEGEND", "color": colors.WHITE, "height": 16,
-    }).set_placement((legend_x, legend_y + 26))
+    # 已布点设施层 (按 item 排序)
+    fac_meta = {}
+    for f in facilities:
+        item_id = f.standard_item_id or ''
+        if item_id in _non_placable:
+            continue
+        sym = _maki.get(item_id)
+        lname = sym['layer'] if sym else f'TAF-FACILITY-{item_id}'
+        cnt = sum(1 for pl in (getattr(f, 'placements', None) or [])
+                  if (pl.position or {}).get('x') is not None)
+        if not cnt and not (f.position or {}).get('x'):
+            continue
+        fac_meta[lname] = (item_id, f.name, cnt, sym)
+    for lname in sorted(fac_meta):
+        item_id, fname, cnt, sym = fac_meta[lname]
+        aci = cat_colors.get(item_id.split('-')[0], 7)
+        if item_id in _area_items:
+            kind = 'area'
+        elif sym and sym.get('path'):
+            kind = 'symbol'
+        else:
+            kind = 'circle'
+        rows.append([lname, f'{item_id} {fname}', aci, kind, f'已布 {cnt} 处'])
 
+    # ── 表格几何: 置于底图图框右侧 ──
+    bb = None
+    for e in msp:
+        if e.dxf.layer != 'TAF-DRAWING_BORDER':
+            continue
+        lt = e.dxftype()
+        xs2 = ys2 = None
+        if lt == 'LWPOLYLINE':
+            pts2 = [(p[0], p[1]) for p in e.get_points()]
+            xs2 = [p[0] for p in pts2]; ys2 = [p[1] for p in pts2]
+        elif lt == 'LINE':
+            xs2 = [e.dxf.start.x, e.dxf.end.x]; ys2 = [e.dxf.start.y, e.dxf.end.y]
+        if xs2:
+            b = [min(xs2), min(ys2), max(xs2), max(ys2)]
+            bb = b if bb is None else [min(bb[0], b[0]), min(bb[1], b[1]), max(bb[2], b[2]), max(bb[3], b[3])]
+    if bb is None:
+        bb = [0, 0, 5895, 4495]
+
+    lx = bb[2] + 90
+    col_seq, col_layer, col_sw, col_cn, col_color, col_desc = 0, 34, 204, 252, 364, 414
+    row_h = 13
+    y = bb[3] - 30
+    _add_cn(lx, y, 16, f'{project.name} — 设施布点图例索引 ({project.code})')
+    y -= row_h + 6
+    hdr = ['序号', '图层名', '图例', '中文名称', '颜色', '说明']
+    hx = [col_seq, col_layer, col_sw, col_cn, col_color, col_desc]
+    for i, h in enumerate(hdr):
+        _add_cn(lx + hx[i], y - 5, 7, h, color=3)
+    y -= row_h
+    msp.add_line((lx, y + 3), (lx + 700, y + 3), dxfattribs={'layer': 'TAF-LEGEND', 'color': 8})
+
+    def _swatch(cx, cy, kind, color, layer_name):
+        if kind == 'face':
+            msp.add_lwpolyline([(cx - 8, cy - 2.5), (cx + 8, cy - 2.5), (cx + 8, cy + 2.5), (cx - 8, cy + 2.5)],
+                               close=True, dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+            msp.add_line((cx - 8, cy - 2.5), (cx + 8, cy + 2.5), dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+        elif kind == 'symbol':
+            sym = fac_meta.get(layer_name, (None, None, None, None))[3]
+            if sym:
+                pts3 = _svg_path_to_polylines(sym['path'], scale=3)
+                if len(pts3) >= 3:
+                    msp.add_lwpolyline([(cx + qx, cy + qy) for qx, qy in pts3], close=True,
+                                       dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+        elif kind == 'area':
+            _add_cn(cx - 2, cy - 3, 6, '区', color=color)
+        elif kind == 'circle':
+            msp.add_circle((cx, cy), radius=3, dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+        else:  # line
+            if _dashed(layer_name):
+                for dx0 in (-8, -2.5, 3):
+                    msp.add_line((cx + dx0, cy), (cx + dx0 + 3.5, cy), dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+            else:
+                msp.add_line((cx - 8, cy), (cx + 8, cy), dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+
+    for idx, (layer_name, cn, aci, kind, desc) in enumerate(rows, start=1):
+        _add_cn(lx + col_seq, y - 5, 5, str(idx))
+        _add_cn(lx + col_layer, y - 5, 5, layer_name, color=aci)
+        _swatch(lx + col_sw + 14, y - 1, kind, aci, layer_name)
+        _add_cn(lx + col_cn, y - 5, 5, cn)
+        _add_cn(lx + col_color, y - 5, 5, f'{aci}{aci_cn.get(aci, "")}', color=aci)
+        _add_cn(lx + col_desc, y - 5, 5, desc)
+        y -= row_h
+    msp.add_line((lx, y + 3 + row_h), (lx + 700, y + 3 + row_h), dxfattribs={'layer': 'TAF-LEGEND', 'color': 8})
 
     tmp = tempfile.NamedTemporaryFile(suffix=".dxf", delete=False)
     tmp_path = tmp.name
