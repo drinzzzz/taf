@@ -128,7 +128,7 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
         except Exception:
             return []
 
-    # ═══ 设施布点: 每设施独立图层 + Maki 符号 ═══
+    # ═══ 设施布点: 每设施独立图层 + Maki 符号 (P0: 支持一设施多实例 placements) ═══
     # 每个标准项一个图层: TAF-FACILITY-P1-02-PUBLIC-FOUNTAIN
     layer_sym_cache = {}   # layer name -> block name
     for f in facilities:
@@ -136,10 +136,18 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
         if item_id in _non_placable:
             continue
         sym = _maki.get(item_id)
-        pos = f.position or {}
-        if pos.get("x") is None or pos.get("y") is None:
-            continue  # 未布点
-        x, y = float(pos["x"]), float(pos["y"])
+        # P0 多实例: 优先读 placements; 空则回退旧 f.position (兼容既有数据)
+        points = []
+        pls = getattr(f, "placements", None) or []
+        for pl in pls:
+            p = pl.position or {}
+            if p.get("x") is not None and p.get("y") is not None:
+                points.append((float(p["x"]), float(p["y"]), pl.seq))
+        if not points:
+            pos = f.position or {}
+            if pos.get("x") is None or pos.get("y") is None:
+                continue  # 未布点
+            points.append((float(pos["x"]), float(pos["y"]), 1))
         cat = (f.category or "P1").upper()
         color = cat_colors.get(cat, 7)
         layer_name = sym["layer"] if sym else f"TAF-FACILITY-{item_id}"
@@ -151,23 +159,24 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
             block_name = f"SYM_{item_id.replace('-', '_')}"
             if block_name not in doc.blocks:
                 blk = doc.blocks.new(name=block_name)
-                for qx, qy in _svg_path_to_polylines(sym["path"], scale=6):
-                    pass
-                # 画轮廓 (polyline 折线近似, 闭合首尾)
                 poly = _svg_path_to_polylines(sym["path"], scale=6)
                 if len(poly) >= 3:
                     blk.add_lwpolyline(poly, close=True, dxfattribs={"color": color, "layer": "0"})
-            msp.add_blockref(block_name, (x, y), dxfattribs={"layer": layer_name})
+            for x, y, seq in points:
+                msp.add_blockref(block_name, (x, y), dxfattribs={"layer": layer_name})
         else:
             # fallback: 圆
-            msp.add_circle(center=(x, y), radius=4, dxfattribs={"layer": layer_name, "color": color})
-        # 编号标签 (独立 TAF-LABEL 层, 便于统一关闭)
+            for x, y, seq in points:
+                msp.add_circle(center=(x, y), radius=4, dxfattribs={"layer": layer_name, "color": color})
+        # 编号标签 (独立 TAF-LABEL 层, 便于统一关闭); 多实例带序号
         label_id = item_id.replace("P", "").replace("-", "")[:6]
         if "TAF-LABEL" not in doc.layers:
             doc.layers.add(name="TAF-LABEL", color=colors.CYAN)
-        msp.add_text(label_id, dxfattribs={
-            "layer": "TAF-LABEL", "color": colors.CYAN, "height": 6,
-        }).set_placement((x + 6, y + 4))
+        for x, y, seq in points:
+            txt = label_id if len(points) <= 1 else f"{label_id}-{seq}"
+            msp.add_text(txt, dxfattribs={
+                "layer": "TAF-LABEL", "color": colors.CYAN, "height": 6,
+            }).set_placement((x + 6, y + 4))
 
     # ═══ Legend: 表格, 一行一图例 (旧层 + 新布点层) ═══
     legend_x, legend_y = 50, 50

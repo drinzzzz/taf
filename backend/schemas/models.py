@@ -150,6 +150,31 @@ class FacilityBatchCreate(BaseModel):
     facilities: List[FacilityCreate]
 
 
+# ── 布点实例 (一标准项多点位) ──
+
+class PlacementIn(BaseModel):
+    facility_id: Optional[UUID] = None   # 一般由 URL 提供
+    position: Dict   # {x, y, lng, lat}
+    seq: Optional[int] = None   # 缺省 = 自动取 max+1
+
+
+class PlacementUpdate(BaseModel):
+    position: Optional[Dict] = None
+    seq: Optional[int] = None
+
+
+class PlacementOut(BaseModel):
+    id: UUID
+    facility_id: UUID
+    project_id: UUID
+    seq: int
+    position: Dict
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 # ── 空间 ──
 
 class SpaceCreate(BaseModel):

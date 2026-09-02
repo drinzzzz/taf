@@ -104,11 +104,38 @@ class Facility(Base):
     location = Column(Geometry("POINT", srid=4326))
 
     project = relationship("Project", back_populates="facilities")
+    placements = relationship("FacilityPlacement", order_by="FacilityPlacement.seq",
+                              cascade="all, delete-orphan", lazy="selectin")
 
     __table_args__ = (
         Index("idx_facilities_project", "project_id"),
         Index("idx_facilities_status", "status"),
         Index("idx_facilities_location", "location", postgresql_using="gist"),
+    )
+
+
+class FacilityPlacement(Base):
+    """设施布点实例 — 一个标准项可有多个点位 (P0 架构重构)
+
+    facility_id → facilities.id; seq 为该设施下第几个点 (1..n)
+    position: {x, y, lng, lat} 世界坐标 (CAD 导出用)
+    """
+    __tablename__ = "facility_placements"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    facility_id = Column(UUID(as_uuid=True), ForeignKey("facilities.id", ondelete="CASCADE"), nullable=False)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    seq = Column(Integer, default=1, nullable=False)
+    position = Column(JSONB, nullable=False)  # {x, y, lng, lat}
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    facility = relationship("Facility", back_populates="placements")
+    project = relationship("Project")
+
+    __table_args__ = (
+        Index("idx_placements_facility", "facility_id"),
+        Index("idx_placements_project", "project_id"),
     )
 
 

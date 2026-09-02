@@ -6,8 +6,9 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
-from models.database import Project, Facility, StandardPlugin
+from models.database import Project, Facility, StandardPlugin, FacilityPlacement
 
 logger = logging.getLogger("taf.deliverables")
 
@@ -35,9 +36,10 @@ async def _get_standard(project: Project, db: AsyncSession) -> StandardPlugin:
 
 
 async def _get_facilities(project_id: UUID, db: AsyncSession) -> list:
-    """获取项目设施列表，按 category + standard_item_id 排序"""
+    """获取项目设施列表 (含 placements 多实例), 按 category + standard_item_id 排序"""
     result = await db.execute(
         select(Facility)
+        .options(selectinload(Facility.placements))
         .where(Facility.project_id == project_id)
         .order_by(Facility.category, Facility.standard_item_id)
     )

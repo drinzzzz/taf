@@ -6,9 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
-from models.database import Facility, Project, StandardPlugin
+from models.database import Facility, Project, StandardPlugin, FacilityPlacement
 from schemas.models import (
     FacilityCreate, FacilityUpdate, FacilityOut, FacilityBatchCreate,
+    PlacementIn, PlacementUpdate, PlacementOut,
 )
 from deps import get_db, get_current_user
 
@@ -170,3 +171,121 @@ async def auto_place_facilities(project_id: UUID, db: AsyncSession = Depends(get
         "existing_count": len(existing),
         "suggestions": suggestions,
     }
+
+
+# ═══════════════════════════════════════════════════════════════
+#  布点实例 (P0 重构): 一标准项多 markers — facility_placements
+# ═══════════════════════════════════════════════════════════════
+
+def _facility_belongs(db_fac, project_id) -> bool:
+    return db_fac and str(db_fac.project_id) == str(project_id)
+
+
+@router.get("/facilities/{facility_id}/placements", response_model=list[PlacementOut])
+async def list_placements(facility_id: UUID, db: AsyncSession = Depends(get_db)):
+    """某设施的全部布点实例 (按 seq 排序)"""
+    res = await db.execute(
+        select(FacilityPlacement)
+        .where(FacilityPlacement.facility_id == facility_id)
+        .order_by(FacilityPlacement.seq)
+    )
+    return res.scalars().all()
+
+
+@router.post("/facilities/{facility_id}/placements", response_model=PlacementOut, status_code=201)
+async def add_placement(facility_id: UUID, body: PlacementIn, db: AsyncSession = Depends(get_db)):
+    """追加一个布点实例 (seq 自动 = max+1)"""
+    fac = await db.get(Facility, facility_id)
+    if not fac:
+        raise HTTPException(404, "设施不存在")
+    # 项目一致性: facility 的项目即 placement 项目
+    maxq = await db.execute(
+        select(func.coalesce(func.max(FacilityPlacement.seq), 0)).where(
+            FacilityPlacement.facility_id == facility_id)
+    )
+    _m = maxq.scalar() or 0
+    seq = body.seq if body.seq else int(_m) + 1
+    row = FacilityPlacement(
+        facility_id=facility_id,
+        project_id=fac.project_id,
+        seq=seq,
+        position=body.position,
+    )
+    db.add(row)
+    await db.commit()
+    await db.refresh(row)
+    return row
+
+
+@router.put("/placements/{placement_id}", response_model=PlacementOut)
+async def update_placement(placement_id: UUID, body: PlacementUpdate,
+                           db: AsyncSession = Depends(get_db)):
+    """更新单个布点 (拖动微调坐标 / 调整 seq)"""
+    row = await db.get(FacilityPlacement, placement_id)
+    if not row:
+        raise HTTPException(404, "布点不存在")
+    if body.position is not None:
+        row.position = body.position
+    if body.seq is not None:
+        row.seq = body.seq
+    await db.commit()
+    await db.refresh(row)
+    return row
+
+
+@router.delete("/placements/{placement_id}", status_code=204)
+async def delete_placement(placement_id: UUID, db: AsyncSession = Depends(get_db)):
+    """删除单个布点实例"""
+    row = await db.get(FacilityPlacement, placement_id)
+    if not row:
+        raise HTTPException(404, "布点不存在")
+    await db.delete(row)
+    await db.commit()
+
+
+@router.delete("/facilities/{facility_id}/placements", status_code=204)
+async def clear_placements(facility_id: UUID, db: AsyncSession = Depends(get_db)):
+    """清空某设施全部布点实例"""
+    fac = await db.get(Facility, facility_id)
+    if not fac:
+        raise HTTPException(404, "设施不存在")
+    res = await db.execute(
+        select(FacilityPlacement.id).where(FacilityPlacement.facility_id == facility_id)
+    )
+    for (pid,) in res.all():
+        row = await db.get(FacilityPlacement, pid)
+        if row:
+            await db.delete(row)
+    await db.commit()
+
+
+@router.put("/facilities/{facility_id}/placements/batch", response_model=list[PlacementOut])
+async def replace_placements(facility_id: UUID, body: list[PlacementIn],
+                             db: AsyncSession = Depends(get_db)):
+    """批量替换 (自动布点): 清空旧点 → 按 body 顺序重建 seq"""
+    fac = await db.get(Facility, facility_id)
+    if not fac:
+        raise HTTPException(404, "设施不存在")
+    # 清空
+    res = await db.execute(
+        select(FacilityPlacement.id).where(FacilityPlacement.facility_id == facility_id)
+    )
+    for (pid,) in res.all():
+        row = await db.get(FacilityPlacement, pid)
+        if row:
+            await db.delete(row)
+    # 重建
+    created = []
+    for i, item in enumerate(body, start=1):
+        row = FacilityPlacement(
+            facility_id=facility_id,
+            project_id=fac.project_id,
+            seq=item.seq or i,
+            position=item.position,
+        )
+        db.add(row)
+        created.append(row)
+    await db.commit()
+    for r in created:
+        await db.refresh(r)
+    return created
