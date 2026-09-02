@@ -33,9 +33,15 @@ def hex2rgb(h):
     return RGBColor(int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
 
 def no_shadow(obj):
+    # 🔴 阴影根因: 形状带 <p:style><a:effectRef idx=N> 引用主题效果样式(默认含 outerShdw)
+    #   → 即使 spPr 无 effectLst, PPT 仍按主题渲染阴影。修复: 删除 p:style 引用 + 清空 effectLst
     try:
-        for el in obj._element.spPr.findall(qn('a:effectLst')):
-            obj._element.spPr.remove(el)
+        el = obj._element
+        st = el.find(qn('p:style'))
+        if st is not None:
+            el.remove(st)
+        for e2 in el.spPr.findall(qn('a:effectLst')):
+            el.spPr.remove(e2)
     except Exception:
         pass
 
