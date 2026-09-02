@@ -2344,8 +2344,14 @@ const BasemapEditor = {
               }
               // 排除其他建筑块内部 (多建筑时避免落入邻楼)
               if (pointBlocked(x, y)) continue
+              // 贴墙下限: 点不压墙 (距任何建筑环边 < 边距 margin → 剔除; 设施需离墙留位)
+              if (buildingBlocks.some(p => pointDistToRing(x, y, p.ring) < margin)) continue
               // 避让节点/广场区域: 贴墙设施不落广场中央
               if (inAnyNode(x, y)) continue
+              // 🔴 贴红线死角剔除 (用户修正): 建筑朝向红线侧的外墙, 若墙外净空不足
+              //   (距红线 < 3×spacing) 即建筑与红线之间的狭缝死角 (红线外=马路/邻楼共墙),
+              //   贴墙点不布入该狭缝 (102-4 曾布入 B#9 北墙与红线的楔形缝)
+              if (redlineRing && pointDistToRing(x, y, redlineRing) < spacing * 3) continue
             } else {
               // 开放空间规则: 点在多边形内且非洞 (原语义)
               if (bb.polys && !pointInPlaceableArea(x, y, bb.polys)) continue
