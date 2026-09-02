@@ -105,6 +105,8 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
     # 布点候选白名单 (与前端 NON_PLACABLE 互补: 这些项才可布点)
     _non_placable = {"P2-02","P2-03","P2-04","P2-05","P2-06","P3-01","P3-02","P3-03",
                      "P3-04","P3-05","P3-06","P5-02","P5-03","P6-01","P6-02","P6-04"}
+    # 区域型标准项 (非点位 → DXF 文字标注, 与前端 AREA_ITEMS 对齐)
+    _area_items = {"P1-01": "防滑处理区"}
 
     def _svg_path_to_polylines(path_d: str, scale: float = 0.4) -> list:
         """Maki SVG path → 折线点列表 (相对坐标, 中心在原点, 单位尺寸)"""
@@ -154,6 +156,14 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
         if layer_name not in doc.layers:
             doc.layers.add(name=layer_name, color=color)
 
+        # 区域型: 文字标注 (非 blockref/圆)
+        if item_id in _area_items:
+            area_text = _area_items[item_id]
+            for x, y, seq in points:
+                msp.add_text(area_text, dxfattribs={
+                    "layer": layer_name, "color": color, "height": 5,
+                }).set_placement((x, y))
+            continue
         if sym and sym.get("path"):
             # 生成/复用 block
             block_name = f"SYM_{item_id.replace('-', '_')}"

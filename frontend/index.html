@@ -852,18 +852,20 @@ const BasemapEditor = {
                @click="selectFacility(f)" @dblclick="focusFacility(f)"
                @mouseenter="e=>e.currentTarget.style.background='#ffffff0a'" @mouseleave="e=>e.currentTarget.style.background=selectedFac?.id===f.id?'#ffffff12':''">
             <div style="display:flex;align-items:center;gap:6px">
-              <svg v-if="facSymbol(f)?.path" :viewBox="facSymbol(f).viewbox" style="width:17px;height:17px;flex-shrink:0" :style="{fill:facColor(f)}"><path :d="facSymbol(f).path"/></svg>
+              <span v-if="isAreaItem(f)" style="width:17px;height:17px;flex-shrink:0;border-radius:4px;background:facColor(f)+'33';border:1px solid facColor(f);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:facColor(f)">区</span>
+              <svg v-else-if="facSymbol(f)?.path" :viewBox="facSymbol(f).viewbox" style="width:17px;height:17px;flex-shrink:0" :style="{fill:facColor(f)}"><path :d="facSymbol(f).path"/></svg>
               <span v-else :style="{width:'10px',height:'10px',borderRadius:'50%',background:facColor(f),flexShrink:0}"></span>
-              <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="f.name">{{ f.name }}</span>
+              <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="f.name">{{ f.name }}<span v-if="isAreaItem(f)" style="font-size:11px;color:var(--muted)">（区域标注）</span></span>
               <button class="btn sm" style="padding:1px 6px;font-size:13px;flex-shrink:0;color:#e6a23c" @click.stop="selectFacility(f); hideTools=false; autoPanelActive=true" title="按该项规则自动布点">⚡</button>
               <span style="font-size:12px;color:var(--muted);flex-shrink:0">{{ f.standard_item_id }}</span>
-              <button v-if="placCount(f)>0" class="btn sm" style="padding:1px 6px;font-size:12px;flex-shrink:0;color:#f56c6c" @click.stop="removePlacement(f)" title="清空该项全部布点">🗑</button>
+              <button v-if="placCount(f)>0" class="btn sm" style="padding:1px 6px;font-size:12px;flex-shrink:0;color:#f56c6c" @click.stop="removePlacement(f)" title="清空该项全部标注">🗑</button>
             </div>
             <div style="display:flex;align-items:center;gap:6px;margin:2px 0 0 23px">
               <span v-if="f.status!=='confirmed'" style="font-size:12px;padding:0 6px;border-radius:3px" :style="{background:facStatusColor(f.status)+'22',color:facStatusColor(f.status)}">{{ facStatusCN(f.status) }}</span>
               <span v-if="placCount(f)>0" style="font-size:12px;color:#67c23a;font-weight:600">{{ placCount(f) }} 点</span>
               <span v-else style="font-size:12px;color:#e6a23c">未布点</span>
-              <span style="font-size:11px;color:var(--muted)">点击选择后画布落点</span>
+              <span v-if="isAreaItem(f)" style="font-size:11px;color:var(--muted)">画布落点 = 区段标注文字位置</span>
+              <span v-else style="font-size:11px;color:var(--muted)">点击选择后画布落点</span>
             </div>
           </div>
           <div v-if="!filteredFacilities.length" style="font-size:14px;color:var(--muted);padding:12px 0;text-align:center">无设施</div>
@@ -1077,6 +1079,10 @@ const BasemapEditor = {
     const NON_PLACABLE = new Set(['P2-02','P2-03','P2-04','P2-05','P2-06',
       'P3-01','P3-02','P3-03','P3-04','P3-05','P3-06',
       'P5-02','P5-03','P6-01','P6-02','P6-04'])
+    // 区域型标准项 (非点位, 面域/区段整体诉求 → 标注文本, 无 maki 图钉 marker)
+    const AREA_ITEMS = { 'P1-01': '防滑处理区' }
+    const isAreaItem = (f) => !!(f && AREA_ITEMS[f.standard_item_id])
+    const areaLabelOf = (f) => (f && AREA_ITEMS[f.standard_item_id]) || '区域'
     // 图例行颜色 (P 类)
     const CAT_COLORS = { 'P1': '#4f8cff', 'P2': '#67c23a', 'P3': '#e6a23c', 'P4': '#c97dff', 'P5': '#f56c6c', 'P6': '#8b8fa3' }
 
@@ -1891,7 +1897,17 @@ const BasemapEditor = {
           const sp = worldToScreen(pt.x, pt.y)
           const x = sp.x, y = sp.y
           let marker
-          if (sym?.path) {
+          if (isAreaItem(f)) {
+            // 区域型 (P1-01 防滑等): 文字标注带框, 非图钉 — C 方案
+            const label = areaLabelOf(f)
+            const t = new fabric.Text(label, {
+              left: x - 34, top: y - 8, fontSize: 12, fill: '#111318',
+              backgroundColor: color, padding: 3, fontFamily: 'sans-serif',
+              hasControls: false, lockRotation: true, lockScalingX: true, lockScalingY: true,
+            })
+            t._isAreaMark = true
+            marker = t
+          } else if (sym?.path) {
             marker = makeSymbol(sym.path, sym.viewbox, x, y, size, color)
           } else {
             marker = new fabric.Circle({
@@ -1913,26 +1929,29 @@ const BasemapEditor = {
           marker.lockScalingY = true
           marker.hasControls = false
 
-          // 编号标签 (带序号)
+          // 编号标签 (带序号) — 区域型已是文字标注, 跳过旁路编号
           const base = (f.standard_item_id || '').replace('P', '').replace('-', '')
-          const lbl = new fabric.Text((pts.length > 1 ? base + '-' + (pt.seq || 1) : base) || '', {
-            left: x + size / 2 + 1, top: y - size / 2 - 1,
-            fontSize: Math.max(6, size * 0.45), fill: color, fontFamily: 'sans-serif',
-            selectable: false, evented: false,
-          })
-          lbl._isFacilityLabel = true
+          let lbl = null
+          if (!isAreaItem(f)) {
+            lbl = new fabric.Text((pts.length > 1 ? base + '-' + (pt.seq || 1) : base) || '', {
+              left: x + size / 2 + 1, top: y - size / 2 - 1,
+              fontSize: Math.max(6, size * 0.45), fill: color, fontFamily: 'sans-serif',
+              selectable: false, evented: false,
+            })
+            lbl._isFacilityLabel = true
+          }
 
           const lobj = layers.value.find(l => l.name === facLayer)
           if (lobj) {
-            if (lobj.visible) { fabricCanvas.add(marker); fabricCanvas.add(lbl) }
+            if (lobj.visible) { fabricCanvas.add(marker); if (lbl) fabricCanvas.add(lbl) }
             marker.visible = lobj.visible
-            lbl.visible = lobj.visible
+            if (lbl) lbl.visible = lobj.visible
             if (lobj.locked) { marker.selectable = false; marker.evented = false }
           } else {
             fabricCanvas.add(marker)
-            fabricCanvas.add(lbl)
+            if (lbl) fabricCanvas.add(lbl)
           }
-          facilityMarkers.push(marker, lbl)
+          facilityMarkers.push(marker); if (lbl) facilityMarkers.push(lbl)
         })
       })
       fabricCanvas.requestRenderAll()
@@ -2380,7 +2399,7 @@ const BasemapEditor = {
       hideLeft, hideLib, hideTools, fullscreen, trueFs, toggleTrueFullscreen, showAllFac,
       loading, loadProgress, loadStage,
       setTool, selectFacility, facFilter, filteredFacilities, selectedFac, facPlaceHint,
-      facSymbol, facColor, placCount, placableCount, autoPlacing, placeStrategy, placeSpacing,
+      facSymbol, facColor, isAreaItem, areaLabelOf, placCount, placableCount, autoPlacing, placeStrategy, placeSpacing,
       placeMargin, perRow, symScale, autoOverwrite, scheduleReauto,
       openAutoPlace, runAutoPlace, autoPanelActive, legendRows, buildLegend,
       availableStrategies, autoPlaceFacility,
