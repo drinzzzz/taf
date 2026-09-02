@@ -115,7 +115,7 @@ for idx, item in enumerate(items):
         xs = [p[0] for p in pts]; ys = [p[1] for p in pts]
         ox_c = (min(xs) + max(xs)) / 2
         oy_c = (min(ys) + max(ys)) / 2
-        sp_pts = [(cx + (u - ox_c) * k * EMU, cy_circle + (v - oy_c) * k * EMU) for u, v in pts]
+        sp_pts = [((cx + (u - ox_c) * k) * EMU, (cy_circle + (v - oy_c) * k) * EMU) for u, v in pts]
         fb = slide.shapes.build_freeform(int(sp_pts[0][0]), int(sp_pts[0][1]), scale=1.0)
         fb.add_line_segments([(int(a), int(b)) for a, b in sp_pts[1:]], close=True)
         sp = fb.convert_to_shape()
