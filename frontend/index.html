@@ -759,7 +759,7 @@ const BasemapEditor = {
       <button class="btn" @click="redoPlacement" :disabled="!redoStack.length" title="重做 (Ctrl+Y)">↷ 重做</button>
       <button class="btn" :class="{primary:tool==='pan'}" @click="setTool('pan')" title="平移图纸/选择">✋ 平移图纸</button>
       <button class="btn" :class="{primary:tool==='place'}" @click="setTool('place')" title="手动布点(再点或 Esc 取消)" style="color:#67c23a">✍️ 手动布点</button>
-      <button class="btn" :class="{primary:autoPanelActive}" @click="openAutoPlace" title="自动布点(再点收起面板)">⚡ 自动布点</button>
+      <button class="btn" :class="{primary:autoPanelActive}" @click="openAutoPlace" title="展开/收起布点工具面板 (策略·参数·执行)">⚙️ 布点工具</button>
       <button class="btn" @click="fitScreen">⊞ 适应窗口</button>
       <button class="btn" @click="toggleTrueFullscreen" :title="trueFs ? '退出全屏' : '进入全屏(沉浸式)'">{{ trueFs ? '⛶ 退出全屏' : '🖥️ 进入全屏' }}</button>
       <button class="btn" @click="exportView">📸 截图导出</button>
@@ -2158,9 +2158,9 @@ const BasemapEditor = {
       autoPanelActive.value = !autoPanelActive.value
       hideTools.value = !autoPanelActive.value    // 面板随 toggle 显示/隐藏
       if (autoPanelActive.value) {
-        toast.show('⚡ 自动布点工具已展开 — 配置后点「🚀 自动布点」执行')
+        toast.show('⚙️ 布点工具已展开 — 配置后点「🚀 自动布点」执行')
       } else {
-        toast.show('自动布点工具已收起')
+        toast.show('⚙️ 布点工具已收起')
       }
     }
 
