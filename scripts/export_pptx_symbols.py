@@ -106,6 +106,18 @@ def add_freeform(slide, pts_px, close, fill_rgb=None, line_rgb=None, lw_px=0):
     no_shadow(sp)
     return sp
 
+# 🔴 实心页局部涂黑映射 (用户 2026-09-03 指定): item -> 折线索引(按 path 顺序)
+BLACK_PARTS = {
+    'P1-01': [1],                        # 斑马块中间横条
+    'P1-02': [2],                        # 饮水小倒梯形
+    'P1-03': [2],                        # 拉手小矩形
+    'P1-04': [1, 2],                     # 感叹号 (竖条+点)
+    'P4-02': [1],                        # 中间梯形
+    'P4-07': [4, 5, 6],                  # 下方三个小形状
+    'P5-04': list(range(1, 11)),         # 手机屏幕 + 9 按键
+    'P6-03': [2, 3, 4],                  # 三条立柱
+}
+
 def draw_page(mode):
     slide = prs.slides.add_slide(prs.slide_layouts[6])
     if mode == 'outline':
@@ -151,12 +163,21 @@ def draw_page(mode):
                 px = [to_px(u, v) for u, v in l['pts']]
                 add_freeform(slide, px, l['close'], fill_rgb=None, line_rgb=WHITE, lw_px=2.0)
         else:
-            # 实心页: 白色实心剪影 (全部折线 fill 白) + 黑色结构线 (每条折线黑描,
-            # 外轮廓与内部结构/接缝/水花全部保留, 不做大面积黑块误判)
-            for l in lines:
+            # 实心页: 白色实心剪影 + 黑色结构线; 个别内部件整块涂黑 (用户指定 BLACK_PARTS)
+            black_idx = set(BLACK_PARTS.get(item, []))
+            for i, l in enumerate(lines):
                 px = [to_px(u, v) for u, v in l['pts']]
+                if i in black_idx:
+                    continue   # 黑件稍后覆盖画 (保证盖住共边白)
                 add_freeform(slide, px, l['close'], fill_rgb=WHITE, line_rgb=BLACK, lw_px=1.8)
-            for l in lines:
+            for i, l in enumerate(lines):
+                if i not in black_idx:
+                    continue
+                px = [to_px(u, v) for u, v in l['pts']]
+                add_freeform(slide, px, l['close'], fill_rgb=BLACK, line_rgb=None)
+            for i, l in enumerate(lines):
+                if i in black_idx:
+                    continue
                 px = [to_px(u, v) for u, v in l['pts']]
                 add_freeform(slide, px, l['close'], fill_rgb=None, line_rgb=BLACK, lw_px=2.6)
         t0 = cy_c + CIRCLE_D / 2 + 26
