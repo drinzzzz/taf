@@ -181,6 +181,9 @@ def add_title(slide, idx, name):
     no_shadow(tb)
 
 # ── 页面清单 ──
+_FAC_NAME = {f['standard_item_id']: f['name'] for f in placements['facilities']}
+def _fac_name(item):
+    return _FAC_NAME.get(item, item)
 pages = [('composite', '全部底图 + 全部点位', 'comp'),
          ('basemap', '全部底图 (无点位)', 'base'),
          ('basemap-clean', '素色底图 (无彩色)', 'clean')]
@@ -188,7 +191,7 @@ for L in ['TAF-BOUNDARY', 'TAF-BUILDING', 'TAF-CHANNEL', 'TAF-NODE', 'TAF-GREEN'
     pages.append((f'map-{L}', f'语义层 {L}', 'map:' + L))
 items = [f['standard_item_id'] for f in placements['facilities'] if f['placements']]
 for it in items:
-    pages.append((f'layer-{it}', f'点位层 {it}', 'layer:' + it))
+    pages.append((f'layer-{it}', f'{_fac_name(it)} {it}', 'layer:' + it))
 
 prs = Presentation()
 prs.slide_width = Emu(int(PAGE_W * EMU))
