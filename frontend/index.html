@@ -2278,21 +2278,31 @@ const BasemapEditor = {
       // 锚点选择 (按规则)
       const pools = (STRATEGY_POOL[strat] || ['channel']).map(t => poolOf(t)).filter(p => p.length)
       const anchors = pools.length ? pools[0] : allPool
-      // 目标数量: 锚点可用承载 (弹性: 每锚点 至少1, 按 bbox 尺寸/间距推导, 上限=规则默认 cap)
+      // 目标数量: 全程扫描收集全部有效点, 再按主轴均匀抽样 rowCap 个
       // 🔴 洞语义: 锚点带 polys 时仅保留"外环内且非洞内"候选点 (大 polygon 包小 polygon = 排除)
+      // 🔴 修复: 原"从 bbox 起点顺序取满 rowCap 即停"导致点全挤在通道起点尖角
       const out = []
       for (const bb of anchors) {
         const capW = Math.max(1, Math.floor((bb.maxX - bb.minX) / Math.max(spacing, 8)))
         const capH = Math.max(1, Math.floor((bb.maxY - bb.minY) / Math.max(spacing, 8)))
-        let got = 0
-        for (let row = 0; row < capH && got < rowCap; row++) {
-          for (let col = 0; col < capW && got < rowCap; col++) {
+        const cands = []
+        for (let row = 0; row < capH; row++) {
+          for (let col = 0; col < capW; col++) {
             const x = bb.minX + margin + col * spacing + (row % 2) * (spacing / 2)
             const y = bb.minY + margin + row * spacing
             if (bb.polys && !pointInPlaceableArea(x, y, bb.polys)) continue   // 洞内/环外 → 跳过
-            out.push({ x: Math.round(x), y: Math.round(y) })
-            got++
+            cands.push({ x: Math.round(x), y: Math.round(y) })
           }
+        }
+        if (!cands.length) continue
+        // 按主轴排序: 形状长边方向优先展开 (通道等细长带)
+        const spanX = bb.maxX - bb.minX, spanY = bb.maxY - bb.minY
+        cands.sort((a, b) => (spanX >= spanY) ? (a.x - b.x || a.y - b.y) : (a.y - b.y || a.x - b.x))
+        // 均匀抽样 rowCap 个 (覆盖全段, 首尾尽量包含)
+        const need = Math.min(rowCap, cands.length)
+        for (let k = 0; k < need; k++) {
+          const idx = Math.round((cands.length - 1) * k / Math.max(need - 1, 1))
+          out.push(cands[idx])
         }
       }
       // 锚点不足但期望多些 → 均匀散布区域 (弹性: 至少能布出来)
