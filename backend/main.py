@@ -1,6 +1,7 @@
 """
 它界 TAF — FastAPI 主入口
 """
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -11,6 +12,16 @@ from sqlalchemy import text
 from config import get_settings
 from deps import get_engine, get_async_sessionmaker
 from models.database import Base
+
+# ── 全局日志配置（业务 logger taf.* 输出到 stderr → journalctl）──
+# 2026-09-02: 此前无任何 logging 配置, 业务日志(上传/评估/成果生成)全被静默吞掉,
+# 排查问题只能靠 uvicorn 访问日志。此处统一接管, INFO 及以上可见。
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logging.getLogger("taf").setLevel(logging.INFO)
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)  # 访问日志降噪
 
 from routers.projects import router as projects_router
 from routers.facilities import router as facilities_router

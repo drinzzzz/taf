@@ -4,6 +4,7 @@ settings = get_settings()
 它界 TAF — 底图/空间路由
 """
 from uuid import UUID
+import logging
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -11,6 +12,8 @@ from sqlalchemy import select
 from models.database import Project, Basemap, Space
 from schemas.models import BasemapOut, SpaceOut, SpaceCreate
 from deps import get_db, get_current_user
+
+logger = logging.getLogger("taf.basemaps")
 
 router = APIRouter(prefix="/api", tags=["底图与空间"])
 
@@ -33,10 +36,16 @@ async def upload_basemap(
     user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    raw_name = (file.filename or "untitled").encode("utf-8", "ignore").decode("utf-8", "ignore")
+    logger.info(f"[UPLOAD] begin project={project_id} file={raw_name!r}")
+    import time as _time
+    _t0 = _time.time()
+
     p = (await db.execute(
         select(Project).where(Project.id == project_id, Project.deleted_at.is_(None))
     )).scalar_one_or_none()
     if not p:
+        logger.warning(f"[UPLOAD] FAIL project not found: {project_id}")
         raise HTTPException(404, "项目不存在")
 
     import os, re, aiofiles
@@ -48,10 +57,11 @@ async def upload_basemap(
     # 白名单：仅允许的扩展名
     ALLOWED_EXTENSIONS = {"dxf", "png", "jpg", "jpeg", "pdf"}
     if ext not in ALLOWED_EXTENSIONS:
+        logger.warning(f"[UPLOAD] FAIL bad extension .{ext} file={raw_name!r}")
         raise HTTPException(400, f"不支持的文件类型 .{ext}，仅允许: {', '.join(sorted(ALLOWED_EXTENSIONS))}")
 
     # 安全文件名：去除路径遍历字符，仅保留字母数字中文点横线
-    safe_name = re.sub(r'[^\w\u4e00-\u9fff.\\-]', '_', os.path.basename(raw_name))
+    safe_name = re.sub(r'[^\w\u4e00-\u9fff.\-]', '_', os.path.basename(raw_name))
     if not safe_name or safe_name.startswith('.'):
         safe_name = f"upload_{ext}"
 
@@ -59,19 +69,33 @@ async def upload_basemap(
     os.makedirs(upload_dir, exist_ok=True)
 
     file_path = os.path.join(upload_dir, safe_name)
-    async with aiofiles.open(file_path, "wb") as f:
-        content = await file.read()
-        await f.write(content)
+    try:
+        async with aiofiles.open(file_path, "wb") as f:
+            content = await file.read()
+            await f.write(content)
+    except Exception as e:
+        logger.exception(f"[UPLOAD] FAIL write error file={raw_name!r} path={file_path}: {e}")
+        raise HTTPException(500, f"文件保存失败: {e}")
 
-    basemap = Basemap(
-        project_id=project_id,
-        name=name or file.filename,
-        file_type=ext,
-        file_url=file_path,
-    )
-    db.add(basemap)
-    await db.commit()
-    await db.refresh(basemap)
+    file_size = len(content) if isinstance(content, (bytes, bytearray)) else os.path.getsize(file_path)
+    logger.info(f"[UPLOAD] written {file_size}B -> {file_path} ({( _time.time() - _t0) * 1000:.0f}ms)")
+
+    try:
+        basemap = Basemap(
+            project_id=project_id,
+            name=name or file.filename,
+            file_type=ext,
+            file_url=file_path,
+        )
+        db.add(basemap)
+        await db.commit()
+        await db.refresh(basemap)
+    except Exception as e:
+        logger.exception(f"[UPLOAD] FAIL db commit file={raw_name!r}: {e}")
+        raise HTTPException(500, f"数据库记录失败: {e}")
+
+    logger.info(f"[UPLOAD] OK id={basemap.id} file={raw_name!r} size={file_size}B type={ext} "
+                f"({(_time.time() - _t0) * 1000:.0f}ms)")
     return basemap
 
 
