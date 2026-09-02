@@ -2294,6 +2294,15 @@ const BasemapEditor = {
         maxX: Math.max(...allPool.map(b=>b.maxX)), maxY: Math.max(...allPool.map(b=>b.maxY)),
       } : null)
       if (!allPool.length && !region) return []
+      // 🔴 红线外轮廓避让 (全局约束, 用户规则): 红线 = 场地边界; 线外不是马路就是红线外邻楼共墙,
+      //   物理上不可能布点 → 所有规则候选点须落在红线多边形内, 且距红线环 ≥ 避让带(取 1×间距)
+      const redlineRing = (poolOf('boundary')[0]?.polys?.[0]?.ring) || null
+      const redlineClear = Math.max(spacing, 10)
+      const offRedline = (x, y) => {
+        if (!redlineRing) return false   // 图纸未画闭合红线 → 不启用该约束 (兼容旧图)
+        const d = pointDistToRing(x, y, redlineRing)
+        return d < redlineClear || !pointInRing(x, y, redlineRing)
+      }
       // 锚点选择 (按规则)
       const pools = (STRATEGY_POOL[strat] || ['channel']).map(t => poolOf(t)).filter(p => p.length)
       const anchors = pools.length ? pools[0] : allPool
@@ -2335,6 +2344,8 @@ const BasemapEditor = {
               // 开放空间规则: 点在多边形内且非洞 (原语义)
               if (bb.polys && !pointInPlaceableArea(x, y, bb.polys)) continue
             }
+            // 红线外轮廓避让: 贴红线/越红线点剔除 (马路或红线外邻楼共墙, 不可布点)
+            if (offRedline(x, y)) continue
             cands.push({ x, y })
           }
         }
@@ -2357,7 +2368,7 @@ const BasemapEditor = {
           const row = Math.floor(k / Math.min(need, rowCap))
           const x = region.minX + margin + col*spacing + (row%2)*(spacing/2)
           const y = region.minY + margin + row*spacing
-          if (pointBlocked(x, y)) continue   // fallback 也不落建筑内
+          if (pointBlocked(x, y) || offRedline(x, y)) continue   // fallback 也不落建筑内/红线外
           out.push({ x: Math.round(x), y: Math.round(y) })
         }
       }
