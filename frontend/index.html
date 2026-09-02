@@ -57,6 +57,17 @@ label { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; te
 
 /* Empty state */
 .empty { text-align:center; padding:60px 20px; color:var(--muted); }.empty .icon { font-size:50px; margin-bottom:16px; }.scoring-row { display:flex; gap:8px; align-items:center; margin-bottom:6px; }.scoring-row input { flex:1; }.scoring-row input[type=number] { width:60px; flex:0 0 60px; }
+
+/* ── 底图工作台: 高度锁定, 页面无滚动, 仅内部面板滚动 (防双滚动条) ── */
+.main-fullwidth { overflow:hidden; height:calc(100vh - 48px); }
+.workbench-root { height:100%; display:flex; flex-direction:column; overflow:hidden; }
+
+/* ── Dark scrollbar (全局) ── */
+* { scrollbar-width:thin; scrollbar-color:#3a3f52 #14161f; }
+*::-webkit-scrollbar { width:8px; height:8px; }
+*::-webkit-scrollbar-track { background:#14161f; }
+*::-webkit-scrollbar-thumb { background:#3a3f52; border-radius:4px; }
+*::-webkit-scrollbar-thumb:hover { background:#4a5068; }
 </style>
 </head>
 <body>
@@ -88,7 +99,7 @@ const API = {
 }
 
 // ─── Toast ───
-const toast = { ref: ref(null), msg: ref(''), show(m) { this.msg.value = m; clearTimeout(this._t); this._t = setTimeout(() => this.msg.value = '', 2000); } }
+const toast = { ref: ref(null), msg: ref(''), show(m) { this.msg.value = m; clearTimeout(this._t); this._t = setTimeout(() => this.msg.value = '', 4500); } }
 
 // ─── Standards List ───
 const StandardsList = {
@@ -722,7 +733,7 @@ const ProjectDetail = {
 // ─── Basemap Editor ───
 const BasemapEditor = {
   template: `
-  <div style="display:flex;flex-direction:column;height:100vh;gap:0">
+  <div class="workbench-root" style="display:flex;flex-direction:column;height:100%;gap:0">
     <!-- Toolbar -->
     <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;flex-wrap:wrap;background:var(--card);border-bottom:1px solid var(--border)">
       <button class="btn" @click="$router.back()">← 返回项目</button>
@@ -765,14 +776,17 @@ const BasemapEditor = {
           </div>
         </div>
         <!-- Legend 图例表格 -->
-        <div style="font-size:14px;color:var(--muted);margin:16px 0 8px;font-weight:600;border-top:1px solid var(--border);padding-top:12px">📋 图例 Legend</div>
+        <div style="font-size:14px;color:var(--muted);margin:16px 0 8px;font-weight:600;border-top:1px solid var(--border);padding-top:12px">📋 图例 Legend ({{ legendRows.length }})</div>
         <table style="width:100%;border-collapse:collapse;font-size:13px">
           <tr v-for="lg in legendRows" :key="lg.layer" style="border-bottom:1px solid var(--border)">
-            <td style="padding:3px 4px;text-align:center;width:34px">
+            <td style="padding:4px;text-align:center;width:34px;vertical-align:top">
               <svg v-if="lg.icon" :viewBox="lg.viewbox||'0 0 15 15'" style="width:22px;height:22px;fill:'+'" :style="{fill:lg.color||'#e4e6eb'}"><path :d="lg.icon"/></svg>
-              <span v-else :style="{display:'inline-block',width:'10px',height:'10px',background:lg.color,borderRadius:'2px'}"></span>
+              <span v-else :style="{display:'inline-block',width:'11px',height:'11px',background:lg.color,borderRadius:'2px',marginTop:'3px'}"></span>
             </td>
-            <td style="padding:3px 4px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="lg.layer">{{ lg.label }}</td>
+            <td style="padding:4px">
+              <div style="color:var(--text);white-space:nowrap">{{ lg.main }}</div>
+              <div style="font-size:11px;color:var(--accent);font-family:monospace;white-space:nowrap;word-break:break-all">{{ lg.layer }}</div>
+            </td>
           </tr>
         </table>
         <div v-if="!legendRows.length" style="font-size:13px;color:var(--muted);padding:8px 0">暂无图例</div>
@@ -781,6 +795,14 @@ const BasemapEditor = {
       <!-- Canvas -->
       <div style="flex:1;position:relative;background:#111318;overflow:hidden" ref="canvasWrap">
         <canvas ref="canvasEl" id="taf-canvas"></canvas>
+        <!-- 加载进度条 -->
+        <div v-if="loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(10,12,20,0.75);z-index:20;gap:14px">
+          <div style="font-size:14px;color:var(--text);font-weight:600">{{ loadStage || '加载中...' }}</div>
+          <div style="width:60%;max-width:420px;height:8px;background:#ffffff14;border-radius:4px;overflow:hidden">
+            <div style="height:100%;background:var(--accent);border-radius:4px;transition:width .25s ease" :style="{width: loadProgress + '%'}"></div>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">{{ loadProgress }}%</div>
+        </div>
         <div v-if="hideLeft" style="position:absolute;top:8px;left:8px;z-index:5"><button class="btn sm" @click="hideLeft=false">» 图层</button></div>
         <div v-if="hideRight" style="position:absolute;top:8px;right:8px;z-index:5"><button class="btn sm" @click="hideRight=false">« 布点</button></div>
       </div>
@@ -939,14 +961,23 @@ const BasemapEditor = {
         backgroundColor: '#111318',
         selection: true,
         preserveObjectStacking: true,
+        renderOnDrag: false,          // 🔴 pan/拖拽时不逐帧 renderAll (性能)
+        enableRetinaScaling: false,   // 大图避免 retina 双倍像素开销
+        fireRightClick: false,
       })
+      // pan 用 rAF 合并渲染
+      let _panRaf = null
+      const scheduleRender = () => {
+        if (_panRaf) return
+        _panRaf = requestAnimationFrame(() => { _panRaf = null; fabricCanvas.renderAll() })
+      }
 
-      // Zoom
+      // Zoom (节流渲染)
       fabricCanvas.on('mouse:wheel', (opt) => {
         const delta = opt.e.deltaY
         let zoom = fabricCanvas.getZoom()
         zoom *= 0.999 ** delta
-        zoom = Math.max(0.1, Math.min(10, zoom))
+        zoom = Math.max(0.05, Math.min(20, zoom))
         fabricCanvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom)
         zoomPct.value = Math.round(zoom * 100)
         opt.e.preventDefault()
@@ -979,28 +1010,35 @@ const BasemapEditor = {
         if (isPanning) {
           const e = opt.e
           fabricCanvas.relativePan({ x: e.movementX, y: e.movementY })
+          scheduleRender()   // rAF 合并渲染
         }
       })
       fabricCanvas.on('mouse:up', () => {
         isPanning = false
         fabricCanvas.selection = true
         fabricCanvas.defaultCursor = 'default'
+        fabricCanvas.renderAll()
       })
-      // 设施 marker 拖动结束 → 保存新位置
+      // 设施 marker 拖动结束 → 保存新位置 (场景坐标 → 世界坐标)
       fabricCanvas.on('object:moving', (opt) => {
         if (opt.target?._isFacility) {
-          selectedObj.value = `📍 ${opt.target._facilityData?.name || ''} (${Math.round(opt.target.left)}, ${Math.round(opt.target.top)})`
+          const w = screenToWorld(opt.target.left, opt.target.top)
+          selectedObj.value = `📍 ${opt.target._facilityData?.name || ''} (${Math.round(w.x)}, ${Math.round(w.y)})`
         }
       })
       fabricCanvas.on('object:modified', async (opt) => {
         const t = opt.target
         if (t?._isFacility && t._facilityData?.id) {
+          const w = screenToWorld(t.left, t.top)   // 场景 → 世界
+          const x = Math.round(w.x), y = Math.round(w.y)
           try {
             await API.put('/projects/' + route.params.id + '/facilities/' + t._facilityData.id, {
-              position: { x: Math.round(t.left), y: Math.round(t.top), lng: null, lat: null }
+              position: { x, y, lng: null, lat: null }
             })
             const f = facilities.value.find(x => x.id === t._facilityData.id)
-            if (f) f.position = { x: Math.round(t.left), y: Math.round(t.top) }
+            if (f) f.position = { x, y }
+            // 拖动后 marker 场景位置可能因取整有偏差 → 重绘对齐
+            renderFacilityMarkers()
             toast.show('✅ 位置已保存: ' + (t._facilityData.name || ''))
           } catch(e) { console.error(e); toast.show('❌ 位置保存失败') }
         }
@@ -1012,13 +1050,16 @@ const BasemapEditor = {
       })
       fabricCanvas.on('selection:cleared', () => { selectedObj.value = '' })
 
-      // Resize
+      // Resize (节流 100ms, 面板收起展开时避免频繁重排)
+      let _rsTimer = null
       const ro = new ResizeObserver(() => {
-        if (fabricCanvas && wrap) {
+        if (!fabricCanvas || !wrap) return
+        if (_rsTimer) clearTimeout(_rsTimer)
+        _rsTimer = setTimeout(() => {
           fabricCanvas.setWidth(wrap.clientWidth)
           fabricCanvas.setHeight(wrap.clientHeight)
           fabricCanvas.renderAll()
-        }
+        }, 100)
       })
       ro.observe(wrap)
     }
@@ -1074,160 +1115,251 @@ const BasemapEditor = {
       t = t.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '')
       return t.trim()
     }
+    // ── 世界坐标 ↔ 屏幕坐标映射 (DXF Y 向上 → canvas Y 向下) ──
+    // pos/geoAnchors 存世界坐标 (供 CAD 导出), 渲染/取点时经此映射
+    let coordMap = { scale: 1, offX: 0, offY: 0, bbox: null }   // sx = wx*scale+offX, sy = -wy*scale+offY
+    const worldToScreen = (wx, wy) => ({ x: wx * coordMap.scale + coordMap.offX, y: -wy * coordMap.scale + coordMap.offY })
+    const screenToWorld = (sx, sy) => ({ x: (sx - coordMap.offX) / coordMap.scale, y: -(sy - coordMap.offY) / coordMap.scale })
+
+    // 进度条状态
+    const loading = ref(false)
+    const loadProgress = ref(0)
+    const loadStage = ref('')
+
+    // ── 离屏合成: 把 layers 数据画到离屏 canvas → dataURL (原生 2D, 一次性, 高性能) ──
+    let offCanvas = null, offCtx = null
+    let dxfWorldBounds = null   // 世界坐标 bbox
+
+    function computeWorldBounds(layerMap) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+      for (const ents of Object.values(layerMap)) {
+        for (const e of ents) {
+          if (e.type === 'LINE' && e.vertices?.length >= 2) {
+            for (const v of [e.vertices[0], e.vertices[1]]) { minX = Math.min(minX, v.x); maxX = Math.max(maxX, v.x); minY = Math.min(minY, v.y); maxY = Math.max(maxY, v.y) }
+          } else if ((e.type === 'LWPOLYLINE' || e.type === 'POLYLINE') && e.vertices?.length) {
+            for (const v of e.vertices) { minX = Math.min(minX, v.x); maxX = Math.max(maxX, v.x); minY = Math.min(minY, v.y); maxY = Math.max(maxY, v.y) }
+          } else if (e.type === 'CIRCLE' && e.center) {
+            minX = Math.min(minX, e.center.x - e.radius); maxX = Math.max(maxX, e.center.x + e.radius)
+            minY = Math.min(minY, e.center.y - e.radius); maxY = Math.max(maxY, e.center.y + e.radius)
+          } else if (e.type === 'ARC' && e.center) {
+            minX = Math.min(minX, e.center.x - e.radius); maxX = Math.max(maxX, e.center.x + e.radius)
+            minY = Math.min(minY, e.center.y - e.radius); maxY = Math.max(maxY, e.center.y + e.radius)
+          } else if ((e.type === 'TEXT' || e.type === 'MTEXT') && e.position) {
+            minX = Math.min(minX, e.position.x); maxX = Math.max(maxX, e.position.x)
+            minY = Math.min(minY, e.position.y); maxY = Math.max(maxY, e.position.y)
+          }
+        }
+      }
+      if (minX === Infinity) return null
+      const pad = Math.max((maxX - minX), (maxY - minY), 1) * 0.02
+      return { minX: minX - pad, minY: minY - pad, maxX: maxX + pad, maxY: maxY + pad }
+    }
+
+    // 画单个实体到屏幕 ctx (坐标已映射到屏幕系)
+    function strokeEntity(ctx, e, color, lwScale) {
+      ctx.strokeStyle = color
+      ctx.fillStyle = color
+      if (e.type === 'LINE' && e.vertices?.length >= 2) {
+        const a = worldToScreen(e.vertices[0].x, e.vertices[0].y)
+        const b = worldToScreen(e.vertices[1].x, e.vertices[1].y)
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke()
+      } else if ((e.type === 'LWPOLYLINE' || e.type === 'POLYLINE') && e.vertices?.length >= 2) {
+        ctx.beginPath()
+        e.vertices.forEach((v, i) => {
+          const p = worldToScreen(v.x, v.y)
+          i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)
+        })
+        if (e.shape || e.closed) ctx.closePath()   // 🔴 闭合多边形 → closePath
+        ctx.stroke()
+      } else if (e.type === 'CIRCLE' && e.center) {
+        const c = worldToScreen(e.center.x, e.center.y)
+        ctx.beginPath(); ctx.arc(c.x, c.y, e.radius * coordMap.scale, 0, Math.PI * 2); ctx.stroke()
+      } else if (e.type === 'ARC' && e.center) {
+        // ARC: dxf-parser 输出弧度 (Y-up 系)。屏幕系 Y 向下 → 角度取反
+        const c = worldToScreen(e.center.x, e.center.y)
+        const r = e.radius * coordMap.scale
+        let sa = e.startAngle, ea = e.endAngle
+        if (ea < sa) { const t = sa; sa = ea; ea = t }
+        // Y 翻转: 屏幕角 = -世界角; arc 在 canvas 逆时针为负方向, 用 anticlockwise 处理
+        ctx.beginPath()
+        ctx.arc(c.x, c.y, r, -ea, -sa, false)   // 从 -ea 到 -sa (翻转后顺序)
+        ctx.stroke()
+      } else if ((e.type === 'TEXT' || e.type === 'MTEXT') && e.position) {
+        const txt = cleanMtext(e.text || '')
+        if (!txt) return
+        const p = worldToScreen(e.position.x, e.position.y)
+        ctx.font = `${Math.max(6, (e.height || 12) * coordMap.scale)}px sans-serif`
+        ctx.textBaseline = 'middle'
+        ctx.fillText(txt, p.x, p.y)
+      }
+    }
+
+    // 重绘合成图 (图层显隐/透明度/加载完成时调用)
+    function redrawComposite() {
+      if (!offCanvas || !fabricCanvas) return
+      const ctx = offCtx
+      ctx.clearRect(0, 0, offCanvas.width, offCanvas.height)
+      ctx.fillStyle = '#111318'
+      ctx.fillRect(0, 0, offCanvas.width, offCanvas.height)
+      // 按图层栈顺序绘制 (后画的在上)
+      for (const l of layers.value) {
+        if (!l.visible) continue
+        ctx.globalAlpha = (l.opacity || 100) / 100
+        ctx.strokeStyle = l.color
+        ctx.fillStyle = l.color
+        l.objects.forEach(e => strokeEntity(ctx, e, l.color, 1))
+      }
+      ctx.globalAlpha = 1
+      const dataUrl = offCanvas.toDataURL('image/png')
+      // 替换背景 image 对象 (若存在)
+      const bg = fabricCanvas.getObjects().find(o => o._isBg)
+      if (bg) { bg.setSrc(dataUrl, () => { fabricCanvas.requestRenderAll() }) }
+      else {
+        fabric.Image.fromURL(dataUrl, (img) => {
+          img._isBg = true
+          img.selectable = false
+          img.evented = false
+          img.lockMovementX = true
+          img.lockMovementY = true
+          fabricCanvas.add(img)
+          fabricCanvas.sendToBack(img)
+          fabricCanvas.requestRenderAll()
+        })
+      }
+    }
+
 
     const renderDXF = (dxfText) => {
       try {
-        const parser = new DxfParser()
-        const dxf = parser.parseSync(dxfText)
-
-        // Clear previous
-        fabricCanvas.clear()
-        fabricCanvas.backgroundColor = '#111318'
-        const newLayers = []
-        geoAnchors = { building: [], channel: [], node: [], green: [], facade: [], road: [], boundary: [] }
-
-        // Group entities by layer
-        const layerMap = {}
-        for (const entity of dxf.entities) {
-          const name = entity.layer || '0'
-          if (!layerMap[name]) layerMap[name] = []
-          layerMap[name].push(entity)
-        }
-
-        // layer name → space type (识别映射, 与后端 basemaps.py 一致)
-        const LAYER_TO_SPACE = {
-          'TAF-BUILDING': 'building', 'BUILDING': 'building',
-          'TAF-CHANNEL': 'channel', 'CHANNEL': 'channel',
-          'TAF-NODE': 'node', 'NODE': 'node',
-          'TAF-ROAD': 'road', 'ROAD': 'road',
-          'TAF-GREEN': 'green', 'GREEN': 'green',
-          'TAF-FACADE': 'facade', 'FACADE': 'facade',
-          'TAF-BOUNDARY': 'boundary', 'BOUNDARY': 'boundary',
-        }
-        const layerColorOf = (nm) => LAYER_COLORS[nm] || LAYER_COLORS[nm.toUpperCase()] || '#5c6370'
-
-        // Render each layer
-        const allBounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
-        for (const [name, entities] of Object.entries(layerMap)) {
-          const color = layerColorOf(name)
-          const locked = LOCKED_LAYERS.has(name) || LOCKED_LAYERS.has(name.toUpperCase())
-          const group = []
-          const layerPts = []   // 收集该层多边形顶点 (用于锚点/布点)
-
-          for (const e of entities) {
-            let obj = null
-            if (e.type === 'LINE') {
-              const x1 = e.vertices[0].x, y1 = e.vertices[0].y
-              const x2 = e.vertices[1].x, y2 = e.vertices[1].y
-              obj = new fabric.Line([x1, y1, x2, y2], {
-                stroke: color, strokeWidth: Math.max(1, (e.lineweight || 0) / 10),
-                selectable: false, evented: false, lockMovementX: true, lockMovementY: true,
-              })
-              layerPts.push({ x: x1, y: y1 }, { x: x2, y: y2 })
-            } else if (e.type === 'LWPOLYLINE' || e.type === 'POLYLINE') {
-              const verts = e.vertices || []
-              if (verts.length >= 3) {
-                const minX = Math.min(...verts.map(v => v.x)), minY = Math.min(...verts.map(v => v.y))
-                // 🔴 坐标模型修复: fabric points 为相对坐标, left/top = 原点
-                const rel = verts.map(v => ({ x: v.x - minX, y: v.y - minY }))
-                const pts = rel.flatMap(v => [v.x, v.y])
-                const Cls = e.shape ? fabric.Polygon : fabric.Polyline
-                obj = new Cls(pts, {
-                  left: minX, top: minY,
-                  stroke: color, strokeWidth: Math.max(1, (e.lineweight || 0) / 10),
-                  fill: '', selectable: false, evented: false,
-                  lockMovementX: true, lockMovementY: true,
-                })
-                verts.forEach(v => layerPts.push({ x: v.x, y: v.y }))
-              }
-            } else if (e.type === 'CIRCLE') {
-              obj = new fabric.Circle({
-                left: e.center.x - e.radius, top: e.center.y - e.radius,
-                radius: e.radius, stroke: color, strokeWidth: 1, fill: '',
-                selectable: false, evented: false, lockMovementX: true, lockMovementY: true,
-              })
-              layerPts.push({ x: e.center.x - e.radius, y: e.center.y - e.radius },
-                            { x: e.center.x + e.radius, y: e.center.y + e.radius })
-            } else if (e.type === 'ARC') {
-              // 🔴 ARC 角度单位修复: dxf-parser 输出弧度, 直接使用
-              const cx = e.center.x, cy = e.center.y, r = e.radius
-              const sa = e.startAngle, ea = e.endAngle
-              const pts = []
-              const steps = 32
-              for (let i = 0; i <= steps; i++) {
-                const a = sa + (ea - sa) * i / steps
-                pts.push(cx + Math.cos(a) * r, cy + Math.sin(a) * r)
-              }
-              const minX = Math.min(...pts.filter((_, i) => i % 2 === 0))
-              const minY = Math.min(...pts.filter((_, i) => i % 2 === 1))
-              const rel = []
-              for (let i = 0; i < pts.length; i += 2) rel.push({ x: pts[i] - minX, y: pts[i + 1] - minY })
-              obj = new fabric.Polyline(rel.flatMap(v => [v.x, v.y]), {
-                left: minX, top: minY,
-                stroke: color, strokeWidth: 1, fill: '',
-                selectable: false, evented: false, lockMovementX: true, lockMovementY: true,
-              })
-              layerPts.push({ x: cx, y: cy })
-            } else if (e.type === 'TEXT' || e.type === 'MTEXT') {
-              // 🔴 MTEXT 格式代码剥离 → 纯文字
-              const txt = cleanMtext(e.text || '')
-              if (!txt) continue
-              obj = new fabric.Text(txt, {
-                left: e.position?.x || 0, top: e.position?.y || 0,
-                fontSize: Math.max(6, e.height || 12), fill: color, fontFamily: 'sans-serif',
-                selectable: false, evented: false, lockMovementX: true, lockMovementY: true,
-              })
-            }
-
-            if (obj) {
-              obj._tafLayer = name
-              obj._tafType = e.type
-              group.push(obj)
-              // Track bounds
-              if (obj.left !== undefined) allBounds.minX = Math.min(allBounds.minX, obj.left)
-              if (obj.top !== undefined) allBounds.minY = Math.min(allBounds.minY, obj.top)
-              if (obj.left !== undefined && obj.width !== undefined) allBounds.maxX = Math.max(allBounds.maxX, obj.left + (obj.width || 0))
-              if (obj.top !== undefined && obj.height !== undefined) allBounds.maxY = Math.max(allBounds.maxY, obj.top + (obj.height || 0))
-            }
-          }
-
-          // 收集该层锚点 bbox (供自动布点)
-          const spaceType = LAYER_TO_SPACE[name] || LAYER_TO_SPACE[name.toUpperCase()]
-          if (spaceType && layerPts.length >= 2) {
-            const xs = layerPts.map(p => p.x), ys = layerPts.map(p => p.y)
-            const bb = {
-              minX: Math.min(...xs), minY: Math.min(...ys),
-              maxX: Math.max(...xs), maxY: Math.max(...ys),
-              cx: (Math.min(...xs) + Math.max(...xs)) / 2,
-              cy: (Math.min(...ys) + Math.max(...ys)) / 2,
-            }
-            geoAnchors[spaceType].push(bb)
-          }
-
-          // Add group to canvas
-          for (const obj of group) fabricCanvas.add(obj)
-
-          newLayers.push({
-            name, color, count: group.length, visible: true, opacity: 100,
-            objects: group, locked,
-          })
-        }
-
-        layers.value = newLayers
-        canvasSize.value = `${Math.round(allBounds.maxX - allBounds.minX)} × ${Math.round(allBounds.maxY - allBounds.minY)}`
-        fabricCanvas.renderAll()
-
-        // Auto-fit
-        if (allBounds.minX !== Infinity) {
-          fitScreen()
-        }
-
-        buildLegend()
-        toast.show(`✅ 解析完成: ${dxf.entities.length} 实体, ${newLayers.length} 图层`)
+        loading.value = true
+        loadProgress.value = 5
+        loadStage.value = '解析 DXF...'
+        // 让进度条先渲染
+        setTimeout(() => {
+          try { doParseDXF(dxfText) } catch(e) { console.error(e); loading.value = false; toast.show('❌ DXF 解析失败: ' + e.message) }
+        }, 30)
       } catch(e) {
         console.error(e)
+        loading.value = false
         toast.show('❌ DXF 解析失败: ' + e.message)
       }
+    }
+
+    const doParseDXF = (dxfText) => {
+      const parser = new DxfParser()
+      const dxf = parser.parseSync(dxfText)
+      loadProgress.value = 25
+      loadStage.value = `整理 ${dxf.entities.length} 实体...`
+
+      // 按图层分组 (保留全部实体供合成绘制)
+      const layerMap = {}
+      for (const entity of dxf.entities) {
+        const name = entity.layer || '0'
+        if (!layerMap[name]) layerMap[name] = []
+        layerMap[name].push(entity)
+      }
+      loadProgress.value = 40
+      loadStage.value = '计算图纸范围...'
+
+      // 世界坐标 bbox (Y-up, 原始)
+      const wb = computeWorldBounds(layerMap)
+      if (!wb) { loading.value = false; toast.show('⚠️ DXF 无有效几何实体'); return }
+      dxfWorldBounds = wb
+      // 建立坐标映射: 世界 bbox → 离屏 canvas (最长边 ~4096px 保持精度)
+      const MAX_DIM = 4096
+      const ww = wb.maxX - wb.minX, wh = wb.maxY - wb.minY
+      const scale = Math.min(MAX_DIM / Math.max(ww, wh), 8)   // 上限 8 (防止小图过度放大)
+      const cw = Math.ceil(ww * scale), ch = Math.ceil(wh * scale)
+      coordMap = {
+        scale,
+        offX: -wb.minX * scale,
+        offY: wb.maxY * scale,   // 使 wy=maxY → sy=0 (顶); wy=minY → sy=ch (底)
+        bbox: wb,
+      }
+      loadProgress.value = 50
+      loadStage.value = '创建合成画布...'
+
+      offCanvas = document.createElement('canvas')
+      offCanvas.width = Math.max(1, cw)
+      offCanvas.height = Math.max(1, ch)
+      offCtx = offCanvas.getContext('2d')
+
+      // 图层列表 (含颜色/实体引用; objects 存实体数组供合成)
+      const newLayers = []
+      const LAYER_TO_SPACE = {
+        'TAF-BUILDING': 'building', 'BUILDING': 'building',
+        'TAF-CHANNEL': 'channel', 'CHANNEL': 'channel',
+        'TAF-NODE': 'node', 'NODE': 'node',
+        'TAF-ROAD': 'road', 'ROAD': 'road',
+        'TAF-GREEN': 'green', 'GREEN': 'green',
+        'TAF-FACADE': 'facade', 'FACADE': 'facade',
+        'TAF-BOUNDARY': 'boundary', 'BOUNDARY': 'boundary',
+      }
+      const layerColorOf = (nm) => LAYER_COLORS[nm] || LAYER_COLORS[nm.toUpperCase()] || '#5c6370'
+      geoAnchors = { building: [], channel: [], node: [], green: [], facade: [], road: [], boundary: [] }
+
+      for (const [name, ents] of Object.entries(layerMap)) {
+        const color = layerColorOf(name)
+        const locked = LOCKED_LAYERS.has(name) || LOCKED_LAYERS.has(name.toUpperCase())
+        // 收集锚点 (世界坐标)
+        const pts = []
+        for (const e of ents) {
+          if (e.type === 'LINE' && e.vertices?.length >= 2) pts.push(e.vertices[0], e.vertices[1])
+          else if ((e.type === 'LWPOLYLINE' || e.type === 'POLYLINE') && e.vertices?.length) pts.push(...e.vertices)
+          else if (e.type === 'CIRCLE' && e.center) pts.push({ x: e.center.x - e.radius, y: e.center.y - e.radius }, { x: e.center.x + e.radius, y: e.center.y + e.radius })
+        }
+        const spaceType = LAYER_TO_SPACE[name] || LAYER_TO_SPACE[name.toUpperCase()]
+        if (spaceType && pts.length >= 2) {
+          const xs = pts.map(p => p.x), ys = pts.map(p => p.y)
+          geoAnchors[spaceType].push({
+            minX: Math.min(...xs), minY: Math.min(...ys),
+            maxX: Math.max(...xs), maxY: Math.max(...ys),
+            cx: (Math.min(...xs) + Math.max(...xs)) / 2,
+            cy: (Math.min(...ys) + Math.max(...ys)) / 2,
+          })
+        }
+        newLayers.push({
+          name, color, count: ents.length, visible: true, opacity: 100,
+          objects: ents,   // 实体引用 (合成用), 非 fabric 对象
+          locked,
+        })
+      }
+      layers.value = newLayers
+      loadProgress.value = 70
+      loadStage.value = '绘制合成图...'
+
+      // 初次合成
+      offCtx.fillStyle = '#111318'
+      offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height)
+      for (const l of newLayers) {
+        offCtx.strokeStyle = l.color
+        for (const e of l.objects) strokeEntity(offCtx, e, l.color, 1)
+      }
+      loadProgress.value = 90
+      loadStage.value = '渲染到画布...'
+
+      // 清掉旧 fabric 对象 (保留 markers 之外全部)
+      const old = fabricCanvas.getObjects().filter(o => !o._isFacility && !o._isFacilityLabel)
+      old.forEach(o => fabricCanvas.remove(o))
+
+      const dataUrl = offCanvas.toDataURL('image/png')
+      fabric.Image.fromURL(dataUrl, (img) => {
+        img._isBg = true
+        img.selectable = false
+        img.evented = false
+        img.lockMovementX = true
+        img.lockMovementY = true
+        fabricCanvas.add(img)
+        fabricCanvas.sendToBack(img)
+        fabricCanvas.requestRenderAll()
+        // 适配视图
+        fitScreen()
+        buildLegend()
+        loading.value = false
+        loadProgress.value = 100
+        loadStage.value = '完成'
+        toast.show(`✅ 解析完成: ${dxf.entities.length} 实体, ${newLayers.length} 图层`)
+      })
     }
 
     const fitScreen = () => {
@@ -1255,13 +1387,13 @@ const BasemapEditor = {
     }
 
     const updateLayerVisibility = (layer) => {
-      layer.objects.forEach(o => { o.visible = layer.visible })
-      fabricCanvas.renderAll()
+      layer.visible = layer.visible !== false
+      redrawComposite()
     }
 
     const updateLayerOpacity = (layer) => {
-      layer.objects.forEach(o => { o.opacity = layer.opacity / 100 })
-      fabricCanvas.requestRenderAll()
+      if (layer.opacity == null) layer.opacity = 100
+      redrawComposite()
     }
 
     const confirmText = () => {
@@ -1315,17 +1447,18 @@ const BasemapEditor = {
       } catch(e) { console.error(e) }
     }
 
-    // ── 画布设施 marker (每设施独立可拖, 独立 Maki 符号) ──
+    // ── 画布设施 marker (每设施独立可拖, 独立 Maki 符号; position=世界坐标) ──
     const renderFacilityMarkers = () => {
       if (!fabricCanvas) return
       facilityMarkers.forEach(m => { try { fabricCanvas.remove(m) } catch(e){} })
       facilityMarkers = []
-      const size = symScale.value * 6   // 符号尺寸
+      const size = symScale.value * 6   // 符号尺寸 (场景单位)
 
       facilities.value.forEach(f => {
         const pos = f.position
         if (pos?.x == null || pos?.y == null) return   // 未布点的不画
-        const x = pos.x, y = pos.y
+        const sp = worldToScreen(pos.x, pos.y)          // 世界 → 场景
+        const x = sp.x, y = sp.y
         const color = facColor(f)
         const sym = facSymbol(f)
 
@@ -1388,14 +1521,16 @@ const BasemapEditor = {
       if (tool.value !== 'place') setTool('place')
       focusFacility(f)
     }
-    const placeAtPointer = async (x, y) => {
+    const placeAtPointer = async (sx, sy) => {
       const f = selectedFac.value
       if (!f) { toast.show('⚠️ 先在右侧设施清单选择要布点的设施'); return }
+      const w = screenToWorld(sx, sy)   // 场景 → 世界坐标 (CAD 用)
+      const x = Math.round(w.x), y = Math.round(w.y)
       try {
         await API.put('/projects/' + route.params.id + '/facilities/' + f.id, {
-          position: { x: Math.round(x), y: Math.round(y), lng: null, lat: null }
+          position: { x, y, lng: null, lat: null }
         })
-        f.position = { x: Math.round(x), y: Math.round(y) }
+        f.position = { x, y }
         renderFacilityMarkers()
         toast.show('✅ 已布点: ' + f.name)
         // 自动切到下一个未布点项
@@ -1594,11 +1729,11 @@ const BasemapEditor = {
 
     const focusFacility = (f) => {
       if (!fabricCanvas || !f.position) { if (f?.position?.x == null) toast.show('📍 该设施尚未布点'); return }
-      const pos = f.position
+      const sp = worldToScreen(f.position.x, f.position.y)   // 世界 → 场景
       const zoom = fabricCanvas.getZoom()
       const wrap = canvasWrap.value
       const cx = wrap.clientWidth / 2, cy = wrap.clientHeight / 2
-      const tx = cx - (pos.x || 0) * zoom, ty = cy - (pos.y || 0) * zoom
+      const tx = cx - sp.x * zoom, ty = cy - sp.y * zoom
       fabricCanvas.setViewportTransform([zoom, 0, 0, zoom, tx, ty])
       fabricCanvas.requestRenderAll()
       toast.show('📍 定位: ' + f.name)
@@ -1609,20 +1744,25 @@ const BasemapEditor = {
       const rows = []
       // 1) 底图空间图层
       const baseNames = ['TAF-BOUNDARY', 'TAF-BUILDING', 'TAF-CHANNEL', 'TAF-ROAD', 'TAF-GREEN', 'TAF-NODE', 'TAF-FACADE', 'BASEMAP']
+      const baseDesc = {
+        'TAF-BOUNDARY': '红线边界', 'TAF-BUILDING': '建筑', 'TAF-CHANNEL': '通道/走廊',
+        'TAF-ROAD': '道路', 'TAF-GREEN': '绿地', 'TAF-NODE': '节点/广场',
+        'TAF-FACADE': '立面', 'BASEMAP': '原始底图',
+      }
       for (const nm of baseNames) {
         const l = layers.value.find(x => x.name === nm) || layers.value.find(x => x.name.toUpperCase() === nm)
         if (l || nm === 'TAF-BOUNDARY') {
-          rows.push({ layer: nm, label: nm, color: LAYER_COLORS[nm] || '#5c6370', icon: null })
+          rows.push({ layer: nm, main: `${baseDesc[nm] || nm}`, color: LAYER_COLORS[nm] || '#5c6370', icon: null })
         }
       }
-      // 2) 布点符号层 (19 项)
+      // 2) 布点符号层 (19 项, 每项独立图层)
       for (const [itemId, sym] of Object.entries(makiSymbols)) {
         const fac = facilities.value.find(f => f.standard_item_id === itemId)
         const zh = fac?.name || sym.name_zh || ''
         const cat = itemId.split('-')[0]
         rows.push({
           layer: sym.layer,
-          label: `${itemId} ${zh} [${sym.layer}]`,
+          main: `${itemId} ${zh}`,
           icon: sym.path, viewbox: sym.viewbox,
           color: CAT_COLORS[cat] || '#4f8cff',
         })
@@ -1710,6 +1850,7 @@ const BasemapEditor = {
       triggerUpload, onFileUpload, fitScreen, updateLayerVisibility, updateLayerOpacity,
       confirmText, cancelText, exportView, refreshFacilities, focusFacility,
       hideLeft, hideRight, fullscreen, trueFs, toggleTrueFullscreen, showAllFac,
+      loading, loadProgress, loadStage,
       setTool, selectFacility, facFilter, filteredFacilities, selectedFac, facPlaceHint,
       facSymbol, facColor, placableCount, autoPlacing, placeStrategy, placeSpacing,
       placeMargin, perRow, symScale, autoOverwrite, scheduleReauto,
