@@ -798,26 +798,31 @@ const ProjectDetail = {
 // ─── Basemap Editor ───
 const BasemapEditor = {
   template: `
-  <div style="display:flex;flex-direction:column;height:calc(100vh - 96px);gap:0">
+  <div style="display:flex;flex-direction:column;height:100vh;gap:0">
     <!-- Toolbar -->
-    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;flex-shrink:0;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;flex-wrap:wrap;background:var(--card);border-bottom:1px solid var(--border)">
       <button class="btn" @click="$router.back()">← 返回项目</button>
       <span style="font-size:14px;font-weight:600;margin:0 8px">{{ projectName }}</span>
       <span style="flex:1"></span>
-      <button class="btn" :class="{primary:tool==='pan'}" @click="tool='pan'" title="平移">✋</button>
-      <button class="btn" :class="{primary:tool==='place'}" @click="tool='place'" title="布点设施" style="color:#67c23a">📍 布点</button>
+      <button class="btn" :class="{primary:tool==='pan'}" @click="setTool('pan')" title="平移/选择">✋ 平移</button>
+      <button class="btn" :class="{primary:tool==='place'}" @click="setTool('place')" title="手动布点(点击画布落点)" style="color:#67c23a">📍 手动布点</button>
+      <button class="btn primary" @click="openAutoPlace" title="按策略自动布点">⚡ 自动布点</button>
       <button class="btn" @click="fitScreen">⊞ 适应</button>
+      <button class="btn" :class="{primary:fullscreen}" @click="toggleFullscreen" :title="fullscreen?'退出浏览器全宽':'浏览器内全宽'">⛶ {{ fullscreen?'退出全宽':'全宽' }}</button>
+      <button class="btn" @click="toggleTrueFullscreen" title="真全屏(沉浸式)">🖥️ 真全屏</button>
       <button class="btn" @click="exportView">📸 截图</button>
       <button class="btn" @click="triggerUpload">⬆ 上传DXF</button>
-      <button class="btn" @click="refreshFacilities" style="margin-left:8px" title="刷新设施">🔄</button>
       <input type="file" ref="fileInput" accept=".dxf" style="display:none" @change="onFileUpload">
     </div>
 
-    <!-- Main area -->
+    <!-- Main area: 左栏 | 画布 | 右栏 -->
     <div style="display:flex;flex:1;gap:0;overflow:hidden">
-      <!-- Layer panel -->
-      <div style="width:220px;background:var(--card);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:12px">
-        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:600">📐 图层</div>
+      <!-- Left: Layer panel 300px -->
+      <div style="width:300px;min-width:300px;background:var(--card);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:12px" v-if="!hideLeft">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
+          <span>📐 图层 ({{ layers.length }})</span>
+          <button class="btn sm" @click="hideLeft=true" title="收起左栏">«</button>
+        </div>
         <div v-if="!layers.length" style="font-size:12px;color:var(--muted);padding:16px 0;text-align:center">
           暂无底图<br><br>
           <button class="btn sm primary" @click="triggerUpload">上传 DXF</button>
@@ -826,7 +831,8 @@ const BasemapEditor = {
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
             <input type="checkbox" v-model="l.visible" @change="updateLayerVisibility(l)" :id="'lyr_'+l.name">
             <span :style="{width:'12px',height:'12px',borderRadius:'2px',background:l.color,flexShrink:0}"></span>
-            <label :for="'lyr_'+l.name" style="flex:1;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px">{{ l.name }}</label>
+            <label :for="'lyr_'+l.name" style="flex:1;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="l.name">{{ l.name }}</label>
+            <span v-if="l.locked" title="锁定(只读)" style="font-size:10px;color:var(--muted)">🔒</span>
           </div>
           <div style="margin-left:24px" v-if="l.visible">
             <span style="font-size:11px;color:var(--muted)">{{ l.count }} 实体</span>
@@ -835,30 +841,92 @@ const BasemapEditor = {
             </div>
           </div>
         </div>
-        <!-- Facilities -->
-        <div style="font-size:12px;color:var(--muted);margin:16px 0 8px;font-weight:600;border-top:1px solid var(--border);padding-top:12px">📍 设施布点 ({{ facilities.length }})</div>
-        <div v-for="f in facilities" :key="f.id" style="padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;cursor:pointer" @click="focusFacility(f)" @mouseenter="e=>e.currentTarget.style.background='#ffffff08'" @mouseleave="e=>e.currentTarget.style.background=''">
-          <div style="display:flex;align-items:center;gap:4px">
-            <span>{{ (f.custom_fields?.icon||'📌') }}</span>
-            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</span>
-            <span :style="{fontSize:'10px',color:f.status==='installed'?'#67c23a':f.status==='confirmed'?'#e6a23c':'#8b8fa3'}">{{ f.status }}</span>
-          </div>
-          <div style="margin-left:18px;font-size:10px;color:var(--muted)">{{ f.standard_item_id }} · x:{{ f.position?.x||'-' }} y:{{ f.position?.y||'-' }}</div>
-        </div>
-        <div v-if="!facilities.length" style="font-size:11px;color:var(--muted);padding:8px 0">暂无设施</div>
+        <!-- Legend 图例表格 -->
+        <div style="font-size:12px;color:var(--muted);margin:16px 0 8px;font-weight:600;border-top:1px solid var(--border);padding-top:12px">📋 图例 Legend</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <tr v-for="lg in legendRows" :key="lg.layer" style="border-bottom:1px solid var(--border)">
+            <td style="padding:3px 4px;text-align:center;width:34px">
+              <svg v-if="lg.icon" :viewBox="lg.viewbox||'0 0 15 15'" style="width:22px;height:22px;fill:'+'" :style="{fill:lg.color||'#e4e6eb'}"><path :d="lg.icon"/></svg>
+              <span v-else :style="{display:'inline-block',width:'10px',height:'10px',background:lg.color,borderRadius:'2px'}"></span>
+            </td>
+            <td style="padding:3px 4px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="lg.layer">{{ lg.label }}</td>
+          </tr>
+        </table>
+        <div v-if="!legendRows.length" style="font-size:11px;color:var(--muted);padding:8px 0">暂无图例</div>
       </div>
 
       <!-- Canvas -->
       <div style="flex:1;position:relative;background:#111318;overflow:hidden" ref="canvasWrap">
         <canvas ref="canvasEl" id="taf-canvas"></canvas>
+        <div v-if="hideLeft" style="position:absolute;top:8px;left:8px;z-index:5"><button class="btn sm" @click="hideLeft=false">» 图层</button></div>
+        <div v-if="hideRight" style="position:absolute;top:8px;right:8px;z-index:5"><button class="btn sm" @click="hideRight=false">« 布点</button></div>
+      </div>
+
+      <!-- Right: Facility placement panel 300px -->
+      <div style="width:300px;min-width:300px;background:var(--card);border-left:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:12px" v-if="!hideRight">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between">
+          <span>📍 设施布点 ({{ facilities.length }})</span>
+          <button class="btn sm" @click="hideRight=true">»</button>
+        </div>
+
+        <!-- Auto-place settings -->
+        <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">⚡ 自动布点策略</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">候选 {{ placableCount }}/{{ facilities.length }} 项（管理/制度/培训类自动排除）</div>
+        <button class="btn primary" style="width:100%;margin-bottom:12px" @click="runAutoPlace" :disabled="autoPlacing">🚀 一键自动布点</button>
+
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">布点空间偏好</div>
+        <select v-model="placeStrategy" style="width:100%;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px;margin-bottom:10px;font-size:12px">
+          <option value="smart">🧠 智能: 按标准分类映射空间 (P1建筑+通道 / P2建筑+立面 / P3节点 / P4绿地+通道 / P5节点+通道 / P6建筑+立面)</option>
+          <option value="channel">🛤️ 全部沿通道/走廊线性排布</option>
+          <option value="node">⭕ 全部布在节点/广场</option>
+          <option value="uniform">📐 均匀网格散布(区域内)</option>
+          <option value="boundary">📏 沿红线边界内侧分布</option>
+        </select>
+
+        <!-- Sliders -->
+        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">间距 (m): <b>{{ placeSpacing }}</b></div>
+        <input type="range" min="5" max="60" v-model.number="placeSpacing" @input="scheduleReauto" style="width:100%;accent-color:var(--accent);margin-bottom:8px">
+
+        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">边距 (m): <b>{{ placeMargin }}</b></div>
+        <input type="range" min="0" max="30" v-model.number="placeMargin" @input="scheduleReauto" style="width:100%;accent-color:var(--accent);margin-bottom:8px">
+
+        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">每行数量: <b>{{ perRow }}</b></div>
+        <input type="range" min="1" max="10" v-model.number="perRow" @input="scheduleReauto" style="width:100%;accent-color:var(--accent);margin-bottom:8px">
+
+        <div style="font-size:11px;color:var(--muted);margin-bottom:2px">符号尺寸: <b>{{ symScale }}</b></div>
+        <input type="range" min="1" max="10" v-model.number="symScale" @input="renderFacilityMarkers" style="width:100%;accent-color:var(--accent);margin-bottom:8px">
+
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:12px">
+          <input type="checkbox" v-model="autoOverwrite"> 覆盖已有布点
+        </div>
+
+        <!-- Facilities list -->
+        <div style="font-size:12px;font-weight:600;color:var(--text);margin:8px 0;border-top:1px solid var(--border);padding-top:10px">设施清单 <span style="font-size:10px;color:var(--muted)">(点选后可手动放置, 拖动可微调)</span></div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+          <button v-for="c in ['ALL','P1','P2','P3','P4','P5','P6']" :key="c" class="btn sm" :class="{primary:facFilter===c}" @click="facFilter=c">{{c}}</button>
+        </div>
+        <div v-for="f in filteredFacilities" :key="f.id" style="padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;cursor:pointer"
+             :style="{'background':selectedFac?.id===f.id?'#ffffff12':''}"
+             @click="selectFacility(f)" @dblclick="focusFacility(f)"
+             @mouseenter="e=>e.currentTarget.style.background='#ffffff08'" @mouseleave="e=>e.currentTarget.style.background=selectedFac?.id===f.id?'#ffffff12':''">
+          <div style="display:flex;align-items:center;gap:4px">
+            <svg v-if="facSymbol(f)?.path" :viewBox="facSymbol(f).viewbox" style="width:16px;height:16px;flex-shrink:0" :style="{fill:facColor(f)}"><path :d="facSymbol(f).path"/></svg>
+            <span v-else style="font-size:14px">{{ f.custom_fields?.icon||'📌' }}</span>
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="f.name">{{ f.name }}</span>
+            <span :style="{fontSize:'10px',color:f.status==='installed'?'#67c23a':f.status==='confirmed'?'#e6a23c':'#8b8fa3'}">{{ f.status }}</span>
+          </div>
+          <div style="margin-left:22px;font-size:10px;color:var(--muted)">{{ f.standard_item_id }} · {{ facSymbol(f)?.name_zh||'' }} <span v-if="f.position?.x!=null">· ({{ Math.round(f.position.x) }},{{ Math.round(f.position.y) }})</span><span v-else style="color:#e6a23c"> 未布点</span></div>
+        </div>
+        <div v-if="!filteredFacilities.length" style="font-size:11px;color:var(--muted);padding:8px 0">无设施</div>
       </div>
     </div>
 
     <!-- Status bar -->
-    <div style="display:flex;gap:16px;padding:4px 0;font-size:11px;color:var(--muted);flex-shrink:0">
+    <div style="display:flex;gap:16px;padding:4px 12px;font-size:11px;color:var(--muted);flex-shrink:0;background:var(--card);border-top:1px solid var(--border)">
       <span>缩放: {{ zoomPct }}%</span>
       <span>画布: {{ canvasSize }}</span>
       <span v-if="selectedObj">选中: {{ selectedObj }}</span>
+      <span v-if="facPlaceHint" style="color:#67c23a">💡 {{ facPlaceHint }}</span>
     </div>
 
     <!-- Annotation input -->
@@ -886,6 +954,19 @@ const BasemapEditor = {
     let fabricCanvas = null, textTargetX = 0, textTargetY = 0
     const facilities = ref([])
     let facilityMarkers = []  // Fabric objects for facility markers
+    // UI 状态
+    const hideLeft = ref(false), hideRight = ref(false)
+    const fullscreen = ref(false)
+    const facFilter = ref('ALL')
+    const selectedFac = ref(null)
+    const facPlaceHint = ref('')
+    const autoPlacing = ref(false)
+    const placeStrategy = ref('smart')
+    const placeSpacing = ref(20), placeMargin = ref(5), perRow = ref(5), symScale = ref(3)
+    const autoOverwrite = ref(false)
+    const legendRows = ref([])
+    let makiSymbols = {}   // loaded from maki_symbols.json
+    let geoAnchors = { building: [], channel: [], node: [], green: [], facade: [], road: [], boundary: [] }  // per-layer polygon bboxes for autoplace
 
     // Layer colors for TAF semantic types
     const LAYER_COLORS = {
@@ -895,7 +976,24 @@ const BasemapEditor = {
       'TAF-ROAD': '#8b8fa3', 'ROAD': '#8b8fa3',
       'TAF-GREEN': '#3d9e6c', 'GREEN': '#3d9e6c',
       'TAF-FACADE': '#c97dff', 'FACADE': '#c97dff',
+      'BASEMAP': '#5c6370',
     }
+    // 图层默认锁定 (只读背景)
+    const LOCKED_LAYERS = new Set(['BASEMAP', 'TAF-BUILDING', 'TAF-CHANNEL', 'TAF-NODE',
+      'TAF-ROAD', 'TAF-GREEN', 'TAF-FACADE', 'TAF-BOUNDARY', '0', 'Defpoints'])
+
+    // 设施 → 空间类型映射 (与后端 layout.py pos_rules 对齐)
+    const CAT_SPACE = {
+      'P1': ['building', 'channel'], 'P2': ['building', 'facade'],
+      'P3': ['node'], 'P4': ['green', 'channel'],
+      'P5': ['node', 'channel'], 'P6': ['building', 'facade'],
+    }
+    // 不可布点标准项 (管理/制度/培训/指标类) — 与全量分析一致
+    const NON_PLACABLE = new Set(['P2-02','P2-03','P2-04','P2-05','P2-06',
+      'P3-01','P3-02','P3-03','P3-04','P3-05','P3-06',
+      'P5-02','P5-03','P6-01','P6-02','P6-04'])
+    // 图例行颜色 (P 类)
+    const CAT_COLORS = { 'P1': '#4f8cff', 'P2': '#67c23a', 'P3': '#e6a23c', 'P4': '#c97dff', 'P5': '#f56c6c', 'P6': '#8b8fa3' }
 
     const loadProject = async () => {
       try {
@@ -932,7 +1030,7 @@ const BasemapEditor = {
       fabricCanvas.on('mouse:down', (opt) => {
         if (tool.value === 'place' && opt.e) {
           const pt = fabricCanvas.getPointer(opt.e)
-          placeFacilityAt(pt.x, pt.y)
+          placeAtPointer(pt.x, pt.y)
           return
         }
         if (tool.value === 'pan' || (!opt.target && tool.value === 'pan')) {
@@ -959,6 +1057,25 @@ const BasemapEditor = {
         isPanning = false
         fabricCanvas.selection = true
         fabricCanvas.defaultCursor = 'default'
+      })
+      // 设施 marker 拖动结束 → 保存新位置
+      fabricCanvas.on('object:moving', (opt) => {
+        if (opt.target?._isFacility) {
+          selectedObj.value = `📍 ${opt.target._facilityData?.name || ''} (${Math.round(opt.target.left)}, ${Math.round(opt.target.top)})`
+        }
+      })
+      fabricCanvas.on('object:modified', async (opt) => {
+        const t = opt.target
+        if (t?._isFacility && t._facilityData?.id) {
+          try {
+            await API.put('/projects/' + route.params.id + '/facilities/' + t._facilityData.id, {
+              position: { x: Math.round(t.left), y: Math.round(t.top), lng: null, lat: null }
+            })
+            const f = facilities.value.find(x => x.id === t._facilityData.id)
+            if (f) f.position = { x: Math.round(t.left), y: Math.round(t.top) }
+            toast.show('✅ 位置已保存: ' + (t._facilityData.name || ''))
+          } catch(e) { console.error(e); toast.show('❌ 位置保存失败') }
+        }
       })
 
       // Selection
@@ -1002,6 +1119,34 @@ const BasemapEditor = {
       }
     }
 
+    // ── SVG path → fabric 对象 (Maki 符号) ──
+    const makeSymbol = (pathStr, vb, x, y, size, color) => {
+      // 解析 viewBox "0 0 15 15" → 按 size 缩放, 中心对齐到 (x,y)
+      const parts = (vb || '0 0 15 15').split(' ').map(Number)
+      const w = (parts[2] || 15), h = (parts[3] || 15)
+      const scale = size / Math.max(w, h)
+      const obj = new fabric.Path(pathStr, {
+        left: x - w * scale / 2, top: y - h * scale / 2,
+        scaleX: scale, scaleY: scale,
+        fill: color, stroke: 'rgba(0,0,0,0.35)', strokeWidth: 0.4 / scale,
+        selectable: false, evented: false,
+      })
+      return obj
+    }
+
+    // ── 清理 MTEXT 富文本格式代码 → 纯文字 ──
+    const cleanMtext = (raw) => {
+      if (!raw) return ''
+      let t = String(raw)
+      t = t.replace(/\{[^}]*\}/g, (m) => {           // {\fArial|b0|...;内容} → 内容
+        const semi = m.indexOf(';')
+        return semi >= 0 ? m.slice(semi + 1, -1) : ''
+      })
+      t = t.replace(/\\[a-zA-Z][^;]*;/g, '')          // \fSTXihei|...; \W0.9; 等前缀
+      t = t.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '')
+      return t.trim()
+    }
+
     const renderDXF = (dxfText) => {
       try {
         const parser = new DxfParser()
@@ -1011,6 +1156,7 @@ const BasemapEditor = {
         fabricCanvas.clear()
         fabricCanvas.backgroundColor = '#111318'
         const newLayers = []
+        geoAnchors = { building: [], channel: [], node: [], green: [], facade: [], road: [], boundary: [] }
 
         // Group entities by layer
         const layerMap = {}
@@ -1020,47 +1166,88 @@ const BasemapEditor = {
           layerMap[name].push(entity)
         }
 
+        // layer name → space type (识别映射, 与后端 basemaps.py 一致)
+        const LAYER_TO_SPACE = {
+          'TAF-BUILDING': 'building', 'BUILDING': 'building',
+          'TAF-CHANNEL': 'channel', 'CHANNEL': 'channel',
+          'TAF-NODE': 'node', 'NODE': 'node',
+          'TAF-ROAD': 'road', 'ROAD': 'road',
+          'TAF-GREEN': 'green', 'GREEN': 'green',
+          'TAF-FACADE': 'facade', 'FACADE': 'facade',
+          'TAF-BOUNDARY': 'boundary', 'BOUNDARY': 'boundary',
+        }
+        const layerColorOf = (nm) => LAYER_COLORS[nm] || LAYER_COLORS[nm.toUpperCase()] || '#5c6370'
+
         // Render each layer
         const allBounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
         for (const [name, entities] of Object.entries(layerMap)) {
-          const color = LAYER_COLORS[name] || LAYER_COLORS[name.toUpperCase()] || '#5c6370'
+          const color = layerColorOf(name)
+          const locked = LOCKED_LAYERS.has(name) || LOCKED_LAYERS.has(name.toUpperCase())
           const group = []
+          const layerPts = []   // 收集该层多边形顶点 (用于锚点/布点)
 
           for (const e of entities) {
             let obj = null
             if (e.type === 'LINE') {
-              obj = new fabric.Line([e.vertices[0].x, e.vertices[0].y, e.vertices[1].x, e.vertices[1].y], {
-                stroke: color, strokeWidth: Math.max(1, (e.lineweight || 0) / 10), selectable: true
+              const x1 = e.vertices[0].x, y1 = e.vertices[0].y
+              const x2 = e.vertices[1].x, y2 = e.vertices[1].y
+              obj = new fabric.Line([x1, y1, x2, y2], {
+                stroke: color, strokeWidth: Math.max(1, (e.lineweight || 0) / 10),
+                selectable: false, evented: false, lockMovementX: true, lockMovementY: true,
               })
+              layerPts.push({ x: x1, y: y1 }, { x: x2, y: y2 })
             } else if (e.type === 'LWPOLYLINE' || e.type === 'POLYLINE') {
-              const pts = e.vertices.flatMap(v => [v.x, v.y])
-              if (pts.length >= 4) {
-                obj = new fabric.Polyline(pts, {
-                  stroke: color, strokeWidth: Math.max(1, (e.lineweight || 0) / 10), fill: '', selectable: true
+              const verts = e.vertices || []
+              if (verts.length >= 3) {
+                const minX = Math.min(...verts.map(v => v.x)), minY = Math.min(...verts.map(v => v.y))
+                // 🔴 坐标模型修复: fabric points 为相对坐标, left/top = 原点
+                const rel = verts.map(v => ({ x: v.x - minX, y: v.y - minY }))
+                const pts = rel.flatMap(v => [v.x, v.y])
+                const Cls = e.shape ? fabric.Polygon : fabric.Polyline
+                obj = new Cls(pts, {
+                  left: minX, top: minY,
+                  stroke: color, strokeWidth: Math.max(1, (e.lineweight || 0) / 10),
+                  fill: '', selectable: false, evented: false,
+                  lockMovementX: true, lockMovementY: true,
                 })
+                verts.forEach(v => layerPts.push({ x: v.x, y: v.y }))
               }
             } else if (e.type === 'CIRCLE') {
               obj = new fabric.Circle({
                 left: e.center.x - e.radius, top: e.center.y - e.radius,
-                radius: e.radius, stroke: color, strokeWidth: 1, fill: '', selectable: true
+                radius: e.radius, stroke: color, strokeWidth: 1, fill: '',
+                selectable: false, evented: false, lockMovementX: true, lockMovementY: true,
               })
+              layerPts.push({ x: e.center.x - e.radius, y: e.center.y - e.radius },
+                            { x: e.center.x + e.radius, y: e.center.y + e.radius })
             } else if (e.type === 'ARC') {
-              // Approximate arc as polyline
+              // 🔴 ARC 角度单位修复: dxf-parser 输出弧度, 直接使用
               const cx = e.center.x, cy = e.center.y, r = e.radius
-              const sa = e.startAngle * Math.PI / 180, ea = e.endAngle * Math.PI / 180
+              const sa = e.startAngle, ea = e.endAngle
               const pts = []
               const steps = 32
               for (let i = 0; i <= steps; i++) {
                 const a = sa + (ea - sa) * i / steps
                 pts.push(cx + Math.cos(a) * r, cy + Math.sin(a) * r)
               }
-              obj = new fabric.Polyline(pts, {
-                stroke: color, strokeWidth: 1, fill: '', selectable: true
+              const minX = Math.min(...pts.filter((_, i) => i % 2 === 0))
+              const minY = Math.min(...pts.filter((_, i) => i % 2 === 1))
+              const rel = []
+              for (let i = 0; i < pts.length; i += 2) rel.push({ x: pts[i] - minX, y: pts[i + 1] - minY })
+              obj = new fabric.Polyline(rel.flatMap(v => [v.x, v.y]), {
+                left: minX, top: minY,
+                stroke: color, strokeWidth: 1, fill: '',
+                selectable: false, evented: false, lockMovementX: true, lockMovementY: true,
               })
+              layerPts.push({ x: cx, y: cy })
             } else if (e.type === 'TEXT' || e.type === 'MTEXT') {
-              obj = new fabric.Text(e.text || '', {
+              // 🔴 MTEXT 格式代码剥离 → 纯文字
+              const txt = cleanMtext(e.text || '')
+              if (!txt) continue
+              obj = new fabric.Text(txt, {
                 left: e.position?.x || 0, top: e.position?.y || 0,
-                fontSize: e.height || 12, fill: color, fontFamily: 'monospace', selectable: true
+                fontSize: Math.max(6, e.height || 12), fill: color, fontFamily: 'sans-serif',
+                selectable: false, evented: false, lockMovementX: true, lockMovementY: true,
               })
             }
 
@@ -1076,12 +1263,25 @@ const BasemapEditor = {
             }
           }
 
+          // 收集该层锚点 bbox (供自动布点)
+          const spaceType = LAYER_TO_SPACE[name] || LAYER_TO_SPACE[name.toUpperCase()]
+          if (spaceType && layerPts.length >= 2) {
+            const xs = layerPts.map(p => p.x), ys = layerPts.map(p => p.y)
+            const bb = {
+              minX: Math.min(...xs), minY: Math.min(...ys),
+              maxX: Math.max(...xs), maxY: Math.max(...ys),
+              cx: (Math.min(...xs) + Math.max(...xs)) / 2,
+              cy: (Math.min(...ys) + Math.max(...ys)) / 2,
+            }
+            geoAnchors[spaceType].push(bb)
+          }
+
           // Add group to canvas
           for (const obj of group) fabricCanvas.add(obj)
 
           newLayers.push({
             name, color, count: group.length, visible: true, opacity: 100,
-            objects: group
+            objects: group, locked,
           })
         }
 
@@ -1094,6 +1294,7 @@ const BasemapEditor = {
           fitScreen()
         }
 
+        buildLegend()
         toast.show(`✅ 解析完成: ${dxf.entities.length} 实体, ${newLayers.length} 图层`)
       } catch(e) {
         console.error(e)
@@ -1158,69 +1359,310 @@ const BasemapEditor = {
       toast.show('📸 截图已导出')
     }
 
-    // ── Facility placement ──
+    // ── 设施符号/颜色辅助 ──
+    const facSymbol = (f) => {
+      const id = f?.standard_item_id
+      return (id && makiSymbols[id]) ? makiSymbols[id] : null
+    }
+    const facColor = (f) => {
+      const cat = (f?.category || 'P1').toUpperCase()
+      return CAT_COLORS[cat] || '#4f8cff'
+    }
+    const isPlacable = (f) => !NON_PLACABLE.has(f?.standard_item_id)
+    const placableCount = computed(() => facilities.value.filter(isPlacable).length)
+    const filteredFacilities = computed(() => {
+      if (facFilter.value === 'ALL') return facilities.value
+      return facilities.value.filter(f => (f.category || '').toUpperCase() === facFilter.value)
+    })
+
     const refreshFacilities = async () => {
       try {
-        facilities.value = await API.get('/projects/' + route.params.id + '/facilities')
+        const list = await API.get('/projects/' + route.params.id + '/facilities')
+        facilities.value = Array.isArray(list) ? list : (list.items || [])
         renderFacilityMarkers()
+        buildLegend()
       } catch(e) { console.error(e) }
     }
 
+    // ── 画布设施 marker (每设施独立可拖, 独立 Maki 符号) ──
     const renderFacilityMarkers = () => {
       if (!fabricCanvas) return
-      // Remove old markers
-      facilityMarkers.forEach(m => fabricCanvas.remove(m))
+      facilityMarkers.forEach(m => { try { fabricCanvas.remove(m) } catch(e){} })
       facilityMarkers = []
+      const size = symScale.value * 6   // 符号尺寸
 
       facilities.value.forEach(f => {
-        const pos = f.position || {}
-        const x = pos.x || 0, y = pos.y || 0
-        const icon = (f.custom_fields?.icon || '📌')
-        const color = f.status === 'installed' ? '#67c23a' : f.status === 'confirmed' ? '#e6a23c' : '#4f8cff'
+        const pos = f.position
+        if (pos?.x == null || pos?.y == null) return   // 未布点的不画
+        const x = pos.x, y = pos.y
+        const color = facColor(f)
+        const sym = facSymbol(f)
 
-        const circle = new fabric.Circle({
-          left: x - 6, top: y - 6, radius: 6,
-          fill: color + '44', stroke: color, strokeWidth: 2,
-          selectable: true, hasControls: false,
-        })
-        const text = new fabric.Text(icon, {
-          left: x - 7, top: y - 12,
-          fontSize: 12, fontFamily: 'sans-serif',
+        let marker
+        if (sym?.path) {
+          marker = makeSymbol(sym.path, sym.viewbox, x, y, size, color)
+          marker._isFacility = true
+          marker._facilityId = f.id
+          marker._facilityData = f
+          marker.selectable = true
+          marker.evented = true
+          marker.lockRotation = true
+          marker.lockScalingX = true
+          marker.lockScalingY = true
+          marker.hasControls = false
+        } else {
+          // fallback: 圆点 + 标签
+          const circle = new fabric.Circle({
+            left: x - 6, top: y - 6, radius: 6,
+            fill: color + '44', stroke: color, strokeWidth: 2,
+            selectable: true, hasControls: false, lockRotation: true,
+          })
+          circle._isFacility = true
+          circle._facilityId = f.id
+          circle._facilityData = f
+          marker = circle
+        }
+        // 编号标签
+        const lbl = new fabric.Text(f.standard_item_id.replace('P', '').replace('-', '') || '', {
+          left: x + size / 2 + 1, top: y - size / 2 - 1,
+          fontSize: Math.max(6, size * 0.45), fill: color, fontFamily: 'sans-serif',
           selectable: false, evented: false,
         })
-        circle._facilityId = f.id
-        circle._facilityData = f
-
-        fabricCanvas.add(circle)
-        fabricCanvas.add(text)
-        facilityMarkers.push(circle, text)
+        lbl._isFacilityLabel = true
+        fabricCanvas.add(marker)
+        fabricCanvas.add(lbl)
+        facilityMarkers.push(marker, lbl)
       })
       fabricCanvas.requestRenderAll()
     }
 
-    const placeFacilityAt = async (x, y) => {
-      // Create a pending facility at canvas position
-      const id = prompt('标准项编号 (如 P1-01):')
-      if (!id) return
-      const name = prompt('设施名称:')
-      if (!name) return
-      const cat = id.split('-')[0] || 'P1'
-
+    // ── 手动布点: 选中设施后点击画布落点 ──
+    const setTool = (t) => {
+      tool.value = t
+      if (t === 'place') {
+        if (!selectedFac.value) {
+          // 自动选择第一个未布点的可布点设施
+          const next = facilities.value.find(f => isPlacable(f) && (f.position?.x == null))
+          selectedFac.value = next || facilities.value.find(isPlacable) || null
+        }
+        facPlaceHint.value = selectedFac.value
+          ? `点击画布放置「${selectedFac.value.name}」(${selectedFac.value.standard_item_id})`
+          : '右侧清单先选择要布点的设施'
+      } else {
+        facPlaceHint.value = ''
+      }
+    }
+    const selectFacility = (f) => {
+      selectedFac.value = f
+      if (tool.value !== 'place') setTool('place')
+      focusFacility(f)
+    }
+    const placeAtPointer = async (x, y) => {
+      const f = selectedFac.value
+      if (!f) { toast.show('⚠️ 先在右侧设施清单选择要布点的设施'); return }
       try {
-        await API.post('/projects/' + route.params.id + '/facilities', {
-          standard_item_id: id, name: name,
-          type: 'credit', category: cat, status: 'draft',
-          quantity: 1,
-          position: { x: Math.round(x), y: Math.round(y), lng: null, lat: null },
-          custom_fields: { icon: '📍' }
+        await API.put('/projects/' + route.params.id + '/facilities/' + f.id, {
+          position: { x: Math.round(x), y: Math.round(y), lng: null, lat: null }
         })
-        toast.show('✅ 设施已布点: ' + name)
-        refreshFacilities()
-      } catch(e) { toast.show('❌ 布点失败') }
+        f.position = { x: Math.round(x), y: Math.round(y) }
+        renderFacilityMarkers()
+        toast.show('✅ 已布点: ' + f.name)
+        // 自动切到下一个未布点项
+        const next = facilities.value.find(x => x.id !== f.id && isPlacable(x) && x.position?.x == null)
+        if (next) { selectedFac.value = next; facPlaceHint.value = `点击画布放置「${next.name}」` }
+        else { selectedFac.value = null; facPlaceHint.value = ''; setTool('pan') }
+      } catch(e) { console.error(e); toast.show('❌ 布点保存失败') }
+    }
+
+    // ── 自动布点引擎 ──
+    const openAutoPlace = () => {
+      hideRight.value = false
+      setTool('pan')
+      runAutoPlace()
+    }
+
+    // 防抖: 拉杆拖动时延迟重算
+    let _reautoTimer = null
+    const scheduleReauto = () => {
+      if (_reautoTimer) clearTimeout(_reautoTimer)
+      _reautoTimer = setTimeout(() => {
+        const placed = facilities.value.filter(f => f.position?.x != null).length
+        if (placed > 0 && autoOverwrite.value) runAutoPlace()
+        else if (placed > 0) toast.show('💡 调整后点「🚀 一键自动布点」或勾选覆盖后重算')
+      }, 600)
+    }
+
+    // 核心: 计算每项设施的建议位置
+    const computePlacements = () => {
+      const spacing = placeSpacing.value
+      const margin = placeMargin.value
+      const rowCap = perRow.value
+      const placable = facilities.value.filter(isPlacable)
+      const placed = []
+
+      // 可用锚点池
+      const poolOf = (spaceType) => geoAnchors[spaceType] || []
+      const poolAll = ['building','channel','node','green','facade','road','boundary'].flatMap(t => poolOf(t))
+      // 区域 = boundary 或整体范围
+      let region = poolOf('boundary')[0]
+      if (!region && poolAll.length) {
+        region = {
+          minX: Math.min(...poolAll.map(b => b.minX)), minY: Math.min(...poolAll.map(b => b.minY)),
+          maxX: Math.max(...poolAll.map(b => b.maxX)), maxY: Math.max(...poolOf('building')[0] ? poolAll.map(b => b.maxX) : poolAll.map(b => b.maxX)),
+          cx: 0, cy: 0,
+        }
+        region.cx = (region.minX + region.maxX) / 2
+        region.cy = (region.minY + region.maxY) / 2
+      }
+
+      // 按分类分桶
+      const buckets = {}
+      placable.forEach(f => {
+        const cat = (f.category || 'P1').toUpperCase()
+        if (!buckets[cat]) buckets[cat] = []
+        buckets[cat].push(f)
+      })
+
+      // 已有布点保留 (不覆盖时)
+      const keepExisting = !autoOverwrite.value
+
+      const placeOne = (f, bb, idx) => {
+        const col = idx % rowCap
+        const row = Math.floor(idx / rowCap)
+        const x = bb.minX + margin + col * spacing + (row % 2) * (spacing / 2)
+        const y = bb.minY + margin + row * spacing
+        return { f, x, y }
+      }
+
+      // 智能策略: 分类 → 空间类型
+      const placeBucketSmart = (cat, items) => {
+        const spaceTypes = CAT_SPACE[cat] || ['building', 'channel']
+        const pools = spaceTypes.map(t => poolOf(t)).filter(p => p.length)
+        const anchors = pools.length ? pools[0] : poolAll
+        if (!anchors.length) return []
+        // 按中心距离从项目中心展开, 每锚点放若干
+        const out = []
+        let idx = 0
+        for (const bb of anchors) {
+          if (idx >= items.length) break
+          const n = Math.min(items.length - idx, Math.max(1, Math.floor((bb.maxX - bb.minX) / spacing) || 1))
+          for (let k = 0; k < n && idx < items.length; k++) {
+            out.push(placeOne(items[idx], bb, k))
+            idx++
+          }
+        }
+        // 溢出: 均匀散布到区域
+        while (idx < items.length) {
+          if (!region) break
+          out.push(placeOne(items[idx], region, idx))
+          idx++
+        }
+        return out
+      }
+
+      // 通道线性策略
+      const placeChannel = (items) => {
+        const chans = poolOf('channel')
+        const anchors = chans.length ? chans : poolAll
+        const out = []
+        if (!anchors.length) return out
+        let idx = 0
+        for (const bb of anchors) {
+          const n = Math.min(items.length - idx, Math.max(1, Math.floor((bb.maxX - bb.minX) / spacing) || 1))
+          for (let k = 0; k < n && idx < items.length; k++) {
+            out.push(placeOne(items[idx], bb, k))
+            idx++
+          }
+        }
+        return out
+      }
+      const placeNode = (items) => {
+        const nodes = poolOf('node')
+        const anchors = nodes.length ? nodes : poolAll
+        const out = []
+        let idx = 0
+        for (const bb of anchors) {
+          const n = Math.min(items.length - idx, Math.max(1, Math.floor((bb.maxX - bb.minX) / spacing) || 1))
+          for (let k = 0; k < n && idx < items.length; k++) {
+            out.push(placeOne(items[idx], bb, k))
+            idx++
+          }
+        }
+        return out
+      }
+      const placeUniform = (items) => {
+        if (!region) return []
+        const out = []
+        items.forEach((f, i) => {
+          const col = i % rowCap
+          const row = Math.floor(i / rowCap)
+          const cellW = spacing
+          const x = region.minX + margin + col * cellW + (row % 2) * (cellW / 2)
+          const y = region.minY + margin + row * cellW
+          out.push({ f, x, y })
+        })
+        return out
+      }
+      const placeBoundary = (items) => {
+        const b = poolOf('boundary')[0]
+        const bb = b || region
+        if (!bb) return []
+        const out = []
+        items.forEach((f, i) => {
+          const per = (i + 0.5) / Math.max(items.length, 1)
+          const px = bb.minX + per * (bb.maxX - bb.minX)
+          // 底边内侧
+          out.push({ f, x: px, y: bb.maxY - margin })
+        })
+        return out
+      }
+
+      // 执行
+      if (placeStrategy.value === 'channel') {
+        placeChannel(placable).forEach(p => placed.push(p))
+      } else if (placeStrategy.value === 'node') {
+        placeNode(placable).forEach(p => placed.push(p))
+      } else if (placeStrategy.value === 'uniform') {
+        placeUniform(placable).forEach(p => placed.push(p))
+      } else if (placeStrategy.value === 'boundary') {
+        placeBoundary(placable).forEach(p => placed.push(p))
+      } else {
+        // smart
+        for (const [cat, items] of Object.entries(buckets)) {
+          placeBucketSmart(cat, items).forEach(p => placed.push(p))
+        }
+      }
+      return { placed, keepExisting }
+    }
+
+    const runAutoPlace = async () => {
+      if (autoPlacing.value) return
+      autoPlacing.value = true
+      try {
+        const { placed, keepExisting } = computePlacements()
+        if (!placed.length) { toast.show('⚠️ 无可用布点锚点，请先加载含 TAF 图层的 DXF'); return }
+        let n = 0
+        for (const p of placed) {
+          const f = p.f
+          if (keepExisting && f.position?.x != null) continue
+          try {
+            await API.put('/projects/' + route.params.id + '/facilities/' + f.id, {
+              position: { x: Math.round(p.x), y: Math.round(p.y), lng: null, lat: null }
+            })
+            f.position = { x: Math.round(p.x), y: Math.round(p.y) }
+            n++
+          } catch(e) { console.error('place fail', f.id, e) }
+        }
+        renderFacilityMarkers()
+        toast.show(`✅ 自动布点完成: ${n} 项已布点 (策略: ${placeStrategy.value}, 间距 ${placeSpacing.value}m)`)
+        if (n === 0 && !keepExisting) toast.show('⚠️ 0 项更新 (可能已全部布点, 勾选「覆盖已有布点」重算)')
+      } finally {
+        autoPlacing.value = false
+      }
     }
 
     const focusFacility = (f) => {
-      if (!fabricCanvas || !f.position) return
+      if (!fabricCanvas || !f.position) { if (f?.position?.x == null) toast.show('📍 该设施尚未布点'); return }
       const pos = f.position
       const zoom = fabricCanvas.getZoom()
       const wrap = canvasWrap.value
@@ -1231,12 +1673,66 @@ const BasemapEditor = {
       toast.show('📍 定位: ' + f.name)
     }
 
+    // ── 图例表格 (旧层 + 布点符号层) ──
+    const buildLegend = () => {
+      const rows = []
+      // 1) 底图空间图层
+      const baseNames = ['TAF-BOUNDARY', 'TAF-BUILDING', 'TAF-CHANNEL', 'TAF-ROAD', 'TAF-GREEN', 'TAF-NODE', 'TAF-FACADE', 'BASEMAP']
+      for (const nm of baseNames) {
+        const l = layers.value.find(x => x.name === nm) || layers.value.find(x => x.name.toUpperCase() === nm)
+        if (l || nm === 'TAF-BOUNDARY') {
+          rows.push({ layer: nm, label: nm, color: LAYER_COLORS[nm] || '#5c6370', icon: null })
+        }
+      }
+      // 2) 布点符号层 (19 项)
+      for (const [itemId, sym] of Object.entries(makiSymbols)) {
+        const fac = facilities.value.find(f => f.standard_item_id === itemId)
+        const zh = fac?.name || sym.name_zh || ''
+        const cat = itemId.split('-')[0]
+        rows.push({
+          layer: sym.layer,
+          label: `${itemId} ${zh} [${sym.layer}]`,
+          icon: sym.path, viewbox: sym.viewbox,
+          color: CAT_COLORS[cat] || '#4f8cff',
+        })
+      }
+      legendRows.value = rows
+    }
+
+    // ── 全屏 ──
+    const toggleFullscreen = () => {
+      fullscreen.value = !fullscreen.value
+      const el = document.querySelector('#app')
+      if (el) el.style.maxWidth = fullscreen.value ? 'none' : ''
+      // 触发画布 resize (ResizeObserver 自动处理)
+      setTimeout(() => { if (fabricCanvas) fabricCanvas.renderAll() }, 60)
+    }
+    const toggleTrueFullscreen = async () => {
+      try {
+        if (!document.fullscreenElement) await document.documentElement.requestFullscreen()
+        else await document.exitFullscreen()
+      } catch(e) { toast.show('❌ 真全屏不可用: ' + e.message) }
+    }
+
+    const loadMaki = async () => {
+      try {
+        const resp = await fetch('/taf/maki_symbols.json')
+        if (resp.ok) {
+          const d = await resp.json()
+          makiSymbols = d.symbols || {}
+          buildLegend()
+        } else {
+          console.warn('maki_symbols.json not served, facility symbols fallback to dots')
+        }
+      } catch(e) { console.warn('load maki failed', e) }
+    }
+
     onMounted(() => {
       loadProject()
+      loadMaki()
       nextTick(() => {
         setTimeout(initCanvas, 100)
-        // Load existing basemaps
-        loadBasemaps()
+        setTimeout(loadBasemaps, 150)
       })
     })
 
@@ -1263,7 +1759,12 @@ const BasemapEditor = {
     return { projectName, layers, tool, zoomPct, canvasSize, selectedObj, facilities,
       textInput, textValue, canvasWrap, canvasEl, fileInput,
       triggerUpload, onFileUpload, fitScreen, updateLayerVisibility, updateLayerOpacity,
-      confirmText, cancelText, exportView, refreshFacilities, focusFacility }
+      confirmText, cancelText, exportView, refreshFacilities, focusFacility,
+      hideLeft, hideRight, fullscreen, toggleFullscreen, toggleTrueFullscreen,
+      setTool, selectFacility, facFilter, filteredFacilities, selectedFac, facPlaceHint,
+      facSymbol, facColor, placableCount, autoPlacing, placeStrategy, placeSpacing,
+      placeMargin, perRow, symScale, autoOverwrite, scheduleReauto,
+      openAutoPlace, runAutoPlace, legendRows, buildLegend }
   }
 }
 
