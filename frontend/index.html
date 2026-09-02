@@ -2300,12 +2300,11 @@ const BasemapEditor = {
       // 🔴 语义区分 (用户修正): building/facade 多边形=建筑实体=室内禁区 →
       //   布点在多边形外部 (室外); channel/green/node/boundary 多边形=开放空间 → 布点在内部
       const exteriorType = (strat === 'building' || strat === 'facade')
-      // 全部建筑禁区 (fallback 区域散布时也需避开建筑内部)
-      const buildingBlocks = exteriorType ? [] : poolOf('building').flatMap(b => b.polys || [])
+      // 全部建筑禁区: 建筑实体=室内禁区, 一律排除 (exterior 规则锚点自身环含于其中;
+      //   开放空间规则同样避楼; fallback 区域散布/无闭合环锚点(facade 开放线)也靠它防进楼)
+      const buildingBlocks = poolOf('building').flatMap(b => b.polys || [])
       const pointBlocked = (x, y) => {
-        // 建筑内部 → 禁止
-        const blk = exteriorType ? anchors : buildingBlocks
-        for (const poly of blk) {
+        for (const poly of buildingBlocks) {
           if (poly && pointInRing(x, y, poly.ring)) return true
         }
         return false
