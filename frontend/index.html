@@ -1284,7 +1284,8 @@ const BasemapEditor = {
         const t = opt.target
         if (t?._isFacility && t._facilityData?.id) {
           const w = screenToWorld(t.left, t.top)   // 场景 → 世界
-          const x = Math.round(w.x), y = Math.round(w.y)
+          // 🔴 不取整: 拖动保存浮点坐标, 无 1 单位(1cm)网格吸附感
+          const x = w.x, y = w.y
           try {
             if (t._placementId) {
               // P0: 更新该实例
@@ -2267,7 +2268,8 @@ const BasemapEditor = {
       if (!f) { toast.show('⚠️ 先在点位库点选要布点的标准项'); return }
       pushUndo()
       const w = screenToWorld(sx, sy)   // 场景 → 世界坐标 (CAD 用)
-      const x = Math.round(w.x), y = Math.round(w.y)
+      // 🔴 不取整: 保留浮点坐标, 手动落点自由 (无网格吸附; 取整会造成 1 单位=1cm 的吸附感)
+      const x = w.x, y = w.y
       try {
         // P0: 手动布点 = 追加一个 placement 实例 (连续加点, 不跳转)
         const resp = await API.post('/facilities/' + f.id + '/placements', {
