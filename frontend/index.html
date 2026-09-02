@@ -892,10 +892,9 @@ const BasemapEditor = {
               其中可布点标准 {{ placableCount }} 项
             </div>
             <div style="margin-top:8px;font-size:12px;color:var(--muted);background:#ffffff06;padding:6px 8px;border-radius:4px;line-height:1.6">
-              💡 自动布点按标准项进行：<br>
-              到左侧点位库点选某项<br>
-              使用该项的⚡单独布点<br>
-              （每项数量/间距默认规则不同）
+              💡自动布点按标准项进行：<br>
+              1. 到左侧点位库点选某项<br>
+              2. 使用该项⚡单独布点（每项规则不同）
             </div>
           </div>
 
@@ -2193,6 +2192,14 @@ const BasemapEditor = {
     if (typeof document !== 'undefined') document.addEventListener('keydown', _delKey)
 
     const selectFacility = (f) => {
+      // A: 已选中该项再点 → 取消选择 (解锁全部点位, 恢复自由微调)
+      if (selectedFac.value?.id === f.id) {
+        selectedFac.value = null
+        setTool('pan')
+        facPlaceHint.value = ''
+        toast.show('已取消选择 — 全部点位可自由微调')
+        return
+      }
       selectedFac.value = f
       // 点选标准项后: 保留右侧两列可见 + 自动选第一可用策略 (供自动布点直接执行)
       hideLib.value = false
