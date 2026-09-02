@@ -55,6 +55,7 @@ def add_text(slide, cx, cy, txt, size_pt, bold=False, w_px=900, color=RGBColor(0
     r.text = txt
     set_font(r, size_pt, bold=bold, color=color)
     no_shadow(tb)
+    return tb
 
 def path_to_lines(d):
     """整条解析 (svgpathtools 正确处理混合 M/m 相对命令), 逐段采样,
@@ -106,6 +107,32 @@ def add_freeform(slide, pts_px, close, fill_rgb=None, line_rgb=None, lw_px=0):
     no_shadow(sp)
     return sp
 
+# 🔴 零位移编组: 子形状坐标均为绝对(slide 系), 组 transform 设 chOff=off
+#   → child_screen = off + (child_off - chOff) * scale = child_off (原位), 无需平移子几何
+def _group_elements(slide, elems, name):
+    from pptx.oxml import parse_xml
+    spTree = slide.shapes._spTree
+    xs = [e.left for e in elems]
+    ys = [e.top for e in elems]
+    xe = [e.left + e.width for e in elems]
+    ye = [e.top + e.height for e in elems]
+    L, T = min(xs), min(ys)
+    W, H = max(xe) - L, max(ye) - T
+    gid = len(spTree) + 4000
+    xml = (f'<p:grpSp xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" '
+           f'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
+           f'<p:nvGrpSpPr><p:cNvPr id="{gid}" name="{name}"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>'
+           f'<p:grpSpPr><a:xfrm><a:off x="{int(L)}" y="{int(T)}"/><a:ext cx="{int(W)}" cy="{int(H)}"/>'
+           f'<a:chOff x="{int(L)}" y="{int(T)}"/><a:chExt cx="{int(W)}" cy="{int(H)}"/></a:xfrm></p:grpSpPr>'
+           f'</p:grpSp>')
+    grp_el = parse_xml(xml)
+    for sh in elems:
+        el = sh._element
+        spTree.remove(el)
+        grp_el.append(el)
+    spTree.append(grp_el)
+    return grp_el
+
 # 🔴 实心页局部涂黑映射 (用户 2026-09-03 指定): item -> 折线索引(按 path 顺序)
 BLACK_PARTS = {
     'P1-01': [1],                        # 斑马块中间横条
@@ -139,6 +166,7 @@ def draw_page(mode):
         col, row = idx % COLS, idx // COLS
         cx = col * CELL_W + CELL_W / 2
         cy_c = GRID_TOP + row * CELL_H + CELL_H * 0.30
+        elems = []          # 🔴 本图标全部元素 → 编组成一组
         circle = slide.shapes.add_shape(MSO_SHAPE.OVAL,
                                         Emu(int((cx - CIRCLE_D / 2) * EMU)),
                                         Emu(int((cy_c - CIRCLE_D / 2) * EMU)),
@@ -146,7 +174,7 @@ def draw_page(mode):
         circle.fill.solid(); circle.fill.fore_color.rgb = BLACK
         circle.line.fill.background()
         no_shadow(circle)
-        circle.name = f'circ_{item}'
+        elems.append(circle)
         k = (CIRCLE_D * 0.86) / 15.0
         lines = path_to_lines(sym['path'])
         if not lines:
@@ -161,7 +189,7 @@ def draw_page(mode):
         if mode == 'outline':
             for l in lines:
                 px = [to_px(u, v) for u, v in l['pts']]
-                add_freeform(slide, px, l['close'], fill_rgb=None, line_rgb=WHITE, lw_px=2.0)
+                elems.append(add_freeform(slide, px, l['close'], fill_rgb=None, line_rgb=WHITE, lw_px=2.0))
         else:
             # 实心页: 白色实心剪影 + 黑色结构线; 个别内部件整块涂黑 (用户指定 BLACK_PARTS)
             black_idx = set(BLACK_PARTS.get(item, []))
@@ -169,21 +197,24 @@ def draw_page(mode):
                 px = [to_px(u, v) for u, v in l['pts']]
                 if i in black_idx:
                     continue   # 黑件稍后覆盖画 (保证盖住共边白)
-                add_freeform(slide, px, l['close'], fill_rgb=WHITE, line_rgb=BLACK, lw_px=1.8)
+                elems.append(add_freeform(slide, px, l['close'], fill_rgb=WHITE, line_rgb=BLACK, lw_px=1.8))
             for i, l in enumerate(lines):
                 if i not in black_idx:
                     continue
                 px = [to_px(u, v) for u, v in l['pts']]
-                add_freeform(slide, px, l['close'], fill_rgb=BLACK, line_rgb=None)
+                elems.append(add_freeform(slide, px, l['close'], fill_rgb=BLACK, line_rgb=None))
             for i, l in enumerate(lines):
                 if i in black_idx:
                     continue
                 px = [to_px(u, v) for u, v in l['pts']]
-                add_freeform(slide, px, l['close'], fill_rgb=None, line_rgb=BLACK, lw_px=2.6)
+                elems.append(add_freeform(slide, px, l['close'], fill_rgb=None, line_rgb=BLACK, lw_px=2.6))
         t0 = cy_c + CIRCLE_D / 2 + 26
-        add_text(slide, cx, t0, item, 26, bold=True)
-        add_text(slide, cx, t0 + 52, sym['name_zh'], 20)
-        add_text(slide, cx, t0 + 100, sym['layer'], 12, w_px=880)
+        # 🔴 文本框收窄: 序号/中文名/图层名按内容宽度 (原 900px 过宽)
+        elems.append(add_text(slide, cx, t0, item, 26, bold=True, w_px=240))
+        elems.append(add_text(slide, cx, t0 + 52, sym['name_zh'], 20, w_px=460))
+        elems.append(add_text(slide, cx, t0 + 100, sym['layer'], 12, w_px=560))
+        # 🔴 编组: 图标+图案+三行文字 → 一组 (名称 grp_<item>)
+        _group_elements(slide, elems, f'grp_{item}')
 
 draw_page('outline')
 draw_page('solid')
