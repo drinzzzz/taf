@@ -1,0 +1,598 @@
+{
+ "backup_at": "2026-09-03T00:14:25.908306+08:00",
+ "project": {
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "code": "OS-NC-2026-001",
+  "name": "兴顺里人宠友好街区"
+ },
+ "facility_count": 35,
+ "placement_count": 48,
+ "facilities": [
+  {
+   "facility_id": "3b01835e-297e-4997-8f19-b93b9076d71e",
+   "standard_item_id": "P1-01",
+   "name": "地面安全与防滑",
+   "category": "P1",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "04365823-5147-48d6-a6e1-26388437f59b",
+     "seq": 1,
+     "x": "4126",
+     "y": "1581"
+    },
+    {
+     "placement_id": "ef907a4e-7efa-478f-9a5a-7a34a483b598",
+     "seq": 2,
+     "x": "2969",
+     "y": "1632"
+    },
+    {
+     "placement_id": "17cf2ffa-bce5-48ea-bbd0-3e89b2f17fd5",
+     "seq": 3,
+     "x": "1996",
+     "y": "1328"
+    },
+    {
+     "placement_id": "95638e4a-52c1-4eac-a722-fcabcc715122",
+     "seq": 4,
+     "x": "961",
+     "y": "984"
+    },
+    {
+     "placement_id": "2abd5e0b-52e6-40ad-9729-7159bd75a381",
+     "seq": 5,
+     "x": "3463",
+     "y": "2225"
+    },
+    {
+     "placement_id": "3e42d423-1d66-4d2b-a5d9-b26f47721a3e",
+     "seq": 6,
+     "x": "3499",
+     "y": "2775"
+    }
+   ]
+  },
+  {
+   "facility_id": "811cefdb-6f3f-4ebd-be63-1eabb1c3853b",
+   "standard_item_id": "P1-02",
+   "name": "公共饮水点（位置与数量）",
+   "category": "P1",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "db396090-3a05-4ba5-83d3-62aad82a6d2d",
+     "seq": 1,
+     "x": "3562.048164867331",
+     "y": "1437.208676379976"
+    },
+    {
+     "placement_id": "a53cf02e-841e-424b-990c-8ad5dc901e25",
+     "seq": 2,
+     "x": "4158.617555562883",
+     "y": "2648.858026580035"
+    },
+    {
+     "placement_id": "7db7ddef-1093-42c1-87d1-bdc9dc1e495e",
+     "seq": 3,
+     "x": "2036.8900620548536",
+     "y": "1566.3651211026581"
+    },
+    {
+     "placement_id": "fee32647-c733-448a-ac63-5684ca89cccb",
+     "seq": 4,
+     "x": "2921.003026972472",
+     "y": "3358.0906697130226"
+    }
+   ]
+  },
+  {
+   "facility_id": "e7327745-9bcb-44cc-8106-f419bfa6c447",
+   "standard_item_id": "P1-03",
+   "name": "宠物排泄物处理设施",
+   "category": "P1",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "8340eded-d6f2-493c-827a-4ce5ec8af641",
+     "seq": 1,
+     "x": "2303.23413689979",
+     "y": "1990.4590585218484"
+    },
+    {
+     "placement_id": "abf00666-f4f6-4f89-a725-9f0bf65a679b",
+     "seq": 2,
+     "x": "5186.125192321579",
+     "y": "2345.3222941546887"
+    },
+    {
+     "placement_id": "0e6fefd6-cba8-4226-ade4-fd0378de39ec",
+     "seq": 3,
+     "x": "2808.7873225812655",
+     "y": "3632.3185446754496"
+    }
+   ]
+  },
+  {
+   "facility_id": "b6e197f7-3a9e-4ad0-a21b-88863f30c55a",
+   "standard_item_id": "P1-04",
+   "name": "宠物与行人动线冲突点标识",
+   "category": "P1",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "6c6c3a1c-4eb9-4092-bf87-f398a9f9e448",
+     "seq": 1,
+     "x": "1381.4496625212312",
+     "y": "1113.2083938946837"
+    },
+    {
+     "placement_id": "6d1d8e27-d337-4b14-a97b-d94085ef94c9",
+     "seq": 2,
+     "x": "2570.109570867294",
+     "y": "1506.1538181413152"
+    },
+    {
+     "placement_id": "6df8b1f2-db02-49bc-9dc3-9248d02bc48b",
+     "seq": 3,
+     "x": "3545.9240410797647",
+     "y": "1836.8828835488982"
+    },
+    {
+     "placement_id": "e2700462-1956-4b95-b983-4a60b3e85a19",
+     "seq": 4,
+     "x": "4528.2876016963455",
+     "y": "2164.337403754425"
+    },
+    {
+     "placement_id": "ec2b5bf9-19b0-4af0-9b30-2517272f28d6",
+     "seq": 5,
+     "x": "4367.834886795637",
+     "y": "3087.7591507340107"
+    },
+    {
+     "placement_id": "6d3a4b0e-002f-4f68-b0a6-f2c5db0c6a1a",
+     "seq": 6,
+     "x": "3149.704071631077",
+     "y": "2884.7373482065836"
+    },
+    {
+     "placement_id": "2bc69e7c-34f4-453c-9898-e50d18ba01f6",
+     "seq": 7,
+     "x": "5104.607557258073",
+     "y": "2318.2410282510223"
+    },
+    {
+     "placement_id": "43fffc4d-ad33-40ef-8db7-3f60ec501f6c",
+     "seq": 8,
+     "x": "4914.683935538867",
+     "y": "3235.113684826498"
+    },
+    {
+     "placement_id": "fb1da485-7448-43ed-aeaa-619fd97727ca",
+     "seq": 9,
+     "x": "3667.0822135558096",
+     "y": "1240.9156567748387"
+    },
+    {
+     "placement_id": "10ab3343-1285-4183-918e-a63ee21c8dcd",
+     "seq": 10,
+     "x": "579.0027344723345",
+     "y": "855.8606096399122"
+    }
+   ]
+  },
+  {
+   "facility_id": "64f4bf8c-64bf-4978-96e6-c490cd64f646",
+   "standard_item_id": "P1-05",
+   "name": "宠物临时寄存/休息区",
+   "category": "P1",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "5056ee99-d065-467e-9d86-5484c1455fc0",
+     "seq": 1,
+     "x": "2180.438691822717",
+     "y": "1748.4701630934055"
+    }
+   ]
+  },
+  {
+   "facility_id": "39d8a53f-5187-4154-9ab2-8cf70d4d54a2",
+   "standard_item_id": "P1-06",
+   "name": "夜间照明与安全",
+   "category": "P1",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "b120c79a-0bc7-45ba-9132-2d5c300b9d7c",
+     "seq": 1,
+     "x": "1090.0151395383125",
+     "y": "1902.3737875900033"
+    },
+    {
+     "placement_id": "7901c049-aaa5-4700-a175-5b01302f534b",
+     "seq": 2,
+     "x": "2363.813223137812",
+     "y": "2030.0810504701583"
+    },
+    {
+     "placement_id": "33ee6b65-39e9-4ccb-8c91-c81acadffda0",
+     "seq": 3,
+     "x": "4973.625749175862",
+     "y": "3294.0554984634923"
+    },
+    {
+     "placement_id": "69753ec8-a789-40c9-bd39-29e9d0a61498",
+     "seq": 4,
+     "x": "5222.491184532063",
+     "y": "2147.9646777441485"
+    },
+    {
+     "placement_id": "74acbb63-7bcf-4df5-a909-59c8485fc848",
+     "seq": 5,
+     "x": "3575.394947898262",
+     "y": "2501.6155595661176"
+    },
+    {
+     "placement_id": "e539c83b-f2df-408a-9f9a-6c538404ec54",
+     "seq": 6,
+     "x": "2985.9768115283136",
+     "y": "3713.197284326567"
+    }
+   ]
+  },
+  {
+   "facility_id": "117ae5b9-468b-4ebc-b623-d50b3bbe2331",
+   "standard_item_id": "P1-07",
+   "name": "街区'宠物友好'导览系统",
+   "category": "P1",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "33c91a4d-1e53-4dbe-b8d7-94b9fcf085fa",
+     "seq": 1,
+     "x": "3598.474042621072",
+     "y": "1281.1270424035101"
+    },
+    {
+     "placement_id": "c34dcfb1-eecd-47a6-80d5-9dd2a3fb19f7",
+     "seq": 2,
+     "x": "564.1546357499211",
+     "y": "920.1935956142241"
+    },
+    {
+     "placement_id": "430e5954-96b5-404d-9f22-add1187cabed",
+     "seq": 3,
+     "x": "1531.4867440987327",
+     "y": "560.1769920289457"
+    },
+    {
+     "placement_id": "1ecf36cf-d15f-43fe-8737-85c72aacbcef",
+     "seq": 4,
+     "x": "2895.0388218962316",
+     "y": "3425.5874124681095"
+    }
+   ]
+  },
+  {
+   "facility_id": "ccb4a7e2-392d-4856-9187-0b0ca3893d1e",
+   "standard_item_id": "P2-01",
+   "name": "宠物准入规则公示",
+   "category": "P2",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "ca8091d9-2742-4d6f-b1ad-4a7239068412",
+     "seq": 1,
+     "x": "3562.2967670900407",
+     "y": "1348.9756484426625"
+    },
+    {
+     "placement_id": "12c741c6-dbd7-4aa0-995f-a6ac70813ec3",
+     "seq": 2,
+     "x": "1492.7841993911104",
+     "y": "618.7520683843381"
+    },
+    {
+     "placement_id": "34b4239e-fda8-4142-9b0d-1ba1717df09c",
+     "seq": 3,
+     "x": "692.5744272959658",
+     "y": "963.8000573937992"
+    }
+   ]
+  },
+  {
+   "facility_id": "4e67ee44-1bc2-43ce-8ffd-9e49582918a4",
+   "standard_item_id": "P2-02",
+   "name": "餐饮商户的宠物管理",
+   "category": "P2",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "cd9b734b-c2b5-4f97-b6f6-0bccb93420de",
+   "standard_item_id": "P2-03",
+   "name": "宠物友好商户比例",
+   "category": "P2",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "b107edc3-7763-45e1-be31-016ea603f408",
+   "standard_item_id": "P2-04",
+   "name": "宠物相关业态丰富度",
+   "category": "P2",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "679bf6fc-b780-4162-a24d-358b40ce5aa5",
+   "standard_item_id": "P2-05",
+   "name": "非宠物业态的主动友好度",
+   "category": "P2",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "9c2a225b-f91e-48ba-b8c8-3c983c626ebc",
+   "standard_item_id": "P2-06",
+   "name": "商户员工宠物友好培训",
+   "category": "P2",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "e8c61b67-88f1-4c20-b561-587f8deb2028",
+   "standard_item_id": "P3-01",
+   "name": "宠物准入管理制度",
+   "category": "P3",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "15eda266-cbfa-4ef8-9585-5ab5630506f0",
+   "standard_item_id": "P3-02",
+   "name": "应急预案与事件台账",
+   "category": "P3",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "f451d7e8-3edb-4fa8-99c3-2fabc3275227",
+   "standard_item_id": "P3-03",
+   "name": "投诉处理通道",
+   "category": "P3",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "c728adfa-892c-414a-b507-d26894147fb9",
+   "standard_item_id": "P3-04",
+   "name": "街区宠物友好专员/团队",
+   "category": "P3",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "eef9ee6f-c643-4984-9ff3-02d715893dce",
+   "standard_item_id": "P3-05",
+   "name": "宠物相关保险与免责",
+   "category": "P3",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "74b48335-e3d6-4b30-abc3-b44fc4fd1e71",
+   "standard_item_id": "P3-06",
+   "name": "宠物数量/时段管理",
+   "category": "P3",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "86961894-2479-45c5-889e-54c549a11793",
+   "standard_item_id": "P4-01",
+   "name": "宠物饮水点卫生与便利性",
+   "category": "P4",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "a29fd14c-9d93-474f-a694-5c99b023d0bb",
+   "standard_item_id": "P4-02",
+   "name": "宠物休憩与避风港区域",
+   "category": "P4",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "b6012d73-e280-45ac-b061-b3430c6e65d7",
+     "seq": 1,
+     "x": "2193.536872630938",
+     "y": "1637.1356262235267"
+    }
+   ]
+  },
+  {
+   "facility_id": "9f714525-ab32-4e2c-9040-869d8411dba4",
+   "standard_item_id": "P4-03",
+   "name": "感官丰容与探索趣味设计",
+   "category": "P4",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "d93debba-2a91-4d2f-8b52-0bdbde30ba94",
+     "seq": 1,
+     "x": "2207.0335483512767",
+     "y": "1871.6833737662614"
+    }
+   ]
+  },
+  {
+   "facility_id": "8a1b7006-4140-4d9b-9997-5e400c122f8d",
+   "standard_item_id": "P4-04",
+   "name": "宠物应急与急救支持",
+   "category": "P4",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "dd866a48-1989-4967-bf9c-5dd94280dbda",
+     "seq": 1,
+     "x": "4269.898217930518",
+     "y": "2563.530758970212"
+    }
+   ]
+  },
+  {
+   "facility_id": "685527a5-228f-4ee1-9284-3eef6a12eb12",
+   "standard_item_id": "P4-05",
+   "name": "安全社交与互动空间",
+   "category": "P4",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "316958c5-8399-4280-b13f-5a854e5d0f24",
+     "seq": 1,
+     "x": "2034.3495614629608",
+     "y": "1815.915019805372"
+    }
+   ]
+  },
+  {
+   "facility_id": "8a94b6c9-3047-44e3-aba6-5825cfbc4531",
+   "standard_item_id": "P4-06",
+   "name": "地面温度与热应激防护",
+   "category": "P4",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "92cbcdc6-1db7-4f56-ab1f-c6cbd51a93e3",
+     "seq": 1,
+     "x": "4281.496829331583",
+     "y": "2465.89846702766"
+    }
+   ]
+  },
+  {
+   "facility_id": "431abed1-3d5d-49eb-8ac5-e642e870c608",
+   "standard_item_id": "P4-07",
+   "name": "宠物专属活动/游戏设施",
+   "category": "P4",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "f2c40fe3-3c5a-4cbf-9766-845d81686080",
+     "seq": 1,
+     "x": "2341.779876042894",
+     "y": "1801.5206037084727"
+    }
+   ]
+  },
+  {
+   "facility_id": "460a28e2-9dbf-4f5e-88ee-e2fa86c93b36",
+   "standard_item_id": "P4-08",
+   "name": "宠物排泄后'即时水冲'系统",
+   "category": "P4",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "fc727a58-d40b-4706-811c-b13094be2c4e",
+     "seq": 1,
+     "x": "3178.3554367448955",
+     "y": "2657.1455997805565"
+    },
+    {
+     "placement_id": "34d4f7ef-de2f-4c15-af14-c8f29350c413",
+     "seq": 2,
+     "x": "4674.822594084154",
+     "y": "1635.4874967393112"
+    }
+   ]
+  },
+  {
+   "facility_id": "a45580fe-f255-4917-886c-2a4aaa0bf2bb",
+   "standard_item_id": "P5-01",
+   "name": "宠物友好行为倡导",
+   "category": "P5",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "7cf203df-143d-48c6-96bd-48e863127c43",
+     "seq": 1,
+     "x": "3739.513231738625",
+     "y": "1395.2426098671717"
+    }
+   ]
+  },
+  {
+   "facility_id": "89d7bab7-2867-4a34-b1b2-aedb06b75e88",
+   "standard_item_id": "P5-02",
+   "name": "宠物主题活动频次",
+   "category": "P5",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "5f7c4c32-a382-452d-944e-b837dc7fb6a2",
+   "standard_item_id": "P5-03",
+   "name": "与周边社区/公益组织联动",
+   "category": "P5",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "c34b9bb2-a082-47e3-b6e4-da5b836e8d9a",
+   "standard_item_id": "P5-04",
+   "name": "宠物友好信息数字化",
+   "category": "P5",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "d5e8da75-898c-4a63-9a36-b35bc31d8936",
+     "seq": 1,
+     "x": "3892.2062907929453",
+     "y": "1311.3075217358396"
+    }
+   ]
+  },
+  {
+   "facility_id": "30319f18-a0dc-41d8-9642-04d3ade312fe",
+   "standard_item_id": "P6-01",
+   "name": "设施风貌协调性",
+   "category": "P6",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "8d8120c8-67c2-4473-ba6c-082dd12fc3dc",
+   "standard_item_id": "P6-02",
+   "name": "建筑结构保护",
+   "category": "P6",
+   "status": "confirmed",
+   "placements": []
+  },
+  {
+   "facility_id": "96785d74-4c87-4ed8-a978-13be1840243e",
+   "standard_item_id": "P6-03",
+   "name": "在地文脉特色的宠物友好元素",
+   "category": "P6",
+   "status": "confirmed",
+   "placements": [
+    {
+     "placement_id": "1b0d8b6c-7d1e-40ac-93d7-e689cc3fb661",
+     "seq": 1,
+     "x": "4134.522635745035",
+     "y": "1828.6856636605728"
+    }
+   ]
+  },
+  {
+   "facility_id": "b47d5957-713a-46a5-8047-4fe238e46ed1",
+   "standard_item_id": "P6-04",
+   "name": "里弄空间的宠物适应性利用",
+   "category": "P6",
+   "status": "confirmed",
+   "placements": []
+  }
+ ]
+}
