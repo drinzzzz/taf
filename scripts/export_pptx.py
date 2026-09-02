@@ -19,10 +19,11 @@ bb = ef.border_bbox(geo)
 minx, miny, maxx, maxy = bb
 EMU = 9525.0
 PAGE_W, PAGE_H = 3840, 2160
-scale = PAGE_H / (maxy - miny)
+PAD = 2.0          # 🔴 与 SVG/PNG 相同的 2px 内边距 (图框外缘距画布边, 消除尺寸差)
+scale = (PAGE_H - 2 * PAD) / (maxy - miny)
 cw = (maxx - minx) * scale
 ox = (PAGE_W - cw) / 2
-oy = 0.0
+oy = PAD
 
 def X(x): return (ox + (x - minx) * scale) * EMU
 def Y(y): return (oy + (maxy - y) * scale) * EMU
@@ -42,6 +43,25 @@ prs = Presentation()
 prs.slide_width = Emu(int(PAGE_W * EMU))
 prs.slide_height = Emu(int(PAGE_H * EMU))
 slide = prs.slides.add_slide(prs.slide_layouts[6])
+
+# 🔴 内置素色底图 (basemap-clean.png 2160 高基准) 置于最底层 — 与矢量几何同映射, 无需手动对齐
+import os as _os
+BG = '/data/disk1/wwwroot/taf/exports_dev/basemap-clean.png'
+if _os.path.exists(BG):
+    from PIL import Image as _I
+    iw, ih = _I.open(BG).size           # ≈2824×2160
+    pic = slide.shapes.add_picture(BG, Emu(int((ox - PAD) * 9525)), Emu(int(0)), Emu(int(iw * 9525)), Emu(int(ih * 9525)))
+    pic.name = 'BG_basemap_clean'
+    # 移到 spTree 最底层 (紧跟 grpSpPr 之后)
+    spTree = slide.shapes._spTree
+    el = pic._element
+    spTree.remove(el)
+    spTree.insert(2, el)
+    try:
+        for el2 in pic._element.spPr.findall(qn('a:effectLst')):
+            pic._element.spPr.remove(el2)
+    except Exception:
+        pass
 
 cnt = {'poly': 0, 'line': 0}
 for layer, typ, pl in geo:

@@ -44,10 +44,15 @@ def clean_mtext(raw):
 
 
 class SvgBuilder:
-    def __init__(self, minx, miny, maxx, maxy, pad_frac=0.005):
-        pad = max(maxx-minx, maxy-miny) * pad_frac
-        self.x0, self.y0 = minx - pad, miny - pad
-        self.x1, self.y1 = maxx + pad, maxy + pad
+    def __init__(self, minx, miny, maxx, maxy, pad_px=2.0):
+        # 🔴 内边距以像素计 (默认 2px, 与 PPTX 映射一致: 仅留图框线宽余量, 消除大留白导致的尺寸差)
+        self.w_w0 = maxx - minx
+        self.h_w0 = maxy - miny
+        # 先按无 pad 估 out_w → pad_world
+        est_w = self.w_w0 * OUT_H / self.h_w0
+        pad_w = pad_px * self.w_w0 / max(1, est_w)
+        self.x0, self.y0 = minx - pad_w, miny - pad_w
+        self.x1, self.y1 = maxx + pad_w, maxy + pad_w
         self.w_w = self.x1 - self.x0
         self.h_w = self.y1 - self.y0
         # 🔴 基准: 高度 OUT_H=2160, 宽度等比 (与 PPTX 3840×2160 页按高度匹配)
