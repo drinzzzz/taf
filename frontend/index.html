@@ -1478,6 +1478,26 @@ const BasemapEditor = {
       }
       return polys
     }
+    // 点到环边界的最近距离 (世界坐标, 线段垂距+端点)
+    function pointDistToRing(x, y, ring) {
+      let dMin = Infinity
+      const n = ring.length
+      for (let i = 0; i < n; i++) {
+        const a = ring[i], b = ring[(i + 1) % n]
+        const dx = b.x - a.x, dy = b.y - a.y
+        const L2 = dx * dx + dy * dy
+        let t = 0
+        if (L2 > 1e-12) t = Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / L2))
+        const px = a.x + t * dx, py = a.y + t * dy
+        const d = Math.hypot(x - px, y - py)
+        if (d < dMin) dMin = d
+      }
+      return dMin
+    }
+    // 点是否落在某环的"周边带"内 (近边界 ≤ band, 用于建筑周边规则)
+    function pointInRingBand(x, y, ring, band) {
+      return pointDistToRing(x, y, ring) <= band
+    }
     // 点是否在任一 poly 内且不在其洞内 (世界坐标; 无 polys 时视为全域可用)
     function pointInPlaceableArea(x, y, polys) {
       if (!polys || !polys.length) return true
@@ -2277,9 +2297,20 @@ const BasemapEditor = {
       // 锚点选择 (按规则)
       const pools = (STRATEGY_POOL[strat] || ['channel']).map(t => poolOf(t)).filter(p => p.length)
       const anchors = pools.length ? pools[0] : allPool
+      // 🔴 语义区分 (用户修正): building/facade 多边形=建筑实体=室内禁区 →
+      //   布点在多边形外部 (室外); channel/green/node/boundary 多边形=开放空间 → 布点在内部
+      const exteriorType = (strat === 'building' || strat === 'facade')
+      // 全部建筑禁区 (fallback 区域散布时也需避开建筑内部)
+      const buildingBlocks = exteriorType ? [] : poolOf('building').flatMap(b => b.polys || [])
+      const pointBlocked = (x, y) => {
+        // 建筑内部 → 禁止
+        const blk = exteriorType ? anchors : buildingBlocks
+        for (const poly of blk) {
+          if (poly && pointInRing(x, y, poly.ring)) return true
+        }
+        return false
+      }
       // 目标数量: 全程扫描收集全部有效点, 再按主轴均匀抽样 rowCap 个
-      // 🔴 洞语义: 锚点带 polys 时仅保留"外环内且非洞内"候选点 (大 polygon 包小 polygon = 排除)
-      // 🔴 修复: 原"从 bbox 起点顺序取满 rowCap 即停"导致点全挤在通道起点尖角
       const out = []
       for (const bb of anchors) {
         const capW = Math.max(1, Math.floor((bb.maxX - bb.minX) / Math.max(spacing, 8)))
@@ -2287,10 +2318,25 @@ const BasemapEditor = {
         const cands = []
         for (let row = 0; row < capH; row++) {
           for (let col = 0; col < capW; col++) {
-            const x = bb.minX + margin + col * spacing + (row % 2) * (spacing / 2)
-            const y = bb.minY + margin + row * spacing
-            if (bb.polys && !pointInPlaceableArea(x, y, bb.polys)) continue   // 洞内/环外 → 跳过
-            cands.push({ x: Math.round(x), y: Math.round(y) })
+            const x = Math.round(bb.minX + margin + col * spacing + (row % 2) * (spacing / 2))
+            const y = Math.round(bb.minY + margin + row * spacing)
+            if (exteriorType) {
+              // 建筑周边规则: 建筑多边形=室内禁区 → 布在建筑外沿周边带 (≤2×spacing)
+              // 🔴 用户修正: 无法分辨建筑内外时按"多边形外=室外"; 且应贴近建筑外沿而非远处空地
+              if (bb.polys) {
+                // 在任一建筑环内 → 跳过 (室内) [用取整后坐标检测, 避免边缘点 round 入内]
+                if (bb.polys.some(p => pointInRing(x, y, p.ring))) continue
+                // 不在任何建筑环的周边带内 → 跳过 (太远非"周边")
+                const bandOk = bb.polys.some(p => pointInRingBand(x, y, p.ring, spacing * 2))
+                if (!bandOk) continue
+              }
+              // 排除其他建筑块内部 (多建筑时避免落入邻楼)
+              if (pointBlocked(x, y)) continue
+            } else {
+              // 开放空间规则: 点在多边形内且非洞 (原语义)
+              if (bb.polys && !pointInPlaceableArea(x, y, bb.polys)) continue
+            }
+            cands.push({ x, y })
           }
         }
         if (!cands.length) continue
@@ -2304,14 +2350,16 @@ const BasemapEditor = {
           out.push(cands[idx])
         }
       }
-      // 锚点不足但期望多些 → 均匀散布区域 (弹性: 至少能布出来)
+      // 锚点不足但期望多些 → 均匀散布区域 (弹性: 至少能布出来; 避开建筑内部)
       if (!out.length && region) {
         const need = Math.max(1, Math.floor(((region.maxX-region.minX)+(region.maxY-region.minY)) / (spacing*2)))
         for (let k = 0; k < Math.min(need, rowCap * 3); k++) {
           const col = k % Math.min(need, rowCap)
           const row = Math.floor(k / Math.min(need, rowCap))
-          out.push({ x: Math.round(region.minX + margin + col*spacing + (row%2)*(spacing/2)),
-                     y: Math.round(region.minY + margin + row*spacing) })
+          const x = region.minX + margin + col*spacing + (row%2)*(spacing/2)
+          const y = region.minY + margin + row*spacing
+          if (pointBlocked(x, y)) continue   // fallback 也不落建筑内
+          out.push({ x: Math.round(x), y: Math.round(y) })
         }
       }
       // 去重
