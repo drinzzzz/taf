@@ -1271,6 +1271,13 @@ const BasemapEditor = {
         if (opt.target?._isFacility) {
           const w = screenToWorld(opt.target.left, opt.target.top)
           selectedObj.value = `📍 ${opt.target._facilityData?.name || ''} (${Math.round(w.x)}, ${Math.round(w.y)})`
+          // 🔴 编号文字实时跟随图标移动 (修复拖动时二者分离)
+          const lb = opt.target._lbl
+          if (lb && opt.target._lblOff) {
+            lb.left = opt.target.left + opt.target._lblOff.x
+            lb.top = opt.target.top + opt.target._lblOff.y
+            lb.setCoords()
+          }
         }
       })
       fabricCanvas.on('object:modified', async (opt) => {
@@ -2056,6 +2063,9 @@ const BasemapEditor = {
               selectable: false, evented: false,
             })
             lbl._isFacilityLabel = true
+            // 🔴 图标-编号联动: marker 记住自己的 label 与初始偏移, 拖动时实时跟随
+            marker._lbl = lbl
+            marker._lblOff = { x: lbl.left - marker.left, y: lbl.top - marker.top }
           }
 
           const lobj = layers.value.find(l => l.name === facLayer)
