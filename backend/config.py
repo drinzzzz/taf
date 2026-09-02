@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     api_base_path: str = "/taf/api"
 
     # 文件路径
-    upload_dir: str = "/root/data/disk/taf_uploads"
+    upload_dir: str = "/data/disk1/wwwroot/taf/uploads"
     template_dir: str = "/data/disk1/wwwroot/taf/backend/templates"
 
     # Redis（预留，当前未使用）

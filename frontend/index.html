@@ -1679,7 +1679,10 @@ const BasemapEditor = {
         if (bms?.length) {
           const dxfBm = bms.find(b => b.file_type === 'dxf')
           if (dxfBm?.file_url) {
-            const url = '/taf/uploads/' + dxfBm.file_url.split('/taf_uploads/')[1]
+            // file_url 形如 {upload_dir}/{project_id}/{filename}; 取末两段拼静态 URL
+            const parts = dxfBm.file_url.split('/').filter(Boolean)
+            const rel = parts.slice(-2).join('/')
+            const url = '/taf/uploads/' + rel
             let tries = 0
             while (!fabricCanvas && tries < 20) { await new Promise(r => setTimeout(r, 100)); tries++ }
             if (!fabricCanvas) { console.error('canvas not ready'); return }
