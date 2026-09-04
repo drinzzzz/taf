@@ -2095,9 +2095,14 @@ const BasemapEditor = {
 
           const lobj = layers.value.find(l => l.name === facLayer)
           if (lobj) {
-            if (lobj.visible) { fabricCanvas.add(marker); if (lbl) fabricCanvas.add(lbl) }
-            marker.visible = lobj.visible
-            if (lbl) lbl.visible = lobj.visible
+            // 🔴 无论图层显隐都 add 到画布, 显隐只靠 visible 旗标:
+            // 隐藏态渲染若只建对象不 add, 之后点"显示"只改旗标、对象不在画布 → 图标/标签不出现 (曾报 bug)
+            fabricCanvas.add(marker); if (lbl) fabricCanvas.add(lbl)
+            marker.visible = lobj.visible !== false
+            if (lbl) lbl.visible = lobj.visible !== false
+            const lopa = (lobj.opacity == null ? 100 : lobj.opacity) / 100
+            marker.opacity = lopa
+            if (lbl) lbl.opacity = lopa
             if (lobj.locked) { marker.selectable = false; marker.evented = false }
           } else {
             fabricCanvas.add(marker)
