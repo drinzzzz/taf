@@ -90,7 +90,7 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
     if "TAF-LEGEND" not in doc.layers:
         doc.layers.add(name="TAF-LEGEND", color=colors.WHITE)
 
-    cat_colors = {"P1": 1, "P2": 2, "P3": 3, "P4": 4, "P5": 5, "P6": 6}
+    cat_colors = {"P1": 1, "P2": 2, "P3": 3, "P4": 4, "P5": 5, "P6": 6}   # 遗留兜底(不再使用, 见 _item_colors)
 
     # ═══ Maki 符号表 (与前端 maki_symbols.json 同源) ═══
     import json as _json
@@ -101,6 +101,36 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
             _maki = _json.load(_f).get("symbols", {})
     except Exception as _e:
         logger.warning(f"maki_symbols.json load failed: {_e}")
+
+    # ═══ 18 项逐项色 (与前端 ITEM_COLORS / PPTX 一致; 单一事实源 scripts/item_color.json) ═══
+    _item_color_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "scripts", "item_color.json")
+    _item_colors = {}
+    try:
+        with open(os.path.normpath(_item_color_path), encoding="utf-8") as _f:
+            _item_colors = _json.load(_f)
+        # 归一化: 统一带 '#' 前缀 (json 源文件值如 F15555)
+        _item_colors = {k: (('#' + v) if (isinstance(v, str) and v and not v.startswith('#')) else v)
+                        for k, v in _item_colors.items()}
+    except Exception as _e:
+        logger.warning(f"item_color.json load failed: {_e}")
+
+    def _hex_int(hexcol):
+        """#RRGGBB → ezdxf TrueColor int (R2000+)"""
+        h = (hexcol or "").lstrip("#")
+        if len(h) != 6:
+            return None
+        return (int(h[0:2], 16) << 16) | (int(h[2:4], 16) << 8) | int(h[4:6], 16)
+
+    def _tc(entity, hexcol):
+        """给实体/图层设 TrueColor (hex), 返回是否成功"""
+        v = _hex_int(hexcol)
+        if v is None:
+            return False
+        try:
+            entity.dxf.true_color = v
+            return True
+        except Exception:
+            return False
 
     # 布点候选白名单 (与前端 NON_PLACABLE 互补: 这些项才可布点)
     _non_placable = {"P2-02","P2-03","P2-04","P2-05","P2-06","P3-01","P3-02","P3-03",
@@ -150,19 +180,23 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
             if pos.get("x") is None or pos.get("y") is None:
                 continue  # 未布点
             points.append((float(pos["x"]), float(pos["y"]), 1))
-        cat = (f.category or "P1").upper()
-        color = cat_colors.get(cat, 7)
+        hexcol = _item_colors.get(item_id)          # 🔴 18 项逐项色 (hex)
+        color = 7                                   # ACI 兜底; 视觉以 TrueColor 呈现
         layer_name = sym["layer"] if sym else f"TAF-FACILITY-{item_id}"
         if layer_name not in doc.layers:
             doc.layers.add(name=layer_name, color=color)
+            if hexcol:
+                _tc(doc.layers.get(layer_name), hexcol)
 
         # 区域型: 文字标注 (非 blockref/圆)
         if item_id in _area_items:
             area_text = _area_items[item_id]
             for x, y, seq in points:
-                msp.add_text(area_text, dxfattribs={
+                t = msp.add_text(area_text, dxfattribs={
                     "layer": layer_name, "color": color, "height": 5,
                 }).set_placement((x, y))
+                if hexcol:
+                    _tc(t, hexcol)
             continue
         if sym and sym.get("path"):
             # 生成/复用 block
@@ -171,22 +205,28 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
                 blk = doc.blocks.new(name=block_name)
                 poly = _svg_path_to_polylines(sym["path"], scale=6)
                 if len(poly) >= 3:
-                    blk.add_lwpolyline(poly, close=True, dxfattribs={"color": color, "layer": "0"})
+                    pl = blk.add_lwpolyline(poly, close=True, dxfattribs={"color": color, "layer": "0"})
+                    if hexcol:
+                        _tc(pl, hexcol)
             for x, y, seq in points:
                 msp.add_blockref(block_name, (x, y), dxfattribs={"layer": layer_name})
         else:
             # fallback: 圆
             for x, y, seq in points:
-                msp.add_circle(center=(x, y), radius=4, dxfattribs={"layer": layer_name, "color": color})
-        # 编号标签 (独立 TAF-LABEL 层, 便于统一关闭); 多实例带序号
+                c = msp.add_circle(center=(x, y), radius=4, dxfattribs={"layer": layer_name, "color": color})
+                if hexcol:
+                    _tc(c, hexcol)
+        # 编号标签 (独立 TAF-LABEL 层, 便于统一关闭); 颜色随项 18 色 (TrueColor)
         label_id = item_id.replace("P", "").replace("-", "")[:6]
         if "TAF-LABEL" not in doc.layers:
             doc.layers.add(name="TAF-LABEL", color=colors.CYAN)
         for x, y, seq in points:
             txt = label_id if len(points) <= 1 else f"{label_id}-{seq}"
-            msp.add_text(txt, dxfattribs={
-                "layer": "TAF-LABEL", "color": colors.CYAN, "height": 6,
+            t = msp.add_text(txt, dxfattribs={
+                "layer": "TAF-LABEL", "color": color, "height": 6,
             }).set_placement((x + 6, y + 4))
+            if hexcol:
+                _tc(t, hexcol)
 
     # ═══ Legend 完善版: 序号|图层名|线型示例|中文名称|颜色|说明 (一行一层, 图框右侧独立表格) ═══
     # 覆盖: 图纸全部源图层 + 已布点设施层; 中文用 TAF-CN 样式 (txt.shx+gbcbig)
@@ -269,14 +309,14 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
         fac_meta[lname] = (item_id, f.name, cnt, sym)
     for lname in sorted(fac_meta):
         item_id, fname, cnt, sym = fac_meta[lname]
-        aci = cat_colors.get(item_id.split('-')[0], 7)
+        hexv = _item_colors.get(item_id, 7)     # 🔴 18 项逐项色 (hex)
         if item_id in _area_items:
             kind = 'area'
         elif sym and sym.get('path'):
             kind = 'symbol'
         else:
             kind = 'circle'
-        rows.append([lname, f'{item_id} {fname}', aci, kind, f'已布 {cnt} 处'])
+        rows.append([lname, f'{item_id} {fname}', hexv, kind, f'已布 {cnt} 处'])
 
     # ── 表格几何: 置于底图图框右侧 ──
     bb = None
@@ -309,35 +349,45 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
     y -= row_h
     msp.add_line((lx, y + 3), (lx + 700, y + 3), dxfattribs={'layer': 'TAF-LEGEND', 'color': 8})
 
-    def _swatch(cx, cy, kind, color, layer_name):
+    def _swatch(cx, cy, kind, color, layer_name, hexcol=None):
+        def _w(e):
+            if hexcol:
+                _tc(e, hexcol)
+            return e
         if kind == 'face':
-            msp.add_lwpolyline([(cx - 8, cy - 2.5), (cx + 8, cy - 2.5), (cx + 8, cy + 2.5), (cx - 8, cy + 2.5)],
-                               close=True, dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
-            msp.add_line((cx - 8, cy - 2.5), (cx + 8, cy + 2.5), dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+            _w(msp.add_lwpolyline([(cx - 8, cy - 2.5), (cx + 8, cy - 2.5), (cx + 8, cy + 2.5), (cx - 8, cy + 2.5)],
+                               close=True, dxfattribs={'layer': 'TAF-LEGEND', 'color': color}))
+            _w(msp.add_line((cx - 8, cy - 2.5), (cx + 8, cy + 2.5), dxfattribs={'layer': 'TAF-LEGEND', 'color': color}))
         elif kind == 'symbol':
             sym = fac_meta.get(layer_name, (None, None, None, None))[3]
             if sym:
                 pts3 = _svg_path_to_polylines(sym['path'], scale=3)
                 if len(pts3) >= 3:
-                    msp.add_lwpolyline([(cx + qx, cy + qy) for qx, qy in pts3], close=True,
-                                       dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+                    _w(msp.add_lwpolyline([(cx + qx, cy + qy) for qx, qy in pts3], close=True,
+                                       dxfattribs={'layer': 'TAF-LEGEND', 'color': color}))
         elif kind == 'area':
-            _add_cn(cx - 2, cy - 3, 6, '区', color=color)
+            t = _add_cn(cx - 2, cy - 3, 6, '区', color=color)
+            if hexcol:
+                _tc(t, hexcol)
         elif kind == 'circle':
-            msp.add_circle((cx, cy), radius=3, dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+            _w(msp.add_circle((cx, cy), radius=3, dxfattribs={'layer': 'TAF-LEGEND', 'color': color}))
         else:  # line
             if _dashed(layer_name):
                 for dx0 in (-8, -2.5, 3):
-                    msp.add_line((cx + dx0, cy), (cx + dx0 + 3.5, cy), dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+                    _w(msp.add_line((cx + dx0, cy), (cx + dx0 + 3.5, cy), dxfattribs={'layer': 'TAF-LEGEND', 'color': color}))
             else:
-                msp.add_line((cx - 8, cy), (cx + 8, cy), dxfattribs={'layer': 'TAF-LEGEND', 'color': color})
+                _w(msp.add_line((cx - 8, cy), (cx + 8, cy), dxfattribs={'layer': 'TAF-LEGEND', 'color': color}))
 
-    for idx, (layer_name, cn, aci, kind, desc) in enumerate(rows, start=1):
+    for idx, (layer_name, cn, colv, kind, desc) in enumerate(rows, start=1):
+        hexcol = colv if (isinstance(colv, str) and colv.startswith('#')) else None
+        dcol = 7 if hexcol else colv
         _add_cn(lx + col_seq, y - 5, 5, str(idx))
-        _add_cn(lx + col_layer, y - 5, 5, layer_name, color=aci)
-        _swatch(lx + col_sw + 14, y - 1, kind, aci, layer_name)
+        t1 = _add_cn(lx + col_layer, y - 5, 5, layer_name, color=dcol)
+        if hexcol: _tc(t1, hexcol)
+        _swatch(lx + col_sw + 14, y - 1, kind, dcol, layer_name, hexcol)
         _add_cn(lx + col_cn, y - 5, 5, cn)
-        _add_cn(lx + col_color, y - 5, 5, f'{aci}{aci_cn.get(aci, "")}', color=aci)
+        t2 = _add_cn(lx + col_color, y - 5, 5, hexcol if hexcol else f'{colv}{aci_cn.get(colv, "")}', color=dcol)
+        if hexcol: _tc(t2, hexcol)
         _add_cn(lx + col_desc, y - 5, 5, desc)
         y -= row_h
     msp.add_line((lx, y + 3 + row_h), (lx + 700, y + 3 + row_h), dxfattribs={'layer': 'TAF-LEGEND', 'color': 8})

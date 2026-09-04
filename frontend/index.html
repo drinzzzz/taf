@@ -1102,8 +1102,16 @@ const BasemapEditor = {
     const AREA_ITEMS = { 'P1-01': '防滑处理区' }
     const isAreaItem = (f) => !!(f && AREA_ITEMS[f.standard_item_id])
     const areaLabelOf = (f) => (f && AREA_ITEMS[f.standard_item_id]) || '区域'
-    // 图例行颜色 (P 类)
+    // 图例行颜色 (P 类, 用于分类 UI)
     const CAT_COLORS = { 'P1': '#4f8cff', 'P2': '#67c23a', 'P3': '#e6a23c', 'P4': '#c97dff', 'P5': '#f56c6c', 'P6': '#8b8fa3' }
+    // 🔴 18 项逐项色 (与 PPTX 一致, 单一事实源 scripts/item_color.json; 改动须同步两者 + maki 无关)
+    const ITEM_COLORS = {
+      'P1-01': '#F15555', 'P1-02': '#C68910', 'P1-03': '#BDF155', 'P1-04': '#10C610',
+      'P1-05': '#55F1BD', 'P1-06': '#1089C6', 'P1-07': '#5555F1', 'P2-01': '#8910C6',
+      'P4-02': '#F155BD', 'P4-03': '#C61010', 'P4-04': '#F1BD55', 'P4-05': '#89C610',
+      'P4-06': '#55F155', 'P4-07': '#10C689', 'P4-08': '#55BDF1', 'P5-01': '#1010C6',
+      'P5-04': '#BD55F1', 'P6-03': '#C61089',
+    }
 
     // 底图图层中文名 (TAF-FACILITY-* 设施层在 merge 时已有 nameZh)
     const LAYER_CN = {
@@ -1622,7 +1630,7 @@ const BasemapEditor = {
         const placedN = facilities.value.filter(f => f.standard_item_id === itemId).reduce((s, f) => s + placCount(f), 0)
         layerArr.push({
           name: sym.layer,
-          color: CAT_COLORS[cat] || '#4f8cff',
+          color: ITEM_COLORS[itemId] || CAT_COLORS[cat] || '#4f8cff',   // 🔴 18 项逐项色
           count: placedN,
           visible: true, opacity: 100,
           objects: [],
@@ -1969,6 +1977,8 @@ const BasemapEditor = {
       return (f.position && f.position.x != null) ? 1 : 0
     }
     const facColor = (f) => {
+      const id = f?.standard_item_id
+      if (id && ITEM_COLORS[id]) return ITEM_COLORS[id]        // 🔴 18 项逐项色优先
       const cat = (f?.category || 'P1').toUpperCase()
       return CAT_COLORS[cat] || '#4f8cff'
     }
@@ -2063,16 +2073,21 @@ const BasemapEditor = {
           marker.lockScalingY = true
           marker.hasControls = false
 
-          // 编号标签 (带序号) — 区域型已是文字标注, 跳过旁路编号
-          const base = (f.standard_item_id || '').replace('P', '').replace('-', '')
+          // 编号标签 (与 PPTX 一致: 完整编号 P#-##-NN, 两位序号, 始终显示含单点 -01;
+          //  位于图标正下居中, 加粗; 区域型已是文字标注, 跳过旁路编号)
           let lbl = null
           if (!isAreaItem(f)) {
-            lbl = new fabric.Text((pts.length > 1 ? base + '-' + (pt.seq || 1) : base) || '', {
-              left: x + size / 2 + 1, top: y - size / 2 - 1,
-              fontSize: Math.max(6, size * 0.45), fill: color, fontFamily: 'sans-serif',
+            const itemId = f.standard_item_id || ''
+            const seqTxt = String(pt.seq || 1).padStart(2, '0')
+            const fs = Math.max(7, Math.round(size * 0.5))
+            lbl = new fabric.Text(`${itemId}-${seqTxt}`, {
+              left: x, top: y + size * 0.55 + fs * 0.35,
+              fontSize: fs, fill: color, fontFamily: 'sans-serif', fontWeight: 'bold',
+              originX: 'center', originY: 'center',
               selectable: false, evented: false,
             })
             lbl._isFacilityLabel = true
+            lbl._facLayer = facLayer        // 🔴 随图层显隐/透明度联动 (bug: 关闭图层后标签仍显示)
             // 🔴 图标-编号联动: marker 记住自己的 label 与初始偏移, 拖动时实时跟随
             marker._lbl = lbl
             marker._lblOff = { x: lbl.left - marker.left, y: lbl.top - marker.top }
@@ -2519,7 +2534,7 @@ const BasemapEditor = {
           layer: sym.layer,
           main: `${itemId} ${zh}`,
           icon: sym.path, viewbox: sym.viewbox,
-          color: CAT_COLORS[cat] || '#4f8cff',
+          color: ITEM_COLORS[itemId] || CAT_COLORS[cat] || '#4f8cff',   // 🔴 18 项逐项色
         })
       }
       legendRows.value = rows
