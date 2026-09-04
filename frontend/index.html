@@ -1882,7 +1882,7 @@ const BasemapEditor = {
     const saveViewState = () => {
       try {
         const state = {
-          layers: layers.value.map(l => ({ name: l.name, visible: l.visible, opacity: l.opacity || 100 })),
+          layers: layers.value.map(l => ({ name: l.name, visible: l.visible, opacity: l.opacity || 100, locked: !!l.locked })),
           viewport: fabricCanvas ? fabricCanvas.viewportTransform : null,
           t: Date.now(),
         }
@@ -1901,6 +1901,9 @@ const BasemapEditor = {
           if (l) {
             l.visible = s.visible !== false
             l.opacity = s.opacity || 100
+            // 🔒 锁定仅对设施层恢复: 底图矢量层为合成图层固定不可编辑,
+            //    锁定开关对其无意义, 不恢复 (防旧状态锁死后无解锁入口)
+            if (l.isFacilityLayer) l.locked = !!s.locked
             changed = true
           }
         })
@@ -1935,6 +1938,7 @@ const BasemapEditor = {
       } else {
         toast.show(layer.locked ? `🔒 ${layer.name} 锁定` : `🔓 ${layer.name} 解锁 (底图为合成图层, 几何不可单独编辑)`)
       }
+      saveViewState()   // 🔒 锁定状态即时持久化 (刷新后保持)
     }
 
     // 透明度浮动面板开关 (再点关闭)
