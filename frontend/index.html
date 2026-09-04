@@ -857,8 +857,8 @@ const BasemapEditor = {
                @click="selectFacility(f)" @dblclick="focusFacility(f)"
                @mouseenter="e=>e.currentTarget.style.background='#ffffff0a'" @mouseleave="e=>e.currentTarget.style.background=selectedFac?.id===f.id?'#ffffff12':''">
             <div style="display:flex;align-items:center;gap:6px">
-              <span v-if="isAreaItem(f)" style="width:17px;height:17px;flex-shrink:0;border-radius:4px;background:facColor(f)+'33';border:1px solid facColor(f);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:facColor(f)">区</span>
-              <svg v-else-if="facSymbol(f)?.path" :viewBox="facSymbol(f).viewbox" style="width:17px;height:17px;flex-shrink:0" :style="{fill:facColor(f)}"><path :d="facSymbol(f).path"/></svg>
+              <svg v-if="facSymbol(f)?.path" :viewBox="facSymbol(f).viewbox" style="width:17px;height:17px;flex-shrink:0" :style="{fill:facColor(f)}"><path :d="facSymbol(f).path"/></svg>
+              <span v-else-if="isAreaItem(f)" style="width:17px;height:17px;flex-shrink:0;border-radius:4px;background:facColor(f)+'33';border:1px solid facColor(f);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:facColor(f)">区</span>
               <span v-else :style="{width:'10px',height:'10px',borderRadius:'50%',background:facColor(f),flexShrink:0}"></span>
               <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" :title="f.name">{{ f.name }}<span v-if="isAreaItem(f)" style="font-size:11px;color:var(--muted)">（区域标注）</span></span>
               <button class="btn sm" style="padding:1px 6px;font-size:13px;flex-shrink:0;color:#e6a23c" @click.stop="selectFacility(f); hideTools=false; autoPanelActive=true" title="按该项规则自动布点">⚡</button>
