@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import (
     Column, String, Integer, Float, Text, Boolean, DateTime,
-    ForeignKey, Index, JSON, Numeric, text
+    ForeignKey, Index, JSON, Numeric, text, UniqueConstraint
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import DeclarativeBase, relationship
@@ -136,6 +136,38 @@ class FacilityPlacement(Base):
     __table_args__ = (
         Index("idx_placements_facility", "facility_id"),
         Index("idx_placements_project", "project_id"),
+    )
+
+
+class PlacementVersion(Base):
+    """点位版本快照 — 每次布点变更后记录项目全量点位状态
+
+    用途: 回溯 / 查看 / 恢复。一次版本 = 该项目全部点位的一份完整快照,
+    因此任何一次批量变更(含删除)都能原样还原。
+    snapshot: {"placements": [{placement_id, facility_id, standard_item_id, name, seq, position:{x,y}}]}
+    source  : baseline(同步前基线) | sync(图纸全量同步) | manual(手动存档)
+              | auto(单点增改删自动记录) | pre_restore(恢复前自动存档) | restore(执行恢复)
+    scope   : 自动记录的合并域 (一般 = facility_id), 同一域 + 窗口内合并为一条
+    """
+    __tablename__ = "placement_versions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=gen_uuid)
+    project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    version_no = Column(Integer, nullable=False)
+    label = Column(String(200))
+    note = Column(Text)
+    source = Column(String(32), default="manual", nullable=False)
+    scope = Column(String(80))
+    snapshot = Column(JSONB, nullable=False)
+    point_count = Column(Integer, default=0)
+    facility_count = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    created_by = Column(String(120))
+    restored_from = Column(UUID(as_uuid=True))
+
+    __table_args__ = (
+        UniqueConstraint("project_id", "version_no", name="uq_placement_version_no"),
+        Index("idx_placement_versions_project", "project_id"),
     )
 
 

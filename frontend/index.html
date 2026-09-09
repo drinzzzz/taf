@@ -704,8 +704,8 @@ const ProjectDetail = {
           const r = await API.get('/projects/' + route.params.id + '/standard')
           if (r.standard) { boundStandard.value = r.standard; wizardStep.value = 2 }
         }
-        // Load all standards for switch dialog
-        try { standards.value = await API.get('/standards') } catch(e) {}
+        // Load active standards for switch dialog (archived/superseded 不参与新绑定)
+        try { standards.value = (await API.get('/standards')).filter(s => s.status === 'active') } catch(e) {}
       } catch(e) { console.error(e) }
     }
     onMounted(load)
@@ -760,6 +760,7 @@ const BasemapEditor = {
       <button class="btn" :class="{primary:tool==='pan'}" @click="setTool('pan')" title="平移图纸/选择">✋ 平移图纸</button>
       <button class="btn" :class="{primary:tool==='place'}" @click="setTool('place')" title="手动布点(再点或 Esc 取消)" style="color:#67c23a">✍️ 手动布点</button>
       <button class="btn" :class="{primary:autoPanelActive}" @click="openAutoPlace" title="展开/收起布点工具面板 (策略·参数·执行)">⚙️ 布点工具</button>
+      <button class="btn" @click="openHistory" title="点位历史版本 — 查看差异 / 回溯 / 一键恢复">🕘 历史版本</button>
       <button class="btn" @click="fitScreen">⊞ 适应窗口</button>
       <button class="btn" @click="toggleTrueFullscreen" :title="trueFs ? '退出全屏' : '进入全屏(沉浸式)'">{{ trueFs ? '⛶ 退出全屏' : '🖥️ 进入全屏' }}</button>
       <button class="btn" @click="exportView">📸 截图导出</button>
@@ -973,6 +974,74 @@ const BasemapEditor = {
         <div class="form-actions">
           <button class="btn" @click="cancelText">取消</button>
           <button class="btn primary" @click="confirmText">确认</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 点位历史版本 -->
+    <div v-if="histOpen" class="dialog-mask" @click.self="histOpen=false">
+      <div class="dialog" style="width:880px;max-width:94vw;max-height:84vh;display:flex;flex-direction:column">
+        <h3 style="display:flex;align-items:center;gap:10px">
+          <span>🕘 点位历史版本</span>
+          <span style="font-size:12px;color:var(--muted);font-weight:400">每次变更自动留存全量快照，可查看差异并一键恢复</span>
+          <span style="flex:1"></span>
+          <button class="btn" @click="histOpen=false">关闭</button>
+        </h3>
+
+        <div style="display:flex;gap:8px;align-items:center;margin:10px 0">
+          <input type="text" v-model="histLabel" placeholder="存档说明（可选），例如：同步前基线" style="flex:1">
+          <button class="btn" @click="saveSnapshot" :disabled="histBusy">📌 存档当前点位</button>
+          <button class="btn" @click="loadHistory" :disabled="histLoading">↻ 刷新</button>
+        </div>
+
+        <div style="display:flex;gap:12px;flex:1;min-height:0">
+          <div style="width:330px;flex-shrink:0;overflow:auto;border-right:1px solid var(--border);padding-right:10px">
+            <div v-if="histLoading" style="color:var(--muted);font-size:13px">读取中…</div>
+            <div v-else-if="!histList.length" style="color:var(--muted);font-size:13px">暂无版本记录</div>
+            <div v-for="v in histList" :key="v.id" class="hist-row" @click="viewVersion(v)"
+                 :style="{padding:'8px 10px',marginBottom:'6px',borderRadius:'6px',cursor:'pointer',
+                          border:'1px solid '+(histDetail&&histDetail.id===v.id?'#409eff':'var(--border)'),
+                          background:histDetail&&histDetail.id===v.id?'rgba(64,158,255,.12)':'var(--bg)'}">
+              <div style="font-size:13px;font-weight:600">
+                v{{ v.version_no }}
+                <span :style="{color:srcColor(v.source)}">{{ srcCN(v.source) }}</span>
+                <span style="color:var(--muted);font-weight:400;font-size:12px;margin-left:6px">{{ v.point_count }} 点</span>
+              </div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">{{ v.label || '（无说明）' }}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">{{ fmtTime(v.created_at) }}</div>
+            </div>
+          </div>
+
+          <div style="flex:1;min-width:0;overflow:auto">
+            <div v-if="!histDetail" style="color:var(--muted);font-size:13px">← 选择一个版本查看详情</div>
+            <div v-else>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <b style="font-size:14px">v{{ histDetail.version_no }} · {{ histDetail.label || '（无说明）' }}</b>
+                <span style="flex:1"></span>
+                <button class="btn primary" @click="restoreVersion(histDetail)" :disabled="histBusy">↩ 恢复到此版本</button>
+              </div>
+              <div v-if="histDetail.note" style="font-size:12px;color:var(--muted);margin-bottom:6px">{{ histDetail.note }}</div>
+              <div style="font-size:13px;margin-bottom:8px">
+                快照 {{ histDetail.diff.summary.snapshot_points }} 点 ·
+                当前 {{ histDetail.diff.summary.current_points }} 点 ·
+                <span style="color:#67c23a">新增 {{ histDetail.diff.summary.added }}</span> ·
+                <span style="color:#f56c6c">删除 {{ histDetail.diff.summary.removed }}</span> ·
+                <span style="color:#e6a23c">移动 {{ histDetail.diff.summary.moved }}</span> ·
+                不变 {{ histDetail.diff.summary.unchanged }}
+              </div>
+              <div style="font-size:12px;line-height:1.9">
+                <div v-if="histDetail.diff.removed.length"><b style="color:#f56c6c">该版本存在、当前已删除：</b>
+                  <span v-for="r in histDetail.diff.removed" :key="'r'+r.key" style="margin-right:8px">{{ r.key }}</span></div>
+                <div v-if="histDetail.diff.added.length"><b style="color:#67c23a">当前新增（该版本没有）：</b>
+                  <span v-for="a in histDetail.diff.added" :key="'a'+a.key" style="margin-right:8px">{{ a.key }}</span></div>
+                <div v-if="histDetail.diff.moved.length"><b style="color:#e6a23c">位置变化（dx, dy）：</b>
+                  <div v-for="m in histDetail.diff.moved" :key="'m'+m.key" style="padding-left:12px">
+                    {{ m.key }}
+                    <span style="color:var(--muted)">({{ m.delta.dx > 0 ? '+' : '' }}{{ m.delta.dx }}, {{ m.delta.dy > 0 ? '+' : '' }}{{ m.delta.dy }})</span>
+                  </div></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2007,6 +2076,54 @@ const BasemapEditor = {
       })
     }
 
+    // ── 点位历史版本 (查看差异 / 回溯 / 恢复) ──
+    const histOpen = ref(false), histLoading = ref(false), histBusy = ref(false)
+    const histList = ref([]), histDetail = ref(null), histLabel = ref('')
+    const SRC_CN = { baseline: '同步前基线', sync: '图纸同步', manual: '手动存档',
+                     auto: '自动记录', pre_restore: '恢复前存档', restore: '恢复' }
+    const SRC_COLOR = { baseline: '#909399', sync: '#409eff', manual: '#67c23a',
+                        auto: '#e6a23c', pre_restore: '#f56c6c', restore: '#b37feb' }
+    const srcCN = (s) => SRC_CN[s] || s
+    const srcColor = (s) => SRC_COLOR[s] || 'var(--muted)'
+    const fmtTime = (t) => t ? String(t).replace('T', ' ').slice(0, 19) : ''
+    const loadHistory = async () => {
+      histLoading.value = true
+      try {
+        histList.value = await API.get('/projects/' + route.params.id + '/placements/versions')
+      } catch(e) { toast.show('❌ 读取历史失败: ' + (e.detail || e.message || '')) }
+      finally { histLoading.value = false }
+    }
+    const openHistory = async () => { histOpen.value = true; histDetail.value = null; await loadHistory() }
+    const viewVersion = async (v) => {
+      try {
+        histDetail.value = await API.get('/projects/' + route.params.id + '/placements/versions/' + v.id)
+      } catch(e) { toast.show('❌ 读取版本详情失败: ' + (e.detail || e.message || '')) }
+    }
+    const saveSnapshot = async () => {
+      histBusy.value = true
+      try {
+        const v = await API.post('/projects/' + route.params.id + '/placements/versions',
+                                 { label: histLabel.value || '手动存档' })
+        histLabel.value = ''
+        toast.show('✅ 已存档 v' + v.version_no + '（' + v.point_count + ' 点）')
+        await loadHistory()
+      } catch(e) { toast.show('❌ 存档失败: ' + (e.detail || e.message || '')) }
+      finally { histBusy.value = false }
+    }
+    const restoreVersion = async (v) => {
+      if (!confirm('恢复到 v' + v.version_no + '（' + (v.label || '无说明') + '）？\n\n当前点位会先自动存档，可再次回退。')) return
+      histBusy.value = true
+      try {
+        const r = await API.post('/projects/' + route.params.id + '/placements/versions/' + v.id + '/restore', {})
+        await refreshFacilities()
+        await loadHistory()
+        histDetail.value = null
+        toast.show('✅ 已恢复到 v' + v.version_no + '（' + r.restored_points + ' 点）'
+          + (r.skipped_facilities && r.skipped_facilities.length ? '，跳过 ' + r.skipped_facilities.join('/') : ''))
+      } catch(e) { toast.show('❌ 恢复失败: ' + (e.detail || e.message || '')) }
+      finally { histBusy.value = false }
+    }
+
     const refreshFacilities = async () => {
       try {
         const list = await API.get('/projects/' + route.params.id + '/facilities')
@@ -2655,7 +2772,9 @@ const BasemapEditor = {
       availableStrategies, autoPlaceFacility, autoCountItem,
       facStatusCN, facStatusColor, facCats, facCountOf, toggleLayerLock,
       toggleLayerVisible, catNames, layerCN,
-      opacityLayer, toggleOpacityPopup, startLeftDrag, leftWidth }
+      opacityLayer, toggleOpacityPopup, startLeftDrag, leftWidth,
+      histOpen, histLoading, histBusy, histList, histDetail, histLabel,
+      srcCN, srcColor, fmtTime, loadHistory, openHistory, viewVersion, saveSnapshot, restoreVersion }
   }
 }
 

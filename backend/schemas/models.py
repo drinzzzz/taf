@@ -151,6 +151,42 @@ class PlacementOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# ── 点位版本历史 ──
+
+class PlacementVersionCreate(BaseModel):
+    label: Optional[str] = Field(None, max_length=200)
+    note: Optional[str] = None
+
+
+class PlacementVersionOut(BaseModel):
+    id: UUID
+    project_id: UUID
+    version_no: int
+    label: Optional[str] = None
+    note: Optional[str] = None
+    source: str
+    scope: Optional[str] = None
+    point_count: int = 0
+    facility_count: int = 0
+    created_at: Optional[datetime] = None
+    created_by: Optional[str] = None
+    restored_from: Optional[UUID] = None
+
+    model_config = {"from_attributes": True}
+
+
+class PlacementVersionDetailOut(PlacementVersionOut):
+    snapshot: Dict = {}
+    diff: Dict = {}
+
+
+class ProjectPlacementSyncIn(BaseModel):
+    """项目级全量点位同步 (图纸 → web)"""
+    label: Optional[str] = None
+    note: Optional[str] = None
+    points: List[PlacementIn]
+
+
 
 class FacilityOut(BaseModel):
     id: UUID

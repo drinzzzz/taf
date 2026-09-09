@@ -29,6 +29,7 @@ from routers.standards import router as standards_router
 from routers.evaluation import router as evaluation_router
 from routers.basemaps import router as basemaps_router
 from routers.deliverables import router as deliverables_router
+from routers.placement_history import router as placement_history_router
 
 
 @asynccontextmanager
@@ -76,6 +77,7 @@ app.include_router(standards_router)
 app.include_router(evaluation_router)
 app.include_router(basemaps_router)
 app.include_router(deliverables_router)
+app.include_router(placement_history_router)
 
 
 @app.get("/")

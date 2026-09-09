@@ -4,15 +4,16 @@
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import selectinload
 
 from models.database import Facility, Project, StandardPlugin, FacilityPlacement
 from schemas.models import (
     FacilityCreate, FacilityUpdate, FacilityOut, FacilityBatchCreate,
-    PlacementIn, PlacementUpdate, PlacementOut,
+    PlacementIn, PlacementUpdate, PlacementOut, ProjectPlacementSyncIn,
 )
 from deps import get_db, get_current_user
+from services.placement_history import AUTO_COALESCE_SECONDS, record_version, snapshot_project
 
 router = APIRouter(prefix="/api", tags=["设施"])
 
@@ -215,6 +216,9 @@ async def add_placement(facility_id: UUID, body: PlacementIn, db: AsyncSession =
     db.add(row)
     await db.commit()
     await db.refresh(row)
+    await record_version(db, fac.project_id, source="auto", scope=str(facility_id),
+                         label=f"加点 {fac.name} #{row.seq}",
+                         coalesce_seconds=AUTO_COALESCE_SECONDS)
     return row
 
 
@@ -231,6 +235,8 @@ async def update_placement(placement_id: UUID, body: PlacementUpdate,
         row.seq = body.seq
     await db.commit()
     await db.refresh(row)
+    await record_version(db, row.project_id, source="auto", scope=str(row.facility_id),
+                         label="微调点位", coalesce_seconds=AUTO_COALESCE_SECONDS)
     return row
 
 
@@ -240,8 +246,10 @@ async def delete_placement(placement_id: UUID, db: AsyncSession = Depends(get_db
     row = await db.get(FacilityPlacement, placement_id)
     if not row:
         raise HTTPException(404, "布点不存在")
+    _pid, _fid = row.project_id, row.facility_id
     await db.delete(row)
     await db.commit()
+    await record_version(db, _pid, source="auto", scope=str(_fid), label="删除点位")
 
 
 @router.delete("/facilities/{facility_id}/placements", status_code=204)
@@ -258,6 +266,8 @@ async def clear_placements(facility_id: UUID, db: AsyncSession = Depends(get_db)
         if row:
             await db.delete(row)
     await db.commit()
+    await record_version(db, fac.project_id, source="auto", scope=str(facility_id),
+                         label=f"清空 {fac.name} 全部点位")
 
 
 @router.put("/facilities/{facility_id}/placements/batch", response_model=list[PlacementOut])
@@ -289,4 +299,66 @@ async def replace_placements(facility_id: UUID, body: list[PlacementIn],
     await db.commit()
     for r in created:
         await db.refresh(r)
+    await record_version(db, fac.project_id, source="auto", scope=str(facility_id),
+                         label=f"批量重布 {fac.name} ({len(created)} 点)")
     return created
+
+
+@router.post("/projects/{project_id}/placements/sync")
+async def sync_project_placements(
+    project_id: UUID,
+    body: ProjectPlacementSyncIn,
+    user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """项目级全量点位同步 (图纸 → web): 原子替换 + 自动记录版本
+
+    · 同步前若有旧点位, 先自动存一条 baseline 版本 (可完整回溯)
+    · 按 body.points 顺序重建, seq 取 body 值 (缺省 = 数组序)
+    · 不做防重叠平移: 坐标按传入值原样写入
+    """
+    p = (await db.execute(
+        select(Project).where(Project.id == project_id, Project.deleted_at.is_(None))
+    )).scalar_one_or_none()
+    if not p:
+        raise HTTPException(404, "项目不存在")
+
+    facs = (await db.execute(
+        select(Facility).where(Facility.project_id == project_id)
+    )).scalars().all()
+    by_id = {str(f.id): f for f in facs}
+    bad = sorted({str(x.facility_id) for x in body.points
+                  if not x.facility_id or str(x.facility_id) not in by_id})
+    if bad:
+        raise HTTPException(400, f"以下设施不属于该项目: {bad}")
+
+    before = await snapshot_project(db, project_id)
+    base_ver = None
+    if before.get("placements"):
+        base_ver = await record_version(
+            db, project_id, source="baseline",
+            label=(body.label or "图纸全量同步") + " · 同步前",
+            scope="project", snapshot=before)
+
+    await db.execute(delete(FacilityPlacement).where(FacilityPlacement.project_id == project_id))
+    for i, item in enumerate(body.points, start=1):
+        db.add(FacilityPlacement(
+            facility_id=item.facility_id,
+            project_id=project_id,
+            seq=item.seq or i,
+            position=item.position,
+        ))
+    await db.commit()
+
+    ver = await record_version(
+        db, project_id, source="sync",
+        label=body.label or "图纸全量同步", note=body.note,
+        scope="project", created_by=user.get("user_id"))
+
+    return {
+        "version_no": ver.version_no,
+        "point_count": ver.point_count,
+        "facility_count": ver.facility_count,
+        "baseline_version_no": base_ver.version_no if base_ver else None,
+        "before_points": len(before.get("placements", [])),
+    }
