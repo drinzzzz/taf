@@ -1,7 +1,7 @@
 """
 TAF deliverables — DXF 布点图
 """
-import os, io, math, tempfile
+import os, io, math, tempfile, html
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -142,7 +142,8 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
         """Maki SVG path → 折线点列表 (相对坐标, 中心在原点, 单位尺寸)"""
         try:
             from svgpathtools import parse_path
-            p = parse_path(path_d)
+            # 🔴 maki 源 SVG path 含 XML 实体 (&#xA;/&#x9;) → 不反转义 parse_path 抛 ValueError → 符号块为空
+            p = parse_path(html.unescape(path_d))
             pts = []
             for seg in p:
                 n = max(2, int(seg.length() / 0.8) + 1)
@@ -158,6 +159,7 @@ def _build_layout_dxf_core(project, standard, facilities, spaces, basemap) -> by
             s = scale / w
             return [((x - cx) * s, (y - cy) * s) for x, y in pts]
         except Exception:
+            logger.warning("Maki 符号路径解析失败, 该符号块将为空: %s", str(path_d)[:60], exc_info=True)
             return []
 
     # ═══ 设施布点: 每设施独立图层 + Maki 符号 (P0: 支持一设施多实例 placements) ═══
