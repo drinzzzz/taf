@@ -95,7 +95,7 @@ label { display:block; font-size:14px; color:var(--muted); margin-bottom:4px; te
 const { createApp, ref, reactive, computed, onMounted, nextTick, watch } = Vue
 const { createRouter, createWebHashHistory } = VueRouter
 
-const PRODUCT_LINES = ['HT','OS','AP','HO','RE','OF','MC']
+const PRODUCT_LINES = ['HT','OS','PK','AP','HO','RE','OF','MC']
 const STATUS_LABELS = { draft: '草稿', active: '进行中', completed: '已完成', archived: '归档' }
 const statusLabel = (s) => STATUS_LABELS[s] || s
 // 设施状态中文 (全局, 供清单/工作台共用)

@@ -45,7 +45,7 @@ class Project(Base):
     code = Column(String(50), unique=True, nullable=False)
     name = Column(String(100), nullable=False)
     description = Column(Text)
-    product_line = Column(String(10), nullable=False)  # HT/OS/AP/HO/RE/OF
+    product_line = Column(String(10), nullable=False)  # HT/OS/PK/AP/HO/RE/OF/MC
     phase = Column(String(10), nullable=False)  # NC/EI/CO
     standard_id = Column(UUID(as_uuid=True), ForeignKey("standard_plugins.id"))
     status = Column(String(20), default="draft")  # draft/active/completed/archived
