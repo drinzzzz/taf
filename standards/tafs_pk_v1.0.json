@@ -1,0 +1,949 @@
+{
+  "code": "tafs_pk_v1.0",
+  "config": {
+    "applicable_types": {
+      "PK": {
+        "description": "城市宠物公园、社区宠物角、宠物主题公园等",
+        "phase": [
+          "NC",
+          "EI",
+          "CO"
+        ]
+      }
+    },
+    "categories": [
+      {
+        "description": "围栏、地面、设施是否安全？",
+        "id": "P1",
+        "name": "围栏安全与物理环境",
+        "weight": 0.24
+      },
+      {
+        "description": "排泄物管理、异味控制、水源卫生是否达标？",
+        "id": "P2",
+        "name": "卫生与污染控制",
+        "weight": 0.17
+      },
+      {
+        "description": "宠物是否有足够的玩耍、探索、社交机会？",
+        "id": "P3",
+        "name": "宠物体验与丰容",
+        "weight": 0.22
+      },
+      {
+        "description": "主人休憩、饮水、遮阴是否便利？",
+        "id": "P4",
+        "name": "主人便利设施",
+        "weight": 0.13
+      },
+      {
+        "description": "运营方有无管理制度与应急预案？",
+        "id": "P5",
+        "name": "运营管理",
+        "weight": 0.24
+      }
+    ],
+    "clias_crosswalk": {
+      "complementarity": "CLIAS评价服务运营质量，TAF指导物理空间设计。两者互补、不重叠。",
+      "gap_areas": [
+        "物料采购(20分): TAF暂无供应链审核维度"
+      ],
+      "mapping": [
+        {
+          "clias": "安全管理(30分)",
+          "detail": "安全管理制度/培训/检查/台账/应急预案",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "内部管理·管理制度(20分)",
+          "detail": "运营制度/卫生制度/人宠公约/清洁SOP",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "人员管理(40分)",
+          "detail": "宠物驯导师/健康护理员/美容师配备",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "培训教育(10分)",
+          "detail": "培训考核制度",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "服务质量·区域设置(14分)",
+          "detail": "活动区域/通道/饮水/标识",
+          "taf_dimension": "P1",
+          "taf_name": "物理环境"
+        },
+        {
+          "clias": "服务质量·物品提供(17分)",
+          "detail": "尿垫/医疗箱/分隔物品/清洁消毒",
+          "taf_dimension": "P4",
+          "taf_name": "动物福利"
+        },
+        {
+          "clias": "物料采购(20分)",
+          "detail": "TAF暂无，建议后续新增",
+          "taf_dimension": "—",
+          "taf_name": "供应链(缺口)"
+        }
+      ],
+      "standard": "T/CGLA XXXX-XXXX",
+      "title": "人宠友好服务场所等级划分与评定"
+    },
+    "items": [
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "运营方"
+        ],
+        "category": "P1",
+        "evaluation_method": "现场踏勘",
+        "id": "P1-01",
+        "measure_spec": {
+          "evidence": "含量具读数的现场照片 + 测点记录表",
+          "method": "卷尺实测围栏顶至地面垂直净高；每段取中点、各转角各 1 点，全段不少于 3 点，取最小值",
+          "metric": "围栏净高",
+          "target": "大型犬区≥1.8；小型犬区≥1.5",
+          "tolerance": "±0.05 m；大型犬区最小值不足 1.8 m 判不达标",
+          "unit": "m"
+        },
+        "name": "围栏安全与防逃逸",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "围栏净高≥1.8m（大型犬区）/≥1.5m（小型犬区）+无锐边+地基牢固+门锁可靠",
+            "score": 5
+          },
+          {
+            "label": "围栏高度达标，但存在锐边、地基松动或门锁不可靠",
+            "score": 3
+          },
+          {
+            "label": "不达标或缺失",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P1",
+        "evaluation_method": "现场踏勘",
+        "id": "P1-02",
+        "name": "地面安全与缓冲",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "全区域防滑软地面（人造草/橡胶）",
+            "score": 5
+          },
+          {
+            "label": "活动区铺软地面，通道与边缘区为硬地面",
+            "score": 3
+          },
+          {
+            "label": "硬地面为主",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P1",
+        "evaluation_method": "现场踏勘+检查记录核查",
+        "id": "P1-03",
+        "name": "设施安全检查",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "所有设施无锐角+定期安全检查记录",
+            "score": 5
+          },
+          {
+            "label": "有检查无记录",
+            "score": 3
+          },
+          {
+            "label": "无检查",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P1",
+        "evaluation_method": "现场踏勘",
+        "id": "P1-04",
+        "measure_spec": {
+          "evidence": "平面图标注件 + 正午实拍照片",
+          "method": "按园区平面图标注的遮阳投影面积 ÷ 活动区总面积计算；现场以正午 12:00–14:00 阴影覆盖实拍抽查校验",
+          "metric": "遮阳覆盖率",
+          "target": "≥40",
+          "tolerance": "±5%；20%–40% 判中档",
+          "unit": "%"
+        },
+        "name": "遮阴与防晒设施",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "全区域有遮阳网/树木覆盖≥40%面积",
+            "score": 5
+          },
+          {
+            "label": "遮阳覆盖率 20%~40%，未达 40% 要求",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "非携宠访客",
+          "运营方"
+        ],
+        "category": "P2",
+        "evaluation_method": "现场踏勘+清理记录核查",
+        "id": "P2-01",
+        "measure_spec": {
+          "evidence": "排班表 + 签到记录",
+          "method": "以保洁排班表与清理签到记录计数",
+          "metric": "排泄物清理频次",
+          "target": "≥2",
+          "tolerance": "记录缺失按不达标处理",
+          "unit": "次/日"
+        },
+        "name": "排泄物清理设施",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "每区域设拾便袋+专用垃圾桶+每日定时清理≥2次",
+            "score": 5
+          },
+          {
+            "label": "有设施但清理频次不足",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P2",
+        "evaluation_method": "现场踏勘",
+        "id": "P2-02",
+        "measure_spec": {
+          "evidence": "换水签到表 + 第三方水质检测报告",
+          "method": "换水查现场签到表；水质检测须委托具备资质的第三方出具报告",
+          "metric": "换水与水质检测频次",
+          "target": "换水≥1 次/日；水质检测≥1 次/季",
+          "tolerance": "检测报告超期即不达标",
+          "unit": "次/日、次/季"
+        },
+        "name": "水源卫生",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有独立宠物饮水点+每日换水+定期水质检测",
+            "score": 5
+          },
+          {
+            "label": "有饮水点但未定期换水",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "非携宠访客",
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P2",
+        "evaluation_method": "消毒记录核查",
+        "id": "P2-03",
+        "name": "区域消毒制度",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "每日闭园后消毒+每周深度清洁",
+            "score": 5
+          },
+          {
+            "label": "有消毒记录，但频次低于每日闭园消毒+每周深度清洁",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人"
+        ],
+        "category": "P2",
+        "evaluation_method": "现场踏勘",
+        "id": "P2-04",
+        "name": "宠物排泄物即时处理指引",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "多语种/图文指引+紧急冲洗点",
+            "score": 5
+          },
+          {
+            "label": "有指引无冲洗",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P3",
+        "evaluation_method": "现场踏勘",
+        "id": "P3-01",
+        "name": "大小犬分区",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "明确大小犬独立分区+缓冲过渡区",
+            "score": 5
+          },
+          {
+            "label": "分区但无缓冲",
+            "score": 3
+          },
+          {
+            "label": "完全混合",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P3",
+        "evaluation_method": "现场踏勘",
+        "id": "P3-02",
+        "measure_spec": {
+          "evidence": "全区域设施照片 + 设施清单",
+          "method": "按设施类型去重计数（跳杆/钻洞/平衡木/嗅闻区/隧道等），同类多套只计 1 种",
+          "metric": "游戏设施种类数",
+          "target": "≥5",
+          "tolerance": "3–4 种判中档",
+          "unit": "种"
+        },
+        "name": "宠物游戏设施丰富度",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有≥5种游戏设施（跳杆/钻洞/平衡木/嗅闻区等）",
+            "score": 5
+          },
+          {
+            "label": "有3-4种",
+            "score": 3
+          },
+          {
+            "label": "<3种",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P3",
+        "evaluation_method": "现场踏勘",
+        "id": "P3-03",
+        "name": "探索/嗅闻空间",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "设有专用嗅闻区/多样地面+定期更换植物",
+            "score": 5
+          },
+          {
+            "label": "有自然植被但不定期维护",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P3",
+        "evaluation_method": "现场踏勘",
+        "id": "P3-04",
+        "name": "宠物社交引导",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有行为引导标识+现场管理人员协助社交",
+            "score": 5
+          },
+          {
+            "label": "有行为引导标识，无现场人员协助社交",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P3",
+        "evaluation_method": "照片佐证",
+        "id": "P3-05",
+        "name": "宠物休息区",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "设有多处宠物休息区（软垫/遮阳/饮水）",
+            "score": 5
+          },
+          {
+            "label": "有少量休息点",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人"
+        ],
+        "category": "P4",
+        "evaluation_method": "现场踏勘",
+        "id": "P4-01",
+        "name": "主人休憩设施",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "多处遮阳座椅+充电口+垃圾桶",
+            "score": 5
+          },
+          {
+            "label": "有座椅无遮阳",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人"
+        ],
+        "category": "P4",
+        "evaluation_method": "现场踏勘",
+        "id": "P4-02",
+        "name": "主人饮水/补给",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "设有主人饮水机+自动售货机",
+            "score": 5
+          },
+          {
+            "label": "仅有主人饮水机，无自动售货机",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "非携宠访客",
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P5",
+        "evaluation_method": "制度文件核查",
+        "id": "P5-01",
+        "name": "入园管理制度",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有入园须知+疫苗核验+行为承诺",
+            "score": 5
+          },
+          {
+            "label": "有须知无核验",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "非携宠访客",
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P5",
+        "evaluation_method": "制度文件核查",
+        "id": "P5-02",
+        "name": "应急预案",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有宠物受伤/攻击/走失应急预案+公示",
+            "score": 5
+          },
+          {
+            "label": "有预案未公示",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "非携宠访客",
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P5",
+        "evaluation_method": "运营安排核查",
+        "id": "P5-03",
+        "name": "现场管理人员配置",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "高峰期有专人值守+行为引导",
+            "score": 5
+          },
+          {
+            "label": "仅有安保巡逻，无高峰期专人值守与行为引导",
+            "score": 3
+          },
+          {
+            "label": "无人管理",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "非携宠访客",
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "投诉记录核查+公示照片佐证",
+        "external_refs": [],
+        "id": "P3-06",
+        "name": "游客反馈与投诉处理",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "公园公示宠物相关投诉渠道，48 小时内响应并形成处理台账",
+            "score": 5
+          },
+          {
+            "label": "有渠道但无响应时限或台账",
+            "score": 3
+          },
+          {
+            "label": "无投诉处理机制",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "运营方"
+        ],
+        "category": "P5",
+        "evaluation_method": "保险凭证核查+入园核验流程核查",
+        "external_refs": [
+          "DB31/T 1703-2026 §5.3-g"
+        ],
+        "id": "P5-04",
+        "name": "宠物责任保险与免责",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "运营方购买公众责任险并覆盖宠物相关事件，且入园核验携犬人的宠物责任险",
+            "score": 5
+          },
+          {
+            "label": "公园责任险与入园核验二者只有其一已落实",
+            "score": 3
+          },
+          {
+            "label": "无任何保险覆盖",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P1",
+        "evaluation_method": "夏季高温时段红外测温记录+避暑区照片佐证",
+        "id": "P1-05",
+        "measure_spec": {
+          "evidence": "测温记录（含量具读数照片）",
+          "method": "夏季高温时段（13:00–15:00）以红外测温仪测铺装与器械表面，每功能区≥2 点取最大值",
+          "metric": "铺装与器械表面温度",
+          "target": "≤50",
+          "tolerance": "±2 ℃；无实测记录按不满足高档",
+          "unit": "℃"
+        },
+        "name": "地面温度与热应激防护",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "铺装与器械表面夏季实测温度≤50℃（或全线采用遮阳/浅色透水铺装），并设≥1处阴凉避暑区",
+            "score": 5
+          },
+          {
+            "label": "有遮阳或浅色铺装等降温措施，但未设阴凉避暑区，或无表面温度实测记录",
+            "score": 3
+          },
+          {
+            "label": "无任何热应激防护措施",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P4",
+        "evaluation_method": "点位清点与现场照片（含导视标识）；与 P2-02 分工：本项查位置与数量，P2-02 查水质与换水频次",
+        "id": "P4-03",
+        "measure_spec": {
+          "evidence": "点位图 + 现场照片（含导视标识）",
+          "method": "按功能区逐处清点；间距沿园区步行动线实测",
+          "metric": "饮水点数量与间距",
+          "target": "≥3 处且间距≤100 m",
+          "tolerance": "间距实测 ±5 m",
+          "unit": "处、m"
+        },
+        "name": "宠物饮水点（位置与数量）",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "每个功能区均设低位宠物饮水点（合计≥3处），点位间距≤100米并有导视标识",
+            "score": 5
+          },
+          {
+            "label": "饮水点数量不足（1-2处），或未设导视标识",
+            "score": 3
+          },
+          {
+            "label": "无宠物专用饮水点",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人",
+          "运营方"
+        ],
+        "category": "P4",
+        "evaluation_method": "急救箱与物资清单核查+培训记录+兽医联系公示照片",
+        "id": "P4-04",
+        "name": "宠物急救与兽医支持",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "园内设可见宠物急救箱（≥2处）并公示执业兽医联系渠道；值班人员受过宠物急救培训，中暑/异物处置物资齐备且有使用规范",
+            "score": 5
+          },
+          {
+            "label": "有急救箱但无兽医联系渠道，或无物资使用规范",
+            "score": 3
+          },
+          {
+            "label": "无任何宠物急救与兽医支持",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P5",
+        "evaluation_method": "培训签到表与考核记录核查",
+        "id": "P5-05",
+        "name": "员工宠物相关培训与考核",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "每年组织≥1次宠物行为与安全培训，覆盖咬伤处置/冲突干预/中暑急救，有签到与考核记录",
+            "score": 5
+          },
+          {
+            "label": "有培训与签到记录，但无考核记录或未覆盖冲突干预",
+            "score": 3
+          },
+          {
+            "label": "无任何宠物相关培训",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人",
+          "运营方"
+        ],
+        "category": "P5",
+        "evaluation_method": "管控规则文件+预约登记台账抽查+入口公示照片",
+        "id": "P5-06",
+        "measure_spec": {
+          "evidence": "运营规则文件 + 预约台账 + 入口公示照片",
+          "method": "上限 = 活动区面积 ÷ 10 ㎡ 并取整，与运营规则比对；执行情况查预约登记台账",
+          "metric": "同时在园宠物上限",
+          "target": "按承载量核定（每只活动面积≥10 ㎡）",
+          "tolerance": "面积取值以竣工图或实测为准",
+          "unit": "只"
+        },
+        "name": "宠物数量与入园时段管控",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "按场地承载量设定同时在园宠物上限，实行分时段预约或流量管控，并在入口公示当日余量",
+            "score": 5
+          },
+          {
+            "label": "有数量或时段限制，但未公示或无执行记录",
+            "score": 3
+          },
+          {
+            "label": "无入园数量与时段管控",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人",
+          "运营方"
+        ],
+        "category": "P1",
+        "evaluation_method": "照度实测记录+闭园巡查记录核查（照片佐证）",
+        "id": "P1-06",
+        "measure_spec": {
+          "evidence": "照度实测记录 + 闭园巡查记录 + 现场照片",
+          "method": "夜间以照度计测主要园路、活动区与出入口，每区≥3 点取最小值",
+          "metric": "地面照度",
+          "target": "主要园路≥20；活动区与出入口≥50",
+          "tolerance": "±10%；无照度实测记录按不满足高档",
+          "unit": "lx"
+        },
+        "name": "夜间照明与闭园管理",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "主要园路照度≥20lx、活动区与出入口≥50lx；闭园前清场巡查并锁闭出入口，照明巡检与闭园记录齐全",
+            "score": 5
+          },
+          {
+            "label": "有照明设施但无照度实测或巡检记录，或闭园无清场巡查记录",
+            "score": 3
+          },
+          {
+            "label": "无夜间照明或无闭园管理",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人",
+          "邻里与周边"
+        ],
+        "category": "P2",
+        "evaluation_method": "清运与冲洗消杀记录核查+现场实测与照片佐证",
+        "id": "P2-05",
+        "measure_spec": {
+          "evidence": "清运记录 + 含距离的现场照片",
+          "method": "查清运记录；卷尺实测最近垃圾桶位至活动区边界与饮水点的距离，取最小值",
+          "metric": "清运频次与桶位距离",
+          "target": "≥1 次/日；桶位距活动区与饮水点≥10 m",
+          "tolerance": "±1 m",
+          "unit": "次/日、m"
+        },
+        "name": "园区异味控制与垃圾清运",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "排泄物与垃圾日产日清（每日≥1次清运）；垃圾桶带盖且距活动区与饮水点≥10米；每周冲洗消杀并留记录",
+            "score": 5
+          },
+          {
+            "label": "每日清运但垃圾桶未带盖，或未与活动区/饮水点保持≥10米，或无冲洗消杀记录",
+            "score": 3
+          },
+          {
+            "label": "垃圾未日产日清，或园区无垃圾收集设施",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      }
+    ],
+    "level_config": {
+      "levels": [
+        {
+          "description": "宠物、主人、普通游客与运营方需求全面兼顾，围栏安全与卫生管理达行业标杆水平",
+          "label": "人宠共生典范公园",
+          "min_score": 90,
+          "stars": 5
+        },
+        {
+          "description": "必选项全部达标，可选项得分率≥50%，宠物体验与丰容设施具备显著差异化",
+          "label": "人宠友好卓越公园",
+          "min_score": 75,
+          "stars": 4
+        },
+        {
+          "description": "必选项全部达标，可选项得分率≥30%，满足开放携宠入园的基本条件",
+          "label": "人宠友好基础公园",
+          "min_score": 60,
+          "stars": 3
+        },
+        {
+          "description": "≥8 项必选项达标（共 11 项），需优先整改围栏与卫生短板",
+          "label": "需优先整改",
+          "min_score": 45,
+          "stars": 2
+        },
+        {
+          "description": "<8 项必选项达标，存在逃逸/冲突/污染风险，不建议开放携宠入园",
+          "label": "不建议开放",
+          "min_score": 0,
+          "stars": 1
+        }
+      ]
+    },
+    "prerequisite_count": 11,
+    "product_lines": [
+      "PK"
+    ],
+    "regulation_refs": [
+      "T/CGLA 0004-2026",
+      "DB31/T 1703-2026"
+    ],
+    "total_items": 27,
+    "version_notes": "初始版本。包含5大板块、9项必选、9项可选。强调宠物公园的围栏安全、卫生管理和宠物体验。 | DB31/T 1703-2026 参考补充（非商业场所，仅作为法规参考框架） | T/CGLA对照：安全管理(30分)→P3; 内部管理·管理制度(20分)→P3; 人员管理(40分)→P3; 培训教育(10分)→P3... | T/CGLA 合规更新(2026-08-07)：新增 顾客满意度与投诉管理（T/CGLA） | v1.0.1（2026-09-10）：项字段名规范化（criteria/method/subjects/ref → scoring_criteria/evaluation_method/affected_subjects/reference_standard）；顶层 regulation_refs 占位号替换为正式号 T/CGLA 0004-2026 / DB31/T 1703-2026 | v1.0.1（2026-09-10）：补齐 level_config 五档描述（对齐 OS v1.1 口径，阈值取本份 min_score、必选/可选数取本份 items） | v1.1.0：外标条目改号（P3-DB06 → 本份 P3 段下一空位），与交付物编码 P#-## 对齐 | v1.1.0：补「责任保险与免责」条（审计 C2 合规底线） | v1.1.0：满意度条改造为场景化口径并置空外标挂靠（审计 C3 / 决策 D3=A，待对口依据回填） | v1.1.0：必选数变化，同步刷新 level_config 2★/1★ 文案门槛 | v1.1.0：中档（3 分）模糊措辞改写为可判定状态（审计 C5，范本 OS P3-02「有预案但无台账/演练」） | v1.1.0：审计 C6 权重配比修复 —— ①补项 5 条（取自审计 C10 清单，补齐颗粒度不足维度，使每份项数达单位项权重≤4% 的数学下限 25 项）②重算 weight_presets 与 categories[].weight，单位项权重统一落 [2.5%,4.0%]、权重合计=1.0（详见 work_20260911/变更记录_第4步_20260911.md） | v1.1.0：硬阈值条文补 measure_spec 结构化测量口径（目标/单位/测量方法/容差/证据形式，审计 C7）；PK P1-01 围栏高度按犬型分档（大型犬区≥1.8m/小型犬区≥1.5m） | v1.1.0：审计 C8+C9+C10 一致性收口 —— ①受影响主体归一为 6 枚举（宠物本体/携宠人/非携宠访客/三产员工/运营方/邻里与周边）②5 组交叉计分按「分工边界写进条文」处理（不合并，保持项数与必选口径）③补 C10 缺条 14 条 ④RE 必选下调 2 项（13→11，回应必选占比偏高）⑤项数变动后复算权重（详见 work_20260911/变更记录_第5步_一致性收口_20260911.md） | v1.1.0：补项 2 条（与兄弟份同口径的真实缺口，非凑数）——为恢复维度权重差异：单位项权重 ≤4% 与 Σ权重=1 联立得总项数须 >25，本份 25→27 后释放 0.08 的维度权重可倾斜量（详见 work_20260911/变更记录_AP-PK恢复维度差异_20260911.md） | v1.1.0：重算维度权重以恢复维度差异（口径 A2：按风险倾斜，非机械等权）——补项后总项数 27 ⇒ 可倾斜量 0.08；倾斜口径见 work_20260911/变更记录_AP-PK恢复维度差异_20260911.md",
+    "weight_presets": {
+      "PK": {
+        "P1": 0.24,
+        "P2": 0.17,
+        "P3": 0.22,
+        "P4": 0.13,
+        "P5": 0.24
+      }
+    }
+  },
+  "name": "它界 v1.0 · 它公园",
+  "release_date": "2026-08-01",
+  "status": "active",
+  "version": "1.0.0"
+}

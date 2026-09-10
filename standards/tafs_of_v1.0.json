@@ -1,0 +1,870 @@
+{
+  "code": "tafs_of_v1.0",
+  "config": {
+    "applicable_types": {
+      "OF": {
+        "description": "企业总部、互联网公司办公室、共享办公空间等",
+        "phase": [
+          "NC",
+          "EI",
+          "CO"
+        ]
+      }
+    },
+    "categories": [
+      {
+        "description": "防撞、防逃逸、防过敏扩散",
+        "id": "P1",
+        "name": "物理安全与空间适配",
+        "weight": 0.16
+      },
+      {
+        "description": "气味、毛发、皮屑过滤、噪音管控（办公最高权重）",
+        "id": "P2",
+        "name": "环境健康与污染控制",
+        "weight": 0.2
+      },
+      {
+        "description": "带宠申请流程、员工意愿、应急预案",
+        "id": "P3",
+        "name": "运营管理与员工共治",
+        "weight": 0.36
+      },
+      {
+        "description": "宠物休息区、活动区、减压空间",
+        "id": "P4",
+        "name": "动物福利与办公丰容",
+        "weight": 0.16
+      },
+      {
+        "description": "客户接待规范、政策对外传播、团队建设",
+        "id": "P5",
+        "name": "社区关系与品牌形象",
+        "weight": 0.12
+      }
+    ],
+    "clias_crosswalk": {
+      "complementarity": "CLIAS评价服务运营质量，TAF指导物理空间设计。两者互补、不重叠。",
+      "gap_areas": [
+        "物料采购(20分): TAF暂无供应链审核维度"
+      ],
+      "mapping": [
+        {
+          "clias": "安全管理(30分)",
+          "detail": "安全管理制度/培训/检查/台账/应急预案",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "内部管理·管理制度(20分)",
+          "detail": "运营制度/卫生制度/人宠公约/清洁SOP",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "人员管理(40分)",
+          "detail": "宠物驯导师/健康护理员/美容师配备",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "培训教育(10分)",
+          "detail": "培训考核制度",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "服务质量·区域设置(14分)",
+          "detail": "活动区域/通道/饮水/标识",
+          "taf_dimension": "P1",
+          "taf_name": "物理环境"
+        },
+        {
+          "clias": "服务质量·物品提供(17分)",
+          "detail": "尿垫/医疗箱/分隔物品/清洁消毒",
+          "taf_dimension": "P4",
+          "taf_name": "动物福利"
+        },
+        {
+          "clias": "物料采购(20分)",
+          "detail": "TAF暂无，建议后续新增",
+          "taf_dimension": "—",
+          "taf_name": "供应链(缺口)"
+        }
+      ],
+      "standard": "T/CGLA XXXX-XXXX",
+      "title": "人宠友好服务场所等级划分与评定"
+    },
+    "items": [
+      {
+        "affected_subjects": [
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P1",
+        "evaluation_method": "现场踏勘",
+        "id": "P1-01",
+        "name": "宠物活动区围栏/隔离",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "明确划定宠物可入区域+物理围挡隔离",
+            "score": 5
+          },
+          {
+            "label": "有区域无围挡",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P1",
+        "evaluation_method": "照片佐证",
+        "id": "P1-02",
+        "name": "窗户/露台防坠",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "所有可开启窗安装限位器+露台设围栏",
+            "score": 5
+          },
+          {
+            "label": "公共区可开启窗已装限位器，会议室与露台未设防护",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P1",
+        "evaluation_method": "制度文件核查",
+        "id": "P1-03",
+        "name": "紧急疏散通道宠物管理",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有宠物紧急疏散方案+牵引绳/航空箱备用",
+            "score": 5
+          },
+          {
+            "label": "有提及无物资",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P1",
+        "evaluation_method": "照片佐证",
+        "id": "P1-04",
+        "name": "家具防撞处理",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "全部办公家具棱角防护",
+            "score": 5
+          },
+          {
+            "label": "公共区家具已做棱角防护，工位区未处理",
+            "score": 3
+          },
+          {
+            "label": "未处理",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "三产员工"
+        ],
+        "category": "P2",
+        "evaluation_method": "设备核查+维护记录",
+        "id": "P2-01",
+        "name": "高效空气过滤系统",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "配备HEPA过滤+定期换滤芯记录",
+            "score": 5
+          },
+          {
+            "label": "有新风系统无HEPA",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "三产员工"
+        ],
+        "category": "P2",
+        "evaluation_method": "现场踏勘",
+        "id": "P2-02",
+        "name": "宠物禁入区（过敏/恐惧者专属）",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "至少1个封闭空间禁止宠物进入+标识明确",
+            "score": 5
+          },
+          {
+            "label": "有区域无封闭/标识",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "三产员工"
+        ],
+        "category": "P2",
+        "evaluation_method": "制度文件核查",
+        "id": "P2-03",
+        "name": "噪音管控方案",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "吠叫监测+处理流程+隔音措施",
+            "score": 5
+          },
+          {
+            "label": "制度有噪音要求，但无吠叫监测与处理流程",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P2",
+        "evaluation_method": "清洁记录核查",
+        "id": "P2-04",
+        "measure_spec": {
+          "evidence": "排班表 + 执行签到 + 清洁剂领用记录",
+          "method": "以清洁排班表与执行签到计数，并与酶解剂采购/领用记录交叉核对",
+          "metric": "酶解深度清洁频次",
+          "target": "≥2",
+          "tolerance": "频次不足即不满足高档",
+          "unit": "次/周"
+        },
+        "name": "清洁SOP（含毛发/气味）",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "每日吸尘+酶解深度清洁≥2次/周",
+            "score": 5
+          },
+          {
+            "label": "有清洁但频次不足",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "运营方"
+        ],
+        "category": "P2",
+        "evaluation_method": "现场踏勘",
+        "id": "P2-05",
+        "name": "宠物排泄区",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "指定区域+即时清理+除味",
+            "score": 5
+          },
+          {
+            "label": "有区域但维护不足",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "制度文件核查",
+        "id": "P3-01",
+        "name": "带宠申请与审批流程",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "员工申请→疫苗核验→行为评估→审批",
+            "score": 5
+          },
+          {
+            "label": "有申请无评估",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "非携宠访客",
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "制度文件核查+演练记录",
+        "external_refs": [
+          "DB31/T 1703-2026 §8.1-c"
+        ],
+        "id": "P3-02",
+        "name": "应急预案",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "咬伤/失控/过敏等处置流程+公示；预案覆盖疫病传播/人员伤亡/财物损毁三类并有演练记录",
+            "score": 5
+          },
+          {
+            "label": "有预案未公示，或覆盖不全、无演练记录",
+            "score": 3
+          },
+          {
+            "label": "无任何预案",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "三产员工"
+        ],
+        "category": "P3",
+        "evaluation_method": "调查记录核查",
+        "id": "P3-03",
+        "name": "员工意愿调查与利益平衡",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "全员匿名投票+设置不同意者的退出权",
+            "score": 5
+          },
+          {
+            "label": "有调查无退出机制",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "制度文件核查",
+        "id": "P3-04",
+        "name": "宠物行为积分/淘汰机制",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "不良记录→警示→暂停带宠的完整机制",
+            "score": 5
+          },
+          {
+            "label": "有警告无淘汰",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "组织架构核查+培训考核记录核查",
+        "external_refs": [
+          "DB31/T 1703-2026 §9.1-2"
+        ],
+        "id": "P3-05",
+        "name": "宠物友好专员与培训考核",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "设有宠物友好专员负责政策执行与员工沟通；并有培训计划、考核记录，职责落实到人",
+            "score": 5
+          },
+          {
+            "label": "HR兼职，或有培训无考核",
+            "score": 3
+          },
+          {
+            "label": "无专人负责",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P4",
+        "evaluation_method": "照片佐证",
+        "id": "P4-01",
+        "name": "宠物安静休息区",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "独立隔音小间+床垫/水碗",
+            "score": 5
+          },
+          {
+            "label": "开放休息区",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "三产员工"
+        ],
+        "category": "P4",
+        "evaluation_method": "制度文件核查",
+        "id": "P4-02",
+        "measure_spec": {
+          "evidence": "排班表/预约台账 + 现场照片",
+          "method": "以排班表或活动预约台账计数，记录需含时段与责任人",
+          "metric": "每日遛宠时段数",
+          "target": "≥2",
+          "tolerance": "仅 1 次/日判中档",
+          "unit": "次/日"
+        },
+        "name": "定时遛宠/活动安排",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "每日≥2次遛宠时段或活动区开放",
+            "score": 5
+          },
+          {
+            "label": "每日固定 1 次遛宠时段，未达每日 2 次要求",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P4",
+        "evaluation_method": "照片佐证",
+        "id": "P4-03",
+        "name": "减压与安全感设计",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "躲避屋+安抚信息素+舒适温控",
+            "score": 5
+          },
+          {
+            "label": "设躲避屋，但未配安抚信息素与温度调节",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "三产员工"
+        ],
+        "category": "P4",
+        "evaluation_method": "制度文件核查",
+        "id": "P4-04",
+        "name": "宠物间社交管理",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "大小犬分区+社交行为评估",
+            "score": 5
+          },
+          {
+            "label": "混合但有管理",
+            "score": 3
+          },
+          {
+            "label": "无管理",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "运营方"
+        ],
+        "category": "P5",
+        "evaluation_method": "线上检查",
+        "id": "P5-01",
+        "name": "宠物友好政策对外公示",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "官网/招聘页面说明带宠政策",
+            "score": 5
+          },
+          {
+            "label": "有提及无详情",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "非携宠访客",
+          "运营方"
+        ],
+        "category": "P5",
+        "evaluation_method": "制度文件核查",
+        "id": "P5-02",
+        "name": "客户接待宠物规则",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "访客带宠需提前预约+审核",
+            "score": 5
+          },
+          {
+            "label": "有规则无审核",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "非携宠访客",
+          "三产员工"
+        ],
+        "category": "P5",
+        "evaluation_method": "活动记录核查",
+        "id": "P5-03",
+        "measure_spec": {
+          "evidence": "活动台账 + 现场照片",
+          "method": "按年度活动台账（日期/主题/参与人数）计数",
+          "metric": "宠物主题活动场次",
+          "target": "≥2",
+          "tolerance": "不足 2 场判中档",
+          "unit": "场/年"
+        },
+        "name": "宠物主题活动",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "每年≥2场员工宠物社交活动",
+            "score": 5
+          },
+          {
+            "label": "有活动安排但不足每年 2 场，或无活动记录",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "满意度数据核查+投诉记录核查",
+        "external_refs": [
+          "T/CGLA 0004-2026 §服务质量·满意度"
+        ],
+        "id": "P3-06",
+        "name": "顾客满意度与投诉管理（T/CGLA）",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有满意度调查+投诉率<5%+48h响应+改进闭环",
+            "score": 5
+          },
+          {
+            "label": "有满意度调查无闭环",
+            "score": 3
+          },
+          {
+            "label": "无满意度管理",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "保险凭证核查",
+        "external_refs": [
+          "DB31/T 1703-2026 §5.3-g"
+        ],
+        "id": "P3-07",
+        "name": "宠物责任保险与免责",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "企业购买公众责任险并覆盖宠物相关事件，且要求带宠员工提交宠物责任险凭证",
+            "score": 5
+          },
+          {
+            "label": "企业责任险与员工宠物险二者只有其一已办理",
+            "score": 3
+          },
+          {
+            "label": "无任何保险覆盖",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "培训签到表与考核记录核查（文件/照片佐证）",
+        "id": "P3-08",
+        "name": "员工宠物相关培训与考核",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "每年≥1次宠物行为与安全培训，覆盖咬伤处置/过敏应对/宠物应激识别，有签到与考核记录",
+            "score": 5
+          },
+          {
+            "label": "有培训安排与签到记录，但无考核记录，或未覆盖咬伤处置与过敏应对",
+            "score": 3
+          },
+          {
+            "label": "无任何宠物相关培训",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "非携宠访客",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "投诉制度文件+通道公示照片+台账抽查；与 P3-06 分工：本项查通道与响应时限，P3-06 查满意度调查与闭环结果",
+        "id": "P3-09",
+        "name": "宠物相关投诉处理通道",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "设有宠物相关投诉受理通道并对外公示，明确48小时响应时限，投诉台账与改进闭环记录齐全",
+            "score": 5
+          },
+          {
+            "label": "有通用投诉渠道，但无响应时限或投诉台账",
+            "score": 3
+          },
+          {
+            "label": "无任何宠物相关投诉受理渠道",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "三产员工"
+        ],
+        "category": "P2",
+        "evaluation_method": "夏季现场温度实测记录+降温措施照片佐证",
+        "id": "P2-06",
+        "measure_spec": {
+          "evidence": "测温记录（含量具读数照片）",
+          "method": "夏季高温时段（13:00–15:00）以温度计测宠物常驻区，取 3 点最大值",
+          "metric": "宠物活动区夏季室温",
+          "target": "≤28",
+          "tolerance": "±1 ℃；无实测记录按不满足高档",
+          "unit": "℃"
+        },
+        "name": "地面温度与热应激防护",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "宠物活动区避开西晒与玻璃幕墙直射，夏季提供降温垫或分区空调，室温可稳定控制在28℃以下",
+            "score": 5
+          },
+          {
+            "label": "有降温措施但未分区，或未避开西晒区域",
+            "score": 3
+          },
+          {
+            "label": "无任何热应激防护措施",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      }
+    ],
+    "level_config": {
+      "levels": [
+        {
+          "description": "员工、宠物、访客与运营方需求全面兼顾，环境健康与员工共治达行业标杆水平",
+          "label": "人宠友好办公典范",
+          "min_score": 90,
+          "stars": 5
+        },
+        {
+          "description": "必选项全部达标，可选项得分率≥50%，过敏/恐惧员工保障与宠物福利具备显著优势",
+          "label": "人宠友好办公卓越",
+          "min_score": 75,
+          "stars": 4
+        },
+        {
+          "description": "必选项全部达标，可选项得分率≥30%，满足带宠上班的基本条件",
+          "label": "人宠友好办公基础",
+          "min_score": 60,
+          "stars": 3
+        },
+        {
+          "description": "≥9 项必选项达标（共 12 项），员工接受度与环境卫生存在短板，不建议对外宣传宠物友好",
+          "label": "需优先整改",
+          "min_score": 45,
+          "stars": 2
+        },
+        {
+          "description": "<9 项必选项达标，存在显性过敏/安全风险，不建议开展宠物友好办公",
+          "label": "不建议开展宠物友好办公",
+          "min_score": 0,
+          "stars": 1
+        }
+      ]
+    },
+    "prerequisite_count": 12,
+    "product_lines": [
+      "OF"
+    ],
+    "regulation_refs": [
+      "T/CGLA 0004-2026",
+      "DB31/T 1703-2026"
+    ],
+    "total_items": 26,
+    "version_notes": "初始版本。包含5大板块、10项必选、11项可选。办公场景权重最高为环境健康(P2)，强调员工共治与利益平衡。 | DB31/T 1703-2026 合规更新（2026-08-06）：新增 P3-08 突发事件应急预案（DB31/T）, P3-09 工作人员培训考核制度 | DB31/T 1703-2026 合规更新（2026-08-06）：新增 P3-DB02 突发事件应急预案（DB31/T）, P3-DB03 工作人员培训考核制度（DB31/T） | T/CGLA对照：安全管理(30分)→P3; 内部管理·管理制度(20分)→P3; 人员管理(40分)→P3; 培训教育(10分)→P3... | T/CGLA 合规更新(2026-08-07)：新增 顾客满意度与投诉管理（T/CGLA） | v1.0.1（2026-09-10）：项字段名规范化（criteria/method/subjects/ref → scoring_criteria/evaluation_method/affected_subjects/reference_standard）；顶层 regulation_refs 占位号替换为正式号 T/CGLA 0004-2026 / DB31/T 1703-2026 | v1.1.0：外标并入内部宿主（沿用 OS v1.1 范式）: P3-DB02→P3-02, P3-DB03→P3-05(更名 宠物友好专员与培训考核); T/CGLA 项保留独立改号 P3-DB06→P3-06; 溯源 external_refs 随项并入宿主 | v1.1.0：补齐 level_config 五档描述（对齐 OS v1.1 口径，阈值取本份 min_score、必选/可选数取本份 items） | v1.1.0：补「责任保险与免责」条（审计 C2 合规底线） | v1.1.0：必选数变化，同步刷新 level_config 2★/1★ 文案门槛 | v1.1.0：中档（3 分）模糊措辞改写为可判定状态（审计 C5，范本 OS P3-02「有预案但无台账/演练」） | v1.1.0：审计 C6 权重配比修复 —— ①补项 2 条（取自审计 C10 清单，补齐颗粒度不足维度，使每份项数达单位项权重≤4% 的数学下限 25 项）②重算 weight_presets 与 categories[].weight，单位项权重统一落 [2.5%,4.0%]、权重合计=1.0（详见 work_20260911/变更记录_第4步_20260911.md） | v1.1.0：硬阈值条文补 measure_spec 结构化测量口径（目标/单位/测量方法/容差/证据形式，审计 C7）；PK P1-01 围栏高度按犬型分档（大型犬区≥1.8m/小型犬区≥1.5m） | v1.1.0：审计 C8+C9+C10 一致性收口 —— ①受影响主体归一为 6 枚举（宠物本体/携宠人/非携宠访客/三产员工/运营方/邻里与周边）②5 组交叉计分按「分工边界写进条文」处理（不合并，保持项数与必选口径）③补 C10 缺条 14 条 ④RE 必选下调 2 项（13→11，回应必选占比偏高）⑤项数变动后复算权重（详见 work_20260911/变更记录_第5步_一致性收口_20260911.md）",
+    "weight_presets": {
+      "OF": {
+        "P1": 0.16,
+        "P2": 0.2,
+        "P3": 0.36,
+        "P4": 0.16,
+        "P5": 0.12
+      }
+    }
+  },
+  "name": "它界 v1.0 · 它办公",
+  "release_date": "2026-08-01",
+  "status": "active",
+  "version": "1.0.0"
+}

@@ -1,0 +1,210 @@
+{
+  "content_changed_this_run": false,
+  "content_updated_at": "2026-09-11 02:01:19",
+  "generator": "taf-standards-export.py v1",
+  "schema_version": 1,
+  "source": "postgresql://taf/standard_plugins",
+  "standards": {
+    "tafs_ap_v1.0": {
+      "file": "tafs_ap_v1.0.json",
+      "items": 27,
+      "legacy_format": false,
+      "md5": "c0d2c57ae08021769f38257ff197e7b6",
+      "measure_spec_count": 3,
+      "name": "它界 v1.0 · 它公寓",
+      "per_item_max": 4.0,
+      "per_item_min": 3.25,
+      "prerequisite_count": 12,
+      "product_line": "AP",
+      "status": "active",
+      "sum_weight": 1.0,
+      "version": "1.0.0",
+      "weight_presets": {
+        "P1": 0.16,
+        "P2": 0.18,
+        "P3": 0.22,
+        "P4": 0.13,
+        "P5": 0.08,
+        "P6": 0.23
+      }
+    },
+    "tafs_ho_v1.0": {
+      "file": "tafs_ho_v1.0.json",
+      "items": 28,
+      "legacy_format": false,
+      "md5": "2e989140947a72437ab7e81a791c05cf",
+      "measure_spec_count": 8,
+      "name": "它界 v1.0 · 它居居（自有）",
+      "per_item_max": 4.0,
+      "per_item_min": 3.33,
+      "prerequisite_count": 11,
+      "product_line": "HO",
+      "status": "active",
+      "sum_weight": 1.0,
+      "version": "1.0.0",
+      "weight_presets": {
+        "P1": 0.24,
+        "P2": 0.2,
+        "P3": 0.24,
+        "P4": 0.2,
+        "P5": 0.12
+      }
+    },
+    "tafs_ht_v1.0": {
+      "file": "tafs_ht_v1.0.json",
+      "items": 38,
+      "legacy_format": false,
+      "md5": "7da311ff8123c82f440c7cbfe7a79d56",
+      "measure_spec_count": 7,
+      "name": "它界 v1.0 · 酒店民宿",
+      "per_item_max": 2.75,
+      "per_item_min": 2.54,
+      "prerequisite_count": 15,
+      "product_line": "HT",
+      "status": "active",
+      "sum_weight": 1.0,
+      "version": "1.0.0",
+      "weight_presets": {
+        "P1": 0.19,
+        "P2": 0.11,
+        "P3": 0.33,
+        "P4": 0.18,
+        "P5": 0.19
+      }
+    },
+    "tafs_mc_v1.0": {
+      "file": "tafs_mc_v1.0.json",
+      "items": 27,
+      "legacy_format": false,
+      "md5": "cf53d8415790e40d82a7450ae003dca5",
+      "measure_spec_count": 6,
+      "name": "它界 v1.0 · 封闭式购物中心",
+      "per_item_max": 4.0,
+      "per_item_min": 3.2,
+      "prerequisite_count": 11,
+      "product_line": "MC",
+      "status": "active",
+      "sum_weight": 1.0,
+      "version": "1.0.0",
+      "weight_presets": {
+        "P1": 0.24,
+        "P2": 0.2,
+        "P3": 0.28,
+        "P4": 0.16,
+        "P5": 0.12
+      }
+    },
+    "tafs_of_v1.0": {
+      "file": "tafs_of_v1.0.json",
+      "items": 26,
+      "legacy_format": false,
+      "md5": "291561527d58f333d4221281863cc5fe",
+      "measure_spec_count": 4,
+      "name": "它界 v1.0 · 它办公",
+      "per_item_max": 4.0,
+      "per_item_min": 3.33,
+      "prerequisite_count": 12,
+      "product_line": "OF",
+      "status": "active",
+      "sum_weight": 1.0,
+      "version": "1.0.0",
+      "weight_presets": {
+        "P1": 0.16,
+        "P2": 0.2,
+        "P3": 0.36,
+        "P4": 0.16,
+        "P5": 0.12
+      }
+    },
+    "tafs_os_v1.0": {
+      "file": "tafs_os_v1.0.json",
+      "items": 44,
+      "legacy_format": true,
+      "md5": "d43535832eed4f627ed3a1390928c426",
+      "measure_spec_count": 0,
+      "name": "它界 v1.0 · 开放式街区",
+      "per_item_max": 3.75,
+      "per_item_min": 1.25,
+      "prerequisite_count": 16,
+      "product_line": "OS",
+      "status": "archived",
+      "sum_weight": 1.0,
+      "version": "1.0.0",
+      "weight_presets": {
+        "P1": 0.2,
+        "P2": 0.18,
+        "P3": 0.15,
+        "P4": 0.22,
+        "P5": 0.1,
+        "P6": 0.15
+      }
+    },
+    "tafs_os_v1.1": {
+      "file": "tafs_os_v1.1.json",
+      "items": 36,
+      "legacy_format": false,
+      "md5": "0df9f3d1b183174128dbf0649d753f46",
+      "measure_spec_count": 0,
+      "name": "它界 v1.1 · 开放式街区",
+      "per_item_max": 3.75,
+      "per_item_min": 2.14,
+      "prerequisite_count": 14,
+      "product_line": "OS",
+      "status": "active",
+      "sum_weight": 1.0,
+      "version": "1.1.0",
+      "weight_presets": {
+        "P1": 0.2,
+        "P2": 0.18,
+        "P3": 0.15,
+        "P4": 0.22,
+        "P5": 0.1,
+        "P6": 0.15
+      }
+    },
+    "tafs_pk_v1.0": {
+      "file": "tafs_pk_v1.0.json",
+      "items": 27,
+      "legacy_format": false,
+      "md5": "4cf8fab401e792492dea797229b76fe2",
+      "measure_spec_count": 10,
+      "name": "它界 v1.0 · 它公园",
+      "per_item_max": 4.0,
+      "per_item_min": 3.25,
+      "prerequisite_count": 11,
+      "product_line": "PK",
+      "status": "active",
+      "sum_weight": 1.0,
+      "version": "1.0.0",
+      "weight_presets": {
+        "P1": 0.24,
+        "P2": 0.17,
+        "P3": 0.22,
+        "P4": 0.13,
+        "P5": 0.24
+      }
+    },
+    "tafs_re_v1.0": {
+      "file": "tafs_re_v1.0.json",
+      "items": 29,
+      "legacy_format": false,
+      "md5": "14f03f037b4d191bf4ebdecd954a8808",
+      "measure_spec_count": 5,
+      "name": "它界 v1.0 · 它租房（租赁）",
+      "per_item_max": 4.0,
+      "per_item_min": 3.2,
+      "prerequisite_count": 11,
+      "product_line": "RE",
+      "status": "active",
+      "sum_weight": 1.0,
+      "version": "1.0.0",
+      "weight_presets": {
+        "P1": 0.16,
+        "P2": 0.16,
+        "P3": 0.32,
+        "P4": 0.16,
+        "P5": 0.2
+      }
+    }
+  }
+}

@@ -1,0 +1,901 @@
+{
+  "code": "tafs_ap_v1.0",
+  "config": {
+    "applicable_types": {
+      "AP": {
+        "description": "长租服务式公寓、品牌公寓、高端租赁社区等",
+        "phase": [
+          "NC",
+          "EI",
+          "CO"
+        ]
+      }
+    },
+    "categories": [
+      {
+        "description": "套内空间是否存在安全隐患？",
+        "id": "P1",
+        "name": "套内物理安全",
+        "weight": 0.16
+      },
+      {
+        "description": "长期居住的气味/毛发/噪音是否可控？",
+        "id": "P2",
+        "name": "套内环境健康与清洁便利性",
+        "weight": 0.18
+      },
+      {
+        "description": "走廊/电梯/露台等共享空间是否有管理规则？",
+        "id": "P3",
+        "name": "公共区域宠物管理",
+        "weight": 0.22
+      },
+      {
+        "description": "长期居住的宠物是否有持续的精神满足？",
+        "id": "P4",
+        "name": "宠物长期福利与丰容",
+        "weight": 0.13
+      },
+      {
+        "description": "长期邻里关系如何维护？",
+        "id": "P5",
+        "name": "邻里共处与投诉预防",
+        "weight": 0.08
+      },
+      {
+        "description": "公寓管理方有无系统的宠物管理规范？",
+        "id": "P6",
+        "name": "运营管理制度",
+        "weight": 0.23
+      }
+    ],
+    "clias_crosswalk": {
+      "complementarity": "CLIAS评价服务运营质量，TAF指导物理空间设计。两者互补、不重叠。",
+      "gap_areas": [
+        "物料采购(20分): TAF暂无供应链审核维度"
+      ],
+      "mapping": [
+        {
+          "clias": "安全管理(30分)",
+          "detail": "安全管理制度/培训/检查/台账/应急预案",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "内部管理·管理制度(20分)",
+          "detail": "运营制度/卫生制度/人宠公约/清洁SOP",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "人员管理(40分)",
+          "detail": "宠物驯导师/健康护理员/美容师配备",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "培训教育(10分)",
+          "detail": "培训考核制度",
+          "taf_dimension": "P3",
+          "taf_name": "运营管理"
+        },
+        {
+          "clias": "服务质量·区域设置(14分)",
+          "detail": "活动区域/通道/饮水/标识",
+          "taf_dimension": "P1",
+          "taf_name": "物理环境"
+        },
+        {
+          "clias": "服务质量·物品提供(17分)",
+          "detail": "尿垫/医疗箱/分隔物品/清洁消毒",
+          "taf_dimension": "P4",
+          "taf_name": "动物福利"
+        },
+        {
+          "clias": "物料采购(20分)",
+          "detail": "TAF暂无，建议后续新增",
+          "taf_dimension": "—",
+          "taf_name": "供应链(缺口)"
+        }
+      ],
+      "standard": "T/CGLA XXXX-XXXX",
+      "title": "人宠友好服务场所等级划分与评定"
+    },
+    "items": [
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P1",
+        "evaluation_method": "照片佐证",
+        "id": "P1-01",
+        "name": "窗户/阳台防坠防护",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "所有窗户安装金刚网纱窗或限位器",
+            "score": 5
+          },
+          {
+            "label": "卧室窗已装限位器或纱窗，客厅与阳台门未防护",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P1",
+        "evaluation_method": "照片佐证",
+        "id": "P1-02",
+        "name": "套内地面材质安全",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "全屋防滑地材",
+            "score": 5
+          },
+          {
+            "label": "卧室与客厅已铺防滑地材，厨卫为光滑地砖",
+            "score": 3
+          },
+          {
+            "label": "光滑地材为主",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P1",
+        "evaluation_method": "照片佐证",
+        "id": "P1-03",
+        "name": "尖角/锐边防护",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "全部尖角圆角/防撞角处理",
+            "score": 5
+          },
+          {
+            "label": "主要活动区已做圆角防护，固定家具未处理",
+            "score": 3
+          },
+          {
+            "label": "未处理",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "邻里与周边"
+        ],
+        "category": "P2",
+        "evaluation_method": "照片佐证+新风/排风设备核查+除味耗材记录",
+        "id": "P2-01",
+        "name": "气味控制与通风",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "套内独立新风/排风系统",
+            "score": 5
+          },
+          {
+            "label": "无独立新风/排风，仅靠自然通风，且无除味措施记录",
+            "score": 3
+          },
+          {
+            "label": "异味明显",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "携宠人"
+        ],
+        "category": "P2",
+        "evaluation_method": "平面图分析",
+        "id": "P2-02",
+        "name": "套内清洁便利性",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "户型设计合理+预留扫地机器人充电位",
+            "score": 5
+          },
+          {
+            "label": "户型可清洁，但无预留扫地机器人充电位，存在家具底部死角",
+            "score": 3
+          },
+          {
+            "label": "多处死角",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人"
+        ],
+        "category": "P2",
+        "evaluation_method": "照片佐证",
+        "id": "P2-03",
+        "name": "防尿渍/防水处理",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "全屋地材防水+墙角密封",
+            "score": 5
+          },
+          {
+            "label": "仅厨卫做防水，客卧地材无防水处理",
+            "score": 3
+          },
+          {
+            "label": "无处理",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "非携宠访客",
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "制度文件核查+现场踏勘",
+        "id": "P3-01",
+        "name": "公共区域宠物牵引/笼具要求",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有明确规则+公共区域公示+违规处理机制",
+            "score": 5
+          },
+          {
+            "label": "有规则无公示",
+            "score": 3
+          },
+          {
+            "label": "无规则",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "非携宠访客",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "现场踏勘",
+        "id": "P3-02",
+        "name": "电梯/走廊宠物管理",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "电梯内设有宠物专用按钮或引导标识+保洁随时响应",
+            "score": 5
+          },
+          {
+            "label": "有保洁安排，但电梯与走廊无宠物乘梯/通行标识",
+            "score": 3
+          },
+          {
+            "label": "无管理",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "非携宠访客",
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "制度文件核查",
+        "id": "P3-03",
+        "name": "公共区域清洁标准",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有宠物相关公共区域清洁SOP+检查记录",
+            "score": 5
+          },
+          {
+            "label": "有口头要求",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P3",
+        "evaluation_method": "现场踏勘",
+        "id": "P3-04",
+        "name": "公共区域宠物饮水点",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "大堂/花园设有宠物饮水点",
+            "score": 5
+          },
+          {
+            "label": "仅户外/花园设宠物饮水点，大堂未设置",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "非携宠访客",
+          "运营方"
+        ],
+        "category": "P3",
+        "evaluation_method": "现场踏勘",
+        "id": "P3-05",
+        "name": "宠物排泄区（户外）",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "设专用户外排泄区+拾便袋+定期消毒",
+            "score": 5
+          },
+          {
+            "label": "有区域无设施",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P4",
+        "evaluation_method": "照片佐证",
+        "id": "P4-01",
+        "name": "宠物专属活动区",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "设有围栏式宠物专属活动区",
+            "score": 5
+          },
+          {
+            "label": "仅开放草坪可用，无围栏式专属活动区",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P4",
+        "evaluation_method": "服务手册核查",
+        "id": "P4-02",
+        "is_optional_facility": true,
+        "name": "宠物寄养/临时托管服务",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "公寓提供宠物临时托管服务或合作方",
+            "score": 5
+          },
+          {
+            "label": "仅提供合作机构推荐清单，公寓不提供托管服务",
+            "score": 3
+          },
+          {
+            "label": "不提供",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人",
+          "非携宠访客"
+        ],
+        "category": "P4",
+        "evaluation_method": "活动记录核查",
+        "id": "P4-03",
+        "measure_spec": {
+          "evidence": "活动台账 + 现场照片",
+          "method": "按年度活动台账（日期/主题/参与人宠数）计数",
+          "metric": "宠物社交活动场次",
+          "target": "≥4",
+          "tolerance": "1–3 场判中档",
+          "unit": "场/年"
+        },
+        "name": "宠物社交活动",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "定期组织宠物社交活动（≥4次/年）",
+            "score": 5
+          },
+          {
+            "label": "有活动安排但不足每年 4 次，或无活动记录",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体"
+        ],
+        "category": "P4",
+        "evaluation_method": "档案核查",
+        "id": "P4-04",
+        "name": "宠物长期福利关注",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有宠物档案（品种/年龄/性格）用于活动分组与节日关怀",
+            "score": 5
+          },
+          {
+            "label": "有基础登记",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "邻里与周边"
+        ],
+        "category": "P5",
+        "evaluation_method": "沟通记录核查+照片佐证；与 P5-02 分工：本条只查邻里沟通渠道与告知动作，吠叫处置由 P5-02 核查",
+        "id": "P5-01",
+        "name": "邻里沟通与投诉预防",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "入住时主动告知邻里+建立沟通渠道",
+            "score": 5
+          },
+          {
+            "label": "入住时未主动告知邻里，仅在被投诉后进行沟通",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "运营方",
+          "邻里与周边"
+        ],
+        "category": "P5",
+        "evaluation_method": "制度文件核查；与 P5-01 分工：本条只查吠叫处置预案与记录，沟通渠道由 P5-01 核查",
+        "id": "P5-02",
+        "name": "宠物吠叫/噪音管理",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有吠叫管理预案（安抚/转移/笼养训练建议）",
+            "score": 5
+          },
+          {
+            "label": "有噪音要求，但无吠叫管理预案（安抚/转移/笼养训练建议）",
+            "score": 3
+          },
+          {
+            "label": "无管理",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "非携宠访客",
+          "三产员工",
+          "运营方"
+        ],
+        "category": "P6",
+        "evaluation_method": "制度文件核查",
+        "id": "P6-01",
+        "name": "宠物入住管理制度",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有书面宠物入住管理制度（含品种限制/数量/疫苗要求）",
+            "score": 5
+          },
+          {
+            "label": "有口头要求",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "运营方"
+        ],
+        "category": "P6",
+        "evaluation_method": "合同核查",
+        "id": "P6-02",
+        "name": "退房宠物损坏界定标准",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "合同明确约定宠物损坏界定标准与赔偿上限",
+            "score": 5
+          },
+          {
+            "label": "有口头约定",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "运营方"
+        ],
+        "category": "P6",
+        "evaluation_method": "线上检查",
+        "id": "P6-03",
+        "name": "宠物友好品牌宣传",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "官网/APP明确标注宠物友好并展示相关设施",
+            "score": 5
+          },
+          {
+            "label": "有提及无展示",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "运营方"
+        ],
+        "category": "P6",
+        "evaluation_method": "培训记录核查",
+        "id": "P6-04",
+        "name": "宠物相关培训",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "前台及安保人员接受宠物友好服务培训",
+            "score": 5
+          },
+          {
+            "label": "有培训安排，但无培训记录或考核",
+            "score": 3
+          },
+          {
+            "label": "无",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "运营方",
+          "邻里与周边"
+        ],
+        "category": "P3",
+        "evaluation_method": "投诉记录核查+沟通记录核查",
+        "external_refs": [],
+        "id": "P3-06",
+        "name": "租客服务响应与邻里投诉闭环",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "公寓方设有宠物相关投诉受理渠道并在 48 小时内响应，处理结果与邻里沟通记录留档",
+            "score": 5
+          },
+          {
+            "label": "有受理渠道但无响应时限，或无处理留档",
+            "score": 3
+          },
+          {
+            "label": "无投诉受理与处理机制",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "携宠人",
+          "运营方"
+        ],
+        "category": "P6",
+        "evaluation_method": "保险凭证核查",
+        "external_refs": [
+          "DB31/T 1703-2026 §5.3-g"
+        ],
+        "id": "P6-05",
+        "name": "宠物责任保险与免责",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "公寓运营方购买公众责任险并覆盖宠物相关事件，且要求携宠租客提供宠物责任险凭证",
+            "score": 5
+          },
+          {
+            "label": "公寓责任险与租客宠物险二者只有其一已落实",
+            "score": 3
+          },
+          {
+            "label": "无任何保险覆盖",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P2",
+        "evaluation_method": "夏季现场温度实测记录+措施照片佐证",
+        "id": "P2-04",
+        "measure_spec": {
+          "evidence": "测温记录（含量具读数照片）",
+          "method": "夏季高温时段（13:00–15:00）以红外测温仪测地面与宠物常驻区，取 3 点最大值",
+          "metric": "宠物活动区夏季温度",
+          "target": "室温≤28",
+          "tolerance": "±1 ℃；无实测记录按不满足高档",
+          "unit": "℃"
+        },
+        "name": "地面温度与热应激防护",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "宠物常活动区避开西晒/玻璃幕墙直射，夏季提供降温垫或空调分区，室温可稳定控制在28℃以下",
+            "score": 5
+          },
+          {
+            "label": "有降温措施但未分区，或未避开西晒区域",
+            "score": 3
+          },
+          {
+            "label": "无任何热应激防护措施",
+            "score": 0
+          }
+        ],
+        "type": "credit"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人",
+          "运营方"
+        ],
+        "category": "P6",
+        "evaluation_method": "预案文件+演练记录核查",
+        "id": "P6-06",
+        "name": "突发事件应急预案（宠物相关）",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "有书面预案，覆盖咬伤/逃逸走失/火情疏散三类，明确责任人并每年演练≥1次且留记录",
+            "score": 5
+          },
+          {
+            "label": "有书面预案但未覆盖三类情形，或无演练记录",
+            "score": 3
+          },
+          {
+            "label": "无任何宠物相关应急预案",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P1",
+        "evaluation_method": "照片佐证（与 HO P1-02 / RE P1-02 同口径）",
+        "id": "P1-04",
+        "name": "电线与危险品收纳",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "所有电线隐藏或包裹，清洁剂/药品等锁闭收纳",
+            "score": 5
+          },
+          {
+            "label": "电线已整理，清洁剂/药品未锁闭收纳",
+            "score": 3
+          },
+          {
+            "label": "随处放置",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      },
+      {
+        "affected_subjects": [
+          "宠物本体",
+          "携宠人"
+        ],
+        "category": "P2",
+        "evaluation_method": "照片佐证+现场计数核对（与 HO P2-01 / RE P2-01 同口径）",
+        "id": "P2-05",
+        "measure_spec": {
+          "evidence": "现场照片（画面需同时可辨数量与分布）",
+          "method": "现场清点猫砂盆数量并核对猫只数量",
+          "metric": "猫砂盆数量",
+          "target": "猫只数 + 1",
+          "tolerance": "数量达标但位置集中判中档",
+          "unit": "个"
+        },
+        "name": "猫砂盆与室内排泄点配置",
+        "score_max": 5,
+        "scoring_criteria": [
+          {
+            "label": "猫砂盆数量=猫数+1且分散布置（犬只设室内固定排泄点并每日清理）",
+            "score": 5
+          },
+          {
+            "label": "数量达标但位置集中，或室内排泄点未固定",
+            "score": 3
+          },
+          {
+            "label": "数量不足或无室内排泄点",
+            "score": 0
+          }
+        ],
+        "type": "prerequisite"
+      }
+    ],
+    "level_config": {
+      "levels": [
+        {
+          "description": "各主体（携宠租客、邻居、运营方、押金安全）全面覆盖，套内安全与宠物长期福利达行业标杆水平",
+          "label": "人宠共生典范公寓",
+          "min_score": 90,
+          "stars": 5
+        },
+        {
+          "description": "必选项全部达标，可选项得分率≥50%，套内与公共区域均具备显著差异化竞争力",
+          "label": "人宠友好卓越公寓",
+          "min_score": 75,
+          "stars": 4
+        },
+        {
+          "description": "必选项全部达标，可选项得分率≥30%，满足携宠长期居住的基本条件",
+          "label": "人宠友好基础公寓",
+          "min_score": 60,
+          "stars": 3
+        },
+        {
+          "description": "≥9 项必选项达标（共 12 项），不建议以「宠物友好公寓」名义对外宣传",
+          "label": "宠物容忍型",
+          "min_score": 45,
+          "stars": 2
+        },
+        {
+          "description": "<9 项必选项达标，套内存在显性安全/卫生风险，招租时不应宣传宠物友好",
+          "label": "不建议宣传宠物友好",
+          "min_score": 0,
+          "stars": 1
+        }
+      ]
+    },
+    "prerequisite_count": 12,
+    "product_lines": [
+      "AP"
+    ],
+    "regulation_refs": [
+      "T/CGLA 0004-2026",
+      "DB31/T 1703-2026"
+    ],
+    "total_items": 27,
+    "version_notes": "初始版本。包含6大板块、10项必选、14项可选。强调长期居住场景下的公共区域管理和运营制度。 | DB31/T 1703-2026 参考补充（非商业场所，仅作为法规参考框架） | T/CGLA对照：安全管理(30分)→P3; 内部管理·管理制度(20分)→P3; 人员管理(40分)→P3; 培训教育(10分)→P3... | T/CGLA 合规更新(2026-08-07)：新增 顾客满意度与投诉管理（T/CGLA） | v1.0.1（2026-09-10）：项字段名规范化（criteria/method/subjects/ref → scoring_criteria/evaluation_method/affected_subjects/reference_standard）；顶层 regulation_refs 占位号替换为正式号 T/CGLA 0004-2026 / DB31/T 1703-2026 | v1.0.1（2026-09-10）：补齐 level_config 五档描述（对齐 OS v1.1 口径，阈值取本份 min_score、必选/可选数取本份 items） | v1.1.0：外标条目改号（P3-DB06 → 本份 P3 段下一空位），与交付物编码 P#-## 对齐 | v1.1.0：删除「-1 不计分」档，档位统一 5/3/0（「无此设施不计分」由 is_optional_facility 承担） | v1.1.0：补「责任保险与免责」条（审计 C2 合规底线） | v1.1.0：满意度条改造为场景化口径并置空外标挂靠（审计 C3 / 决策 D3=A，待对口依据回填） | v1.1.0：必选数变化，同步刷新 level_config 2★/1★ 文案门槛 | v1.1.0：客户自评项改为可留痕材料核查（审计 C4 / 决策 D2=C） | v1.1.0：中档（3 分）模糊措辞改写为可判定状态（审计 C5，范本 OS P3-02「有预案但无台账/演练」） | v1.1.0：审计 C6 权重配比修复 —— ①补项 2 条（取自审计 C10 清单，补齐颗粒度不足维度，使每份项数达单位项权重≤4% 的数学下限 25 项）②重算 weight_presets 与 categories[].weight，单位项权重统一落 [2.5%,4.0%]、权重合计=1.0（详见 work_20260911/变更记录_第4步_20260911.md） | v1.1.0：硬阈值条文补 measure_spec 结构化测量口径（目标/单位/测量方法/容差/证据形式，审计 C7）；PK P1-01 围栏高度按犬型分档（大型犬区≥1.8m/小型犬区≥1.5m） | v1.1.0：审计 C8+C9+C10 一致性收口 —— ①受影响主体归一为 6 枚举（宠物本体/携宠人/非携宠访客/三产员工/运营方/邻里与周边）②5 组交叉计分按「分工边界写进条文」处理（不合并，保持项数与必选口径）③补 C10 缺条 14 条 ④RE 必选下调 2 项（13→11，回应必选占比偏高）⑤项数变动后复算权重（详见 work_20260911/变更记录_第5步_一致性收口_20260911.md） | v1.1.0：补项 2 条（与兄弟份同口径的真实缺口，非凑数）——为恢复维度权重差异：单位项权重 ≤4% 与 Σ权重=1 联立得总项数须 >25，本份 25→27 后释放 0.08 的维度权重可倾斜量（详见 work_20260911/变更记录_AP-PK恢复维度差异_20260911.md） | v1.1.0：重算维度权重以恢复维度差异（口径 A2：按风险倾斜，非机械等权）——补项后总项数 27 ⇒ 可倾斜量 0.08；倾斜口径见 work_20260911/变更记录_AP-PK恢复维度差异_20260911.md",
+    "weight_presets": {
+      "AP": {
+        "P1": 0.16,
+        "P2": 0.18,
+        "P3": 0.22,
+        "P4": 0.13,
+        "P5": 0.08,
+        "P6": 0.23
+      }
+    }
+  },
+  "name": "它界 v1.0 · 它公寓",
+  "release_date": "2026-08-01",
+  "status": "active",
+  "version": "1.0.0"
+}
