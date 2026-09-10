@@ -35,6 +35,8 @@
 
 /* Item row */
 .item-row { display:flex; align-items:center; padding:10px 18px 10px 30px; gap:12px; border-bottom:1px solid var(--border); transition:background .15s; }.item-row:last-child { border-bottom:none; }.item-row:hover { background:#ffffff03; }.item-row .drag-handle { color:var(--muted); cursor:grab; font-size:17px; }.item-row .item-id { font-size:14px; color:var(--accent); font-family:monospace; min-width:48px; }.item-row .item-name { flex:1; font-size:18px; }.item-row .item-type { font-size:16px; padding:2px 8px; border-radius:3px; }.item-row .item-type.prerequisite { background:#f56c6c1a; color:#f56c6c; }.item-row .item-type.credit { background:#67c23a1a; color:#67c23a; }.item-row .item-score { font-size:17px; color:var(--muted); min-width:40px; text-align:right; }.item-row .item-actions { display:flex; gap:4px; }
+/* 外标条款↗贴名尾 + 条款/指标明细行 */
+.item-name-wrap { display:flex; flex-direction:column; gap:2px; min-width:0; }.item-name-wrap .item-name-main { font-size:18px; }.ext-mark { color:var(--accent); font-size:12px; margin-left:3px; cursor:help; }.item-refs-line { display:flex; flex-wrap:wrap; gap:2px 14px; font-size:13px; color:var(--muted); }.item-refs-line .rf-lab { opacity:.7; margin-right:4px; }.item-refs-line .rf-ext { color:var(--accent); }
 
 /* Editable */
 /* Dark mode selects */
@@ -96,6 +98,8 @@ const { createApp, ref, reactive, computed, onMounted, nextTick, watch } = Vue
 const { createRouter, createWebHashHistory } = VueRouter
 
 const PRODUCT_LINES = ['HT','OS','PK','AP','HO','RE','OF','MC']
+// ─── 外标条款 / 参考标准 显示文案（集中配置，可随时更换；勿硬编码进模板）───
+const REF_TEXT = { extMark: '↗', extLabel: '外标条款', refLabel: '参考标准', sep: ' · ' }
 const STATUS_LABELS = { draft: '草稿', active: '进行中', completed: '已完成', archived: '归档' }
 const statusLabel = (s) => STATUS_LABELS[s] || s
 // 设施状态中文 (全局, 供清单/工作台共用)
@@ -212,7 +216,13 @@ const StandardsDetail = {
               <div v-for="(item, ii) in cat.items" :key="item.id" class="item-row" :data-item-id="item.id">
                 <span class="drag-handle">⠿</span>
                 <span class="item-id">{{ item.id }}</span>
-                <span class="item-name">{{ item.name }}</span>
+                <span class="item-name item-name-wrap">
+                  <span class="item-name-main">{{ item.name }}<sup v-if="extRefs(item).length" class="ext-mark" :title="REF_TEXT.extLabel + '：' + extRefs(item).join('；')">{{ REF_TEXT.extMark }}</sup></span>
+                  <span class="item-refs-line" v-if="extRefs(item).length || item.reference_standard">
+                    <span v-if="extRefs(item).length" class="rf-ext"><span class="rf-lab">{{ REF_TEXT.extLabel }}</span>{{ extRefs(item).join(REF_TEXT.sep) }}</span>
+                    <span v-if="item.reference_standard" class="rf-ref"><span class="rf-lab">{{ REF_TEXT.refLabel }}</span>{{ item.reference_standard }}</span>
+                  </span>
+                </span>
                 <span class="item-type" :class="item.type">{{ item.type === 'prerequisite' ? '必选' : '可选' }}</span>
                 <span class="item-score">满分 {{ item.score_max }}</span>
                 <span class="item-actions">
@@ -269,6 +279,12 @@ const StandardsDetail = {
     const editing = ref(false)
     const editForm = reactive({ id:'', name:'', type:'credit', score_max:5, scoring_criteria:[{score:5,label:''}] })
     let editCi = -1, editIi = -1
+    // 外标条款取数（兼容旧数据：数组 或 单条字符串）
+    const extRefs = (it) => {
+      const v = it && it.external_refs
+      if (Array.isArray(v)) return v.filter(x => x && String(x).trim())
+      return v ? [String(v)] : []
+    }
     const catList = ref(null)
     const itemLists = reactive({})
 
@@ -432,7 +448,7 @@ const StandardsDetail = {
       }
     }
 
-    return { standard, config, categories, loading, editing, editForm, catList, itemLists, weightTotal,
+    return { standard, config, categories, loading, editing, editForm, catList, itemLists, weightTotal, REF_TEXT, extRefs,
       toggleCat, onWeightChange, editItem, closeEdit, saveEdit, addCategory, addItem, deleteCategory, save }
   }
 }
