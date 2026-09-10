@@ -16,24 +16,18 @@
 """
 import datetime
 import pathlib
-import shutil
 import subprocess
 import sys
 
 REPO = pathlib.Path('/root/TAF')
 CANON = REPO / 'scripts' / 'standards'
 EXPORT = CANON / 'taf-standards-export.py'
-GEN = CANON / 'taf_standards_common.py'          # 共享模块（psql 等）
 LOCAL_BACKUP = pathlib.Path('/data/disk1/backups/taf')
 RETENTION_DAYS = 30
 NUTSTORE_DIR = 'nutstore:07_DEV/TAF/备份/'
 ENTH = 'enth'
 LOG = pathlib.Path.home() / '.hermes' / 'logs' / 'taf-standards-daily.log'
 DB = 'taf'
-
-sys.path.insert(0, str(CANON))
-from taf_standards_common import psql  # noqa: E402
-
 
 def sh(*a, timeout=600, **kw):
     return subprocess.run(a, capture_output=True, text=True, timeout=timeout, **kw)
