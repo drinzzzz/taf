@@ -37,7 +37,7 @@ HEADERS = {"Authorization": f"Bearer {DS_KEY}", "Content-Type": "application/jso
 
 # ── DB ─────────────────────────────────────────────────
 def get_db():
-    return psycopg2.connect(host="127.0.0.1", port=5432, dbname="taf", user="postgres", password="R@De432!")
+    return psycopg2.connect(host="127.0.0.1", port=5432, dbname="taf", user="postgres", password=_from_app_env("DB_PASSWORD", "/www/wwwroot/taf/.env"))
 
 
 # ── Qwen VL call ──────────────────────────────────────
@@ -394,3 +394,18 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def _from_app_env(key, path="/www/wwwroot/taf/.env"):
+    import os
+    v = os.environ.get(key, "")
+    if v:
+        return v
+    try:
+        for _ln in open(path):
+            _ln = _ln.strip()
+            if _ln.startswith(key + "="):
+                return _ln.split("=", 1)[1].strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return ""
