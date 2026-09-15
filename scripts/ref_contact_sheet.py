@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
+import os
 """图库 contact sheet 审查: 下载某项目录全部参考图 → 拼接缩略图网格(带编号) 供 vision 判定室内/户外"""
 import subprocess, urllib.parse, re, os, sys
 from PIL import Image, ImageDraw
+def _secret(key, default=""):
+    """凭据只从环境变量或 /root/.nutstore.env(600) 取，禁止硬编码。"""
+    v = os.environ.get(key, "")
+    if v:
+        return v
+    try:
+        for _ln in open("/root/.nutstore.env"):
+            if _ln.startswith(key + "="):
+                return _ln.split("=", 1)[1].strip()
+    except Exception:
+        pass
+    print("[warn] 缺少凭据 %s（见 /root/.nutstore.env）" % key, flush=True)
+    return default
 
-U = 'drin@vip.qq.com'; P = 'anyhfz69pcxzs7dw'
+U = 'drin@vip.qq.com'; P = _secret("NUTSTORE_PASS")
 B = 'https://dav.jianguoyun.com/dav/01_CURR_PRJ/2026-16 XING SHUN LI/DELIVERABLES/FACILITIES'
 item = sys.argv[1]            # e.g. P1-02_公共饮水点
 outdir = '/tmp/refsheets'
